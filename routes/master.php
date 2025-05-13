@@ -1,0 +1,19 @@
+<?php
+
+use App\Http\Controllers\Master\PasienController;
+use App\Http\Controllers\Master\UserController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+Route::middleware('auth')->group(function () {
+    Route::get('master/users', [UserController::class, 'index'])->name('master.users.index');
+    Route::post('master/user', [UserController::class, 'store'])->name('master.user.store');
+    Route::delete('master/users/{user}', [UserController::class, 'destroy'])->name('master.user.destroy');
+    Route::put('/master/users/{user}', [UserController::class, 'update'])->name('master.user.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('master/pasiens', [PasienController::class, 'index'])->name('master.pasiens.index');
+    Route::get('master/pasiens/create', [PasienController::class, 'create'])->name('master.pasien.create');
+    Route::get('master/pasiens/{pasien}', [PasienController::class, 'detail'])->name('master.pasiens.detail');
+});
