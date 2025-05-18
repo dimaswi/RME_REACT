@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export default function SearchableDropdown({ data, value, setValue, placeholder }) {
+export default function SearchableDropdown({ data, value, setValue, placeholder, disabled = false, warning = false }) {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [highlighted, setHighlighted] = useState(0);
@@ -48,7 +48,12 @@ export default function SearchableDropdown({ data, value, setValue, placeholder 
 
     return (
         <div className="relative" ref={ref}>
-            <div className="flex items-center border border-gray-300 rounded-lg px-2 py-1 bg-gray-50 focus-within:ring-2 focus-within:ring-gray-400 transition">
+            <div
+                className={`flex items-center border rounded-lg px-2 py-1 bg-white focus-within:ring-2 focus-within:ring-gray-400 transition
+                    ${disabled ? "opacity-60 cursor-not-allowed" : ""}
+                    ${warning ? "border-red-500" : "border-gray-300"}
+                `}
+            >
                 <input
                     className="flex-1 outline-none bg-transparent py-1 px-0 text-sm text-gray-700 placeholder-gray-400"
                     placeholder={placeholder}
@@ -57,25 +62,29 @@ export default function SearchableDropdown({ data, value, setValue, placeholder 
                             ? data.find(item => item.ID.toString() === value)?.DESKRIPSI
                             : search
                     }
-                    onFocus={() => setOpen(true)}
+                    onFocus={() => !disabled && setOpen(true)}
                     onChange={e => {
+                        if (disabled) return;
                         setSearch(e.target.value);
                         setValue("");
                         setOpen(true);
                     }}
-                    onKeyDown={handleKeyDown}
+                    onKeyDown={disabled ? undefined : handleKeyDown}
                     autoComplete="off"
+                    disabled={disabled}
+                    tabIndex={disabled ? -1 : 0}
                 />
                 <button
                     type="button"
                     className="ml-2 text-gray-400 hover:text-gray-600 transition"
                     tabIndex={-1}
-                    onClick={() => setOpen(v => !v)}
+                    onClick={() => !disabled && setOpen(v => !v)}
+                    disabled={disabled}
                 >
                     <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
                 </button>
             </div>
-            {open && (
+            {open && !disabled && (
                 <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-20">
                     {filtered.length === 0 ? (
                         <div className="p-3 text-gray-400 text-sm text-center">
@@ -86,8 +95,8 @@ export default function SearchableDropdown({ data, value, setValue, placeholder 
                             <div
                                 key={item.ID}
                                 className={`px-4 py-2 cursor-pointer transition truncate ${idx === highlighted
-                                        ? "bg-gray-200 text-gray-900"
-                                        : "hover:bg-gray-100 hover:text-gray-700"
+                                    ? "bg-gray-200 text-gray-900"
+                                    : "hover:bg-gray-100 hover:text-gray-700"
                                     }`}
                                 onMouseDown={() => {
                                     setValue(item.ID.toString());

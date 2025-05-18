@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -7,10 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Home, IdCard, PhoneCall, User, User2, Users, Users2 } from 'lucide-react';
+import { Home, IdCard, PhoneCall, User, Users2, Calendar as CalendarIcon, MapPin, ChevronDown } from 'lucide-react';
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, MapPin, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
     Popover,
@@ -19,7 +17,6 @@ import {
 } from "@/components/ui/popover";
 import { useState, useRef, useEffect } from "react";
 import SearchableDropdown from "@/components/SearchableDropdown";
-import { router, usePage } from "@inertiajs/react";
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,195 +25,169 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('master.pasiens.index'),
     },
     {
-        title: 'Tambah Pasien',
-        href: route('master.pasien.create'),
+        title: 'Edit Pasien',
+        href: '#',
     },
 ];
 
-export default function PasienIndex(props) {
-    // Hapus query parameter pada saat page load
-    useEffect(() => {
-        if (window.location.search) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    }, []);
+export default function PasienEdit(props) {
+    const pasien = props.pasien;
+    const [provinsi, setProvinsi] = useState(props.provinsi ?? []);
+    const [kabupaten, setKabupaten] = useState([]);
+    const [kecamatan, setKecamatan] = useState([]);
+    const [kelurahan, setKelurahan] = useState([]);
 
-    const [date, setDate] = useState<Date>();
+    // Identitas Pasien
+    const [gelarDepan, setGelarDepan] = useState(pasien?.GELAR_DEPAN || "");
+    const [nama, setNama] = useState(pasien?.NAMA || "");
+    const [gelarBelakang, setGelarBelakang] = useState(pasien?.GELAR_BELAKANG || "");
+    const [namaPanggilan, setNamaPanggilan] = useState(pasien?.PANGGILAN || "");
+    const [tempatLahirValue, setTempatLahirValue] = useState(pasien?.TEMPAT_LAHIR || "");
+    const [date, setDate] = useState(
+        pasien?.TANGGAL_LAHIR &&
+            pasien.TANGGAL_LAHIR !== "0000-00-00" &&
+            pasien.TANGGAL_LAHIR !== "0000-00-00 00:00:00"
+            ? new Date(pasien.TANGGAL_LAHIR)
+            : undefined
+    ); const [jenisKelaminValue, setJenisKelaminValue] = useState(pasien?.JENIS_KELAMIN?.toString() || "");
+    const [agamaValue, setAgamaValue] = useState(pasien?.AGAMA?.toString() || "");
+    const [statusPerkawinanValue, setStatusPerkawinanValue] = useState(pasien?.STATUS_PERKAWINAN?.toString() || "");
+    const [pendidikanValue, setPendidikanValue] = useState(pasien?.PENDIDIKAN?.toString() || "");
+    const [pekerjaanValue, setPekerjaanValue] = useState(pasien?.PEKERJAAN?.toString() || "");
+    const [golonganDarahValue, setGolonganDarahValue] = useState(pasien?.GOLONGAN_DARAH?.toString() || "");
+    const [negaraValue, setNegaraValue] = useState(pasien?.KEWARGANEGARAAN?.toString() || "");
+    const [statusIdentitasValue, setStatusIdentitasValue] = useState(pasien?.SUKU?.toString() || "");
+    const [statusAktifValue, setStatusAktifValue] = useState(pasien?.STATUS?.toString() || "");
+
+    // Alamat Pasien
+    const [alamatPasien, setAlamatPasien] = useState(pasien?.ALAMAT || "");
+    const [rukunTetangga, setRukunTetangga] = useState(pasien?.RT || "");
+    const [rukunWarga, setRukunWarga] = useState(pasien?.RW || "");
+    const [kodePos, setKodePos] = useState(pasien?.KODEPOS || "");
+    const [alamatProvinsi, setAlamatProvinsi] = useState(pasien?.WILAYAH ? pasien.WILAYAH.substring(0, 2) : "");
+    const [alamatKabupaten, setAlamatKabupaten] = useState(pasien?.WILAYAH ? pasien.WILAYAH.substring(0, 4) : "");
+    const [alamatKecamatan, setAlamatKecamatan] = useState(pasien?.WILAYAH ? pasien.WILAYAH.substring(0, 6) : "");
+    const [alamatKelurahan, setAlamatKelurahan] = useState(pasien?.WILAYAH ? pasien.WILAYAH.substring(0, 10) : "");
+
+    // Kartu Identitas Pasien
+    const [jenisIdentitas, setJenisIdentitas] = useState(props.kartuIdentitasPasien?.JENIS?.toString() || "");
+    const [nomorIdentitas, setNomorIdentitas] = useState(props.kartuIdentitasPasien?.NOMOR || "");
+    const [kartuAlamatPasien, setKartuAlamatPasien] = useState(props.kartuIdentitasPasien?.ALAMAT || "");
+    const [kartuRukunTetangga, setKartuRukunTetangga] = useState(props.kartuIdentitasPasien?.RT || "");
+    const [kartuRukunWarga, setKartuRukunWarga] = useState(props.kartuIdentitasPasien?.RW || "");
+    const [kartuKodePos, setKartuKodePos] = useState(props.kartuIdentitasPasien?.KODEPOS || "");
+    const [kartuAlamatProvinsi, setKartuAlamatProvinsi] = useState(props.kartuIdentitasPasien?.WILAYAH ? props.kartuIdentitasPasien.WILAYAH.substring(0, 2) : "");
+    const [kartuAlamatKabupaten, setKartuAlamatKabupaten] = useState(props.kartuIdentitasPasien?.WILAYAH ? props.kartuIdentitasPasien.WILAYAH.substring(0, 4) : "");
+    const [kartuAlamatKecamatan, setKartuAlamatKecamatan] = useState(props.kartuIdentitasPasien?.WILAYAH ? props.kartuIdentitasPasien.WILAYAH.substring(0, 6) : "");
+    const [kartuAlamatKelurahan, setKartuAlamatKelurahan] = useState(props.kartuIdentitasPasien?.WILAYAH ? props.kartuIdentitasPasien.WILAYAH.substring(0, 10) : "");
+
+    // Kontak Pasien
+    const [jenisKontak, setJenisKontak] = useState(props.kontakPasien?.JENIS?.toString() || "");
+    const [teleponPasien, setTeleponPasien] = useState(props.kontakPasien?.NOMOR || "");
+
+    // Keluarga Pasien
+    const [hubunganKeluarga, setHubunganKeluarga] = useState(props.keluargaPasien?.SHDK?.toString() || "");
+    const [namaKeluarga, setNamaKeluarga] = useState(props.keluargaPasien?.NAMA || "");
+    const rawTanggalLahirKeluarga = props.keluargaPasien?.TANGGAL_LAHIR;
+    const [tanggalLahirKeluarga, setTanggalLahirKeluarga] = useState(
+        rawTanggalLahirKeluarga && rawTanggalLahirKeluarga !== "0000-00-00" && rawTanggalLahirKeluarga !== "0000-00-00 00:00:00"
+            ? new Date(rawTanggalLahirKeluarga)
+            : undefined
+    ); const [jenisKelaminKeluarga, setJenisKelaminKeluarga] = useState(props.keluargaPasien?.JENIS_KELAMIN?.toString() || "");
+    const [pendidikanKeluarga, setPendidikanKeluarga] = useState(props.keluargaPasien?.PENDIDIKAN?.toString() || "");
+    const [pekerjaanKeluarga, setPekerjaanKeluarga] = useState(props.keluargaPasien?.PEKERJAAN?.toString() || "");
+    const [jenisKontakKeluarga, setJenisKontakKeluarga] = useState(props.kontakKeluarga?.JENIS?.toString() || "");
+    const [teleponKeluarga, setTeleponKeluarga] = useState(props.kontakKeluarga?.NOMOR || "");
+    const [jenisIdentitasKeluarga, setJenisIdentitasKeluarga] = useState(props.kartuIdentitasKeluarga?.JENIS?.toString() || "");
+    const [nomorIdentitasKeluarga, setNomorIdentitasKeluarga] = useState(props.kartuIdentitasKeluarga?.NOMOR || "");
+    const [alamatKeluarga, setAlamatKeluarga] = useState(props.kartuIdentitasKeluarga?.ALAMAT || "");
+    const [rukunTetanggaKeluarga, setRukunTetanggaKeluarga] = useState(props.kartuIdentitasKeluarga?.RT || "");
+    const [rukunWargaKeluarga, setRukunWargaKeluarga] = useState(props.kartuIdentitasKeluarga?.RW || "");
+    const [kodePosKeluarga, setKodePosKeluarga] = useState(props.kartuIdentitasKeluarga?.KODEPOS || "");
+    const [alamatProvinsiKeluarga, setAlamatProvinsiKeluarga] = useState(props.kartuIdentitasKeluarga?.WILAYAH ? props.kartuIdentitasKeluarga.WILAYAH.substring(0, 2) : "");
+    const [alamatKabupatenKeluarga, setAlamatKabupatenKeluarga] = useState(props.kartuIdentitasKeluarga?.WILAYAH ? props.kartuIdentitasKeluarga.WILAYAH.substring(0, 4) : "");
+    const [alamatKecamatanKeluarga, setAlamatKecamatanKeluarga] = useState(props.kartuIdentitasKeluarga?.WILAYAH ? props.kartuIdentitasKeluarga.WILAYAH.substring(0, 6) : "");
+    const [alamatKelurahanKeluarga, setAlamatKelurahanKeluarga] = useState(props.kartuIdentitasKeluarga?.WILAYAH ? props.kartuIdentitasKeluarga.WILAYAH.substring(0, 10) : "");
+
+    // Checkbox dan flag
+    const [isPasienTidakDikenal, setIsPasienTidakDikenal] = useState(pasien?.TIDAK_DIKENAL === 1);
+    const [ktpSamaDenganAlamat, setKtpSamaDenganAlamat] = useState(false);
+    const [keluargaSamaDenganPasien, setKeluargaSamaDenganPasien] = useState(false);
+    const [monthKeluarga, setMonthKeluarga] = useState(new Date());
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+    const [isCalendarOpenKeluarga, setIsCalendarOpenKeluarga] = useState(false);
+
+    // Provinsi -> Kabupaten
+    useEffect(() => {
+        if (!alamatProvinsi) {
+            setKabupaten([]);
+            setAlamatKabupaten("");
+            setKecamatan([]);
+            setAlamatKecamatan("");
+            setKelurahan([]);
+            setAlamatKelurahan("");
+            return;
+        }
+        fetch(route('api.wilayah', { jenis: 2, parent: alamatProvinsi }))
+            .then(res => res.json())
+            .then(data => {
+                setKabupaten(data.wilayah || []);
+                if (pasien?.WILAYAH?.startsWith(alamatProvinsi)) {
+                    setAlamatKabupaten(pasien.WILAYAH.substring(0, 4));
+                }
+            });
+    }, [alamatProvinsi]);
+
+    // Kabupaten -> Kecamatan
+    useEffect(() => {
+        if (!alamatKabupaten) {
+            setKecamatan([]);
+            setAlamatKecamatan("");
+            setKelurahan([]);
+            setAlamatKelurahan("");
+            return;
+        }
+        fetch(route('api.wilayah', { jenis: 3, parent: alamatKabupaten }))
+            .then(res => res.json())
+            .then(data => {
+                setKecamatan(data.wilayah || []);
+                if (pasien?.WILAYAH?.startsWith(alamatKabupaten)) {
+                    setAlamatKecamatan(pasien.WILAYAH.substring(0, 6));
+                }
+            });
+    }, [alamatKabupaten]);
+
+    // Kecamatan -> Kelurahan
+    useEffect(() => {
+        if (!alamatKecamatan) {
+            setKelurahan([]);
+            setAlamatKelurahan("");
+            return;
+        }
+        fetch(route('api.wilayah', { jenis: 4, parent: alamatKecamatan }))
+            .then(res => res.json())
+            .then(data => {
+                setKelurahan(data.wilayah || []);
+                if (pasien?.WILAYAH?.startsWith(alamatKecamatan)) {
+                    setAlamatKelurahan(pasien.WILAYAH.substring(0, 10));
+                }
+            });
+    }, [alamatKecamatan]);
+
+
+    // --- Inisialisasi state dari pasien ---
     const [month, setMonth] = useState(new Date());
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     const [tempatLahirOpen, setTempatLahirOpen] = useState(false);
-    const [tempatLahirValue, setTempatLahirValue] = useState("");
-    const [tempatLahirSearch, setTempatLahirSearch] = useState("");
     const dropdownRef = useRef(null);
 
-    // State untuk dropdown jenis kelamin
     const [jenisKelaminOpen, setJenisKelaminOpen] = useState(false);
-    const [jenisKelaminValue, setJenisKelaminValue] = useState("");
-    const [jenisKelaminSearch, setJenisKelaminSearch] = useState("");
     const jkDropdownRef = useRef(null);
 
-    const [statusPerkawinanValue, setStatusPerkawinanValue] = useState("");
-    const [pekerjaanValue, setPekerjaanValue] = useState("");
-    const [pendidikanValue, setPendidikanValue] = useState("");
-    const [kewarganegaraanValue, setKewarganegaraanValue] = useState("");
-
-    const [gelarDepan, setGelarDepan] = useState("");
-    const [nama, setNama] = useState("");
-    const [gelarBelakang, setGelarBelakang] = useState("");
-    const [namaPanggilan, setNamaPanggilan] = useState("");
-
-    const [isPasienTidakDikenal, setIsPasienTidakDikenal] = useState(false);
-
-    // Card Alamat Pasien
-    const [alamatPasien, setAlamatPasien] = useState("");
-    const [rukunTetangga, setRukunTetangga] = useState("");
-    const [rukunWarga, setRukunWarga] = useState("");
-    const [kodePos, setKodePos] = useState("");
-
-    const [provinsi, setProvinsi] = useState(props.provinsi || []);
-    const [kabupaten, setKabupaten] = useState([]);
-    const [kecamatan, setKecamatan] = useState([]);
-    const [kelurahan, setKelurahan] = useState([]);
-    const [alamatProvinsi, setAlamatProvinsi] = useState("");
-    const [alamatKabupaten, setAlamatKabupaten] = useState("");
-    const [alamatKecamatan, setAlamatKecamatan] = useState("");
-    const [alamatKelurahan, setAlamatKelurahan] = useState("");
-
-    // Provinsi sudah di-load dari props, kabupaten dinamis:
-    useEffect(() => {
-        setAlamatKabupaten("");
-        setKabupaten([]);
-        setAlamatKecamatan("");
-        setKecamatan([]);
-        setAlamatKelurahan("");
-        setKelurahan([]);
-        if (alamatProvinsi) {
-            router.get(
-                route('master.pasien.create', { jenis: 2, parent: alamatProvinsi }),
-                {},
-                {
-                    preserveState: true,
-                    only: ['wilayah'],
-                    onSuccess: (page) => {
-                        setKabupaten(page.props.wilayah || []);
-                    },
-                }
-            );
-        }
-    }, [alamatProvinsi]);
-
-    useEffect(() => {
-        setAlamatKecamatan("");
-        setKecamatan([]);
-        setAlamatKelurahan("");
-        setKelurahan([]);
-        if (alamatKabupaten) {
-            router.get(
-                route('master.pasien.create', { jenis: 3, parent: alamatKabupaten }),
-                {},
-                {
-                    preserveState: true,
-                    only: ['wilayah'],
-                    onSuccess: (page) => {
-                        setKecamatan(page.props.wilayah || []);
-                    },
-                }
-            );
-        }
-    }, [alamatKabupaten]);
-
-    useEffect(() => {
-        setAlamatKelurahan("");
-        setKelurahan([]);
-        if (alamatKecamatan) {
-            router.get(
-                route('master.pasien.create', { jenis: 4, parent: alamatKecamatan }),
-                {},
-                {
-                    preserveState: true,
-                    only: ['wilayah'],
-                    onSuccess: (page) => {
-                        setKelurahan(page.props.wilayah || []);
-                    },
-                }
-            );
-        }
-    }, [alamatKecamatan]);
-
-    // SET DEFAULT PROVINSI DAN KABUPATEN
-    useEffect(() => {
-        // Set default provinsi ke "JAWA TIMUR" jika belum ada
-        if (!alamatProvinsi && provinsi.length > 0) {
-            const defaultProv = provinsi.find(item => item.DESKRIPSI?.toUpperCase() === "JAWA TIMUR");
-            if (defaultProv) {
-                setAlamatProvinsi(defaultProv.ID.toString());
-            }
-        }
-        // eslint-disable-next-line
-    }, [provinsi]);
-
-    useEffect(() => {
-        // Set default kabupaten ke "BOJONEGORO" jika belum ada
-        if (kabupaten.length > 0 && alamatProvinsi && !alamatKabupaten) {
-            const defaultKab = kabupaten.find(item => item.DESKRIPSI?.toUpperCase() === "BOJONEGORO");
-            if (defaultKab) {
-                setAlamatKabupaten(defaultKab.ID.toString());
-            }
-        }
-        // eslint-disable-next-line
-    }, [kabupaten, alamatProvinsi]);
-
-    //Card Telepon Pasien
-    // Cari ID jenis kontak "Telepon Seluler"
-    const defaultJenisKontak = (props.jenisKontak ?? []).find(item => item.DESKRIPSI?.toUpperCase() === "TELEPON SELULER");
-    const [jenisKontak, setJenisKontak] = useState(defaultJenisKontak ? defaultJenisKontak.ID.toString() : "");
-    const [teleponPasien, setTeleponPasien] = useState('0');
-
-    // Card Kartu Identitas Pasien
-    // Cari ID jenis identitas "Kartu Tanda Penduduk (KTP)"
-    const defaultJenisIdentitas = (props.jenisIdentitas ?? []).find(
-        item => item.DESKRIPSI?.toUpperCase() === "KARTU TANDA PENDUDUK (KTP)"
-    );
-    const [jenisIdentitas, setJenisIdentitas] = useState(
-        defaultJenisIdentitas ? defaultJenisIdentitas.ID.toString() : ""
-    );
-    const [nomorIdentitas, setNomorIdentitas] = useState("");
-    const [kartuAlamatPasien, setKartuAlamatPasien] = useState("");
-    const [kartuRukunTetangga, setKartuRukunTetangga] = useState("");
-    const [kartuRukunWarga, setKartuRukunWarga] = useState("");
-    const [kartuKodePos, setKartuKodePos] = useState("");
-    const [kartuAlamatProvinsi, setKartuAlamatProvinsi] = useState("");
-    const [kartuAlamatKabupaten, setKartuAlamatKabupaten] = useState("");
-    const [kartuAlamatKecamatan, setKartuAlamatKecamatan] = useState("");
-    const [kartuAlamatKelurahan, setKartuAlamatKelurahan] = useState("");
-
-    // Set default kartuAlamatProvinsi ke "JAWA TIMUR"
-    useEffect(() => {
-        if (!kartuAlamatProvinsi && provinsi.length > 0) {
-            const defaultProv = provinsi.find(item => item.DESKRIPSI?.toUpperCase() === "JAWA TIMUR");
-            if (defaultProv) {
-                setKartuAlamatProvinsi(defaultProv.ID.toString());
-            }
-        }
-    }, [provinsi]);
-
-    // Set default kartuAlamatKabupaten ke "BOJONEGORO"
-    useEffect(() => {
-        if (
-            kabupaten.length > 0 &&
-            kartuAlamatProvinsi &&
-            !kartuAlamatKabupaten
-        ) {
-            const defaultKab = kabupaten.find(item => item.DESKRIPSI?.toUpperCase() === "BOJONEGORO");
-            if (defaultKab) {
-                setKartuAlamatKabupaten(defaultKab.ID.toString());
-            }
-        }
-    }, [kabupaten, kartuAlamatProvinsi]);
-
-    // State untuk checkbox "Samakan dengan alamat pasien"
-    const [ktpSamaDenganAlamat, setKtpSamaDenganAlamat] = useState(false);
+    const [warning, setWarning] = useState({});
 
     const handleCheckboxKtpAlamat = (checked) => {
         setKtpSamaDenganAlamat(checked);
@@ -232,84 +203,6 @@ export default function PasienIndex(props) {
         }
     };
 
-    // Card Keluarga Pasien
-    const defaultHubunganKeluarga = (props.hubunganKeluarga ?? []).find(
-        item => item.DESKRIPSI?.toUpperCase() === "ORANG TUA"
-    );
-    const [hubunganKeluarga, setHubunganKeluarga] = useState(
-        defaultHubunganKeluarga ? defaultHubunganKeluarga.ID.toString() : ""
-    );
-    const [namaKeluarga, setNamaKeluarga] = useState("");
-    const [tanggalLahirKeluarga, setTanggalLahirKeluarga] = useState<Date>();
-    const [monthKeluarga, setMonthKeluarga] = useState(new Date());
-    const [isCalendarOpenKeluarga, setIsCalendarOpenKeluarga] = useState(false);
-    const [alamatKeluarga, setAlamatKeluarga] = useState("");
-    const [rukunTetanggaKeluarga, setRukunTetanggaKeluarga] = useState("");
-    const [rukunWargaKeluarga, setRukunWargaKeluarga] = useState("");
-    const [kodePosKeluarga, setKodePosKeluarga] = useState("");
-    const [alamatProvinsiKeluarga, setAlamatProvinsiKeluarga] = useState("");
-    const [alamatKabupatenKeluarga, setAlamatKabupatenKeluarga] = useState("");
-    const [alamatKecamatanKeluarga, setAlamatKecamatanKeluarga] = useState("");
-    const [alamatKelurahanKeluarga, setAlamatKelurahanKeluarga] = useState("");
-    const [teleponKeluarga, setTeleponKeluarga] = useState("");
-
-    // Default Jenis Kelamin Keluarga: PEREMPUAN
-    const defaultJenisKelaminKeluarga = (props.jenisKelamin ?? []).find(
-        item => item.DESKRIPSI?.toUpperCase() === "PEREMPUAN"
-    );
-    const [jenisKelaminKeluarga, setJenisKelaminKeluarga] = useState(
-        defaultJenisKelaminKeluarga ? defaultJenisKelaminKeluarga.ID.toString() : ""
-    );
-
-    // Default Pendidikan Keluarga (opsional, bisa kosong atau isi sesuai kebutuhan)
-    const [pendidikanKeluarga, setPendidikanKeluarga] = useState("");
-
-    // Default Pekerjaan Keluarga (opsional, bisa kosong atau isi sesuai kebutuhan)
-    const [pekerjaanKeluarga, setPekerjaanKeluarga] = useState("");
-
-    // Default Jenis Identitas Keluarga: KARTU TANDA PENDUDUK (KTP)
-    const defaultJenisIdentitasKeluarga = (props.jenisIdentitas ?? []).find(
-        item => item.DESKRIPSI?.toUpperCase() === "KARTU TANDA PENDUDUK (KTP)"
-    );
-    const [jenisIdentitasKeluarga, setJenisIdentitasKeluarga] = useState(
-        defaultJenisIdentitasKeluarga ? defaultJenisIdentitasKeluarga.ID.toString() : ""
-    );
-    const [nomorIdentitasKeluarga, setNomorIdentitasKeluarga] = useState("");
-
-    // Cari ID jenis kontak "Telepon Seluler"
-    const defaultJenisKontakKeluarga = (props.jenisKontak ?? []).find(
-        item => item.DESKRIPSI?.toUpperCase() === "TELEPON SELULER"
-    );
-    const [jenisKontakKeluarga, setJenisKontakKeluarga] = useState(
-        defaultJenisKontakKeluarga ? defaultJenisKontakKeluarga.ID.toString() : ""
-    );
-
-    // Set default provinsi keluarga ke "JAWA TIMUR"
-    useEffect(() => {
-        if (!alamatProvinsiKeluarga && provinsi.length > 0) {
-            const defaultProv = provinsi.find(item => item.DESKRIPSI?.toUpperCase() === "JAWA TIMUR");
-            if (defaultProv) {
-                setAlamatProvinsiKeluarga(defaultProv.ID.toString());
-            }
-        }
-    }, [provinsi]);
-
-    // Set default kabupaten keluarga ke "BOJONEGORO"
-    useEffect(() => {
-        if (
-            kabupaten.length > 0 &&
-            alamatProvinsiKeluarga &&
-            !alamatKabupatenKeluarga
-        ) {
-            const defaultKab = kabupaten.find(item => item.DESKRIPSI?.toUpperCase() === "BOJONEGORO");
-            if (defaultKab) {
-                setAlamatKabupatenKeluarga(defaultKab.ID.toString());
-            }
-        }
-    }, [kabupaten, alamatProvinsiKeluarga]);
-
-    // Checkbox samakan alamat keluarga dengan pasien
-    const [keluargaSamaDenganPasien, setKeluargaSamaDenganPasien] = useState(false);
     const handleCheckboxKeluargaAlamat = (checked) => {
         setKeluargaSamaDenganPasien(checked);
         if (checked) {
@@ -324,64 +217,9 @@ export default function PasienIndex(props) {
         }
     };
 
-    // State untuk warning
-    const [warning, setWarning] = useState({});
-
-    // Cari ID agama "ISLAM"
-    const agamaIslam = props.agama.find(item => item.DESKRIPSI?.toUpperCase() === "ISLAM");
-    const [agamaValue, setAgamaValue] = useState(agamaIslam ? agamaIslam.ID.toString() : "");
-
-    // Cari ID negara "INDONESIA"
-    const indonesiaNegara = props.negara.find(item => item.DESKRIPSI?.toUpperCase() === "INDONESIA");
-    const [negaraValue, setNegaraValue] = useState(indonesiaNegara ? indonesiaNegara.ID.toString() : "");
-
-    // Cari ID status identitas "JAWA"
-    const jawaStatusIdentitas = props.statusIdentitas.find(item => item.DESKRIPSI?.toUpperCase() === "JAWA");
-    const [statusIdentitasValue, setStatusIdentitasValue] = useState(jawaStatusIdentitas ? jawaStatusIdentitas.ID.toString() : "");
-
-    // Cari ID status aktif "HIDUP / AKTIF"
-    const hidupAktif = props.statusAktif.find(item => item.DESKRIPSI?.toUpperCase() === "HIDUP / AKTIF");
-    const [statusAktifValue, setStatusAktifValue] = useState(hidupAktif ? hidupAktif.ID.toString() : "");
-
-    // Cari ID golongan darah "TIDAK TAHU"
-    const tidakTahuGolDarah = props.golonganDarah.find(item => item.DESKRIPSI?.toUpperCase() === "TIDAK TAHU");
-    const [golonganDarahValue, setGolonganDarahValue] = useState(tidakTahuGolDarah ? tidakTahuGolDarah.ID.toString() : "");
-
-    // Filter sederhana
-    const hasilFilter = props.tempatLahir.filter(city =>
-        !tempatLahirSearch
-            ? true
-            : city.DESKRIPSI &&
-            city.DESKRIPSI.toLowerCase().includes(tempatLahirSearch.toLowerCase())
-    );
-
-    const hasilFilterJK = props.jenisKelamin.filter(item =>
-        !jenisKelaminSearch
-            ? true
-            : item.DESKRIPSI &&
-            item.DESKRIPSI.toLowerCase().includes(jenisKelaminSearch.toLowerCase())
-    );
-
-    // Tutup dropdown jika klik di luar
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setTempatLahirOpen(false);
-            }
-            if (jkDropdownRef.current && !jkDropdownRef.current.contains(event.target)) {
-                setJenisKelaminOpen(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     function handleSubmit(e) {
         e.preventDefault();
         setIsSubmitting(true);
-
         let newWarnings = {};
 
         if (isPasienTidakDikenal) {
@@ -399,8 +237,8 @@ export default function PasienIndex(props) {
             }
 
             // Kirim hanya field minimal
-            router.post(
-                route('master.pasien.store'),
+            router.put(
+                route('master.pasien.update', { pasien: pasien.NORM }),
                 {
                     nama,
                     tanggal_lahir: date,
@@ -486,7 +324,7 @@ export default function PasienIndex(props) {
         setIsSubmitting(true);
 
         // Kirim semua field ke controller
-        router.post(route('master.pasien.store'), {
+        router.put(route('master.pasien.update', { pasien: pasien.NORM }), {
             // Identitas Pasien
             gelar_depan: gelarDepan,
             nama,
@@ -554,81 +392,13 @@ export default function PasienIndex(props) {
         });
     }
 
-    function handleReset() {
-        // Cari default provinsi dan kabupaten
-        const defaultProv = provinsi.find(item => item.DESKRIPSI?.toUpperCase() === "JAWA TIMUR");
-        const defaultKab = kabupaten.find(item => item.DESKRIPSI?.toUpperCase() === "BOJONEGORO");
-
-        // Identitas Pasien
-        setGelarDepan("");
-        setNama("");
-        setGelarBelakang("");
-        setNamaPanggilan("");
-        setTempatLahirValue("");
-        setDate(undefined);
-        setJenisKelaminValue("");
-        setAgamaValue("");
-        setStatusPerkawinanValue("");
-        setPendidikanValue("");
-        setPekerjaanValue("");
-        setGolonganDarahValue(tidakTahuGolDarah ? tidakTahuGolDarah.ID.toString() : "");
-        setNegaraValue(indonesiaNegara ? indonesiaNegara.ID.toString() : "");
-        setStatusIdentitasValue(jawaStatusIdentitas ? jawaStatusIdentitas.ID.toString() : "");
-        setStatusAktifValue(hidupAktif ? hidupAktif.ID.toString() : "");
-
-        // Alamat Pasien
-        setAlamatPasien("");
-        setRukunTetangga("");
-        setRukunWarga("");
-        setKodePos("");
-        setAlamatProvinsi(defaultProv ? defaultProv.ID.toString() : "");
-        setAlamatKabupaten(defaultKab ? defaultKab.ID.toString() : "");
-        setAlamatKecamatan("");
-        setAlamatKelurahan("");
-
-        // Kartu Identitas Pasien
-        setJenisIdentitas(defaultJenisIdentitas ? defaultJenisIdentitas.ID.toString() : "");
-        setNomorIdentitas("");
-        setKartuAlamatPasien("");
-        setKartuRukunTetangga("");
-        setKartuRukunWarga("");
-        setKartuKodePos("");
-        setKartuAlamatProvinsi(defaultProv ? defaultProv.ID.toString() : "");
-        setKartuAlamatKabupaten(defaultKab ? defaultKab.ID.toString() : "");
-        setKartuAlamatKecamatan("");
-        setKartuAlamatKelurahan("");
-
-        // Kontak Pasien
-        setJenisKontak(defaultJenisKontak ? defaultJenisKontak.ID.toString() : "");
-        setTeleponPasien("");
-
-        // Keluarga Pasien
-        setHubunganKeluarga(defaultHubunganKeluarga ? defaultHubunganKeluarga.ID.toString() : "");
-        setNamaKeluarga("");
-        setTanggalLahirKeluarga(undefined);
-        setJenisKelaminKeluarga(defaultJenisKelaminKeluarga ? defaultJenisKelaminKeluarga.ID.toString() : "");
-        setPendidikanKeluarga("");
-        setPekerjaanKeluarga("");
-        setJenisKontakKeluarga(defaultJenisKontakKeluarga ? defaultJenisKontakKeluarga.ID.toString() : "");
-        setTeleponKeluarga("");
-        setJenisIdentitasKeluarga(defaultJenisIdentitasKeluarga ? defaultJenisIdentitasKeluarga.ID.toString() : "");
-        setNomorIdentitasKeluarga("");
-        setAlamatKeluarga("");
-        setRukunTetanggaKeluarga("");
-        setRukunWargaKeluarga("");
-        setKodePosKeluarga("");
-        setAlamatProvinsiKeluarga(defaultProv ? defaultProv.ID.toString() : "");
-        setAlamatKabupatenKeluarga(defaultKab ? defaultKab.ID.toString() : "");
-        setAlamatKecamatanKeluarga("");
-        setAlamatKelurahanKeluarga("");
-
-        setWarning({});
-    }
+    // --- Render form, sama seperti create.tsx, field diisi dari state ---
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Tambah Pasien" />
+            <Head title="Edit Pasien" />
             <div className="p-4">
+                {/* ...copy seluruh isi form dari create.tsx, field diisi dari state... */}
                 <form onSubmit={handleSubmit}>
                     <Card className="w-full shadow-sm -py-6">
                         <CardHeader className="flex flex-row items-center justify-between p-4 bg-gray-50 border-b">
@@ -987,7 +757,12 @@ export default function PasienIndex(props) {
                                         <SearchableDropdown
                                             data={provinsi}
                                             value={alamatProvinsi}
-                                            setValue={setAlamatProvinsi}
+                                            setValue={val => {
+                                                setAlamatProvinsi(val);
+                                                setAlamatKabupaten("");
+                                                setAlamatKecamatan("");
+                                                setAlamatKelurahan("");
+                                            }}
                                             placeholder="Masukkan Provinsi"
                                             disabled={isPasienTidakDikenal}
                                             warning={!!warning.alamatProvinsi}
@@ -997,7 +772,11 @@ export default function PasienIndex(props) {
                                         <SearchableDropdown
                                             data={kabupaten}
                                             value={alamatKabupaten}
-                                            setValue={setAlamatKabupaten}
+                                            setValue={val => {
+                                                setAlamatKabupaten(val);
+                                                setAlamatKecamatan("");
+                                                setAlamatKelurahan("");
+                                            }}
                                             placeholder="Masukkan Kabupaten"
                                             disabled={isPasienTidakDikenal}
                                             warning={!!warning.alamatKabupaten}
@@ -1007,7 +786,10 @@ export default function PasienIndex(props) {
                                         <SearchableDropdown
                                             data={kecamatan}
                                             value={alamatKecamatan}
-                                            setValue={setAlamatKecamatan}
+                                            setValue={val => {
+                                                setAlamatKecamatan(val);
+                                                setAlamatKelurahan("");
+                                            }}
                                             placeholder="Masukkan Kecamatan"
                                             disabled={isPasienTidakDikenal}
                                             warning={!!warning.alamatKecamatan}
@@ -1049,7 +831,7 @@ export default function PasienIndex(props) {
                                         <div className="flex items-center space-x-1">
                                             <Input
                                                 placeholder="Masukkan Telepon Pasien"
-                                                className="w-full"
+                                                className={`w-full ${warning.teleponPasien ? "border-red-500" : ""}`}
                                                 value={teleponPasien}
                                                 onChange={e => setTeleponPasien(e.target.value)}
                                                 name="telepon_pasien"
@@ -1459,7 +1241,7 @@ export default function PasienIndex(props) {
                                             data={provinsi}
                                             value={alamatProvinsiKeluarga}
                                             setValue={setAlamatProvinsiKeluarga}
-                                            placeholder="Provinsi"
+                                            placeholder="Provinsi Keluarga"
                                             disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
@@ -1468,7 +1250,7 @@ export default function PasienIndex(props) {
                                             data={kabupaten}
                                             value={alamatKabupatenKeluarga}
                                             setValue={setAlamatKabupatenKeluarga}
-                                            placeholder="Kabupaten"
+                                            placeholder="Kabupaten Keluarga"
                                             disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
@@ -1477,7 +1259,7 @@ export default function PasienIndex(props) {
                                             data={kecamatan}
                                             value={alamatKecamatanKeluarga}
                                             setValue={setAlamatKecamatanKeluarga}
-                                            placeholder="Kecamatan"
+                                            placeholder="Kecamatan Keluarga"
                                             disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
@@ -1486,7 +1268,7 @@ export default function PasienIndex(props) {
                                             data={kelurahan}
                                             value={alamatKelurahanKeluarga}
                                             setValue={setAlamatKelurahanKeluarga}
-                                            placeholder="Kelurahan"
+                                            placeholder="Kelurahan Keluarga"
                                             disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
@@ -1498,10 +1280,11 @@ export default function PasienIndex(props) {
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={handleReset}
                             className="px-6"
+                            onClick={() => router.visit(route('master.pasiens.detail', { pasien: pasien.NORM }))}
+                            disabled={isSubmitting}
                         >
-                            Reset
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
@@ -1522,7 +1305,8 @@ export default function PasienIndex(props) {
                         </Button>
                     </div>
                 </form>
+                {/* ...pastikan tombol submit menggunakan isSubmitting dan router.put... */}
             </div>
-        </AppLayout >
+        </AppLayout>
     );
 }

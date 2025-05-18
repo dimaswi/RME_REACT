@@ -14,6 +14,38 @@ class Pasien extends Model
 
     protected $primaryKey = 'NORM';
 
+    public $incrementing = true;
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'NAMA',
+        'PANGGILAN',
+        'GELAR_DEPAN',
+        'GELAR_BELAKANG',
+        'TEMPAT_LAHIR',
+        'TANGGAL_LAHIR',
+        'JENIS_KELAMIN',
+        'ALAMAT',
+        'RT',
+        'RW',
+        'KODEPOS',
+        'WILAYAH',
+        'AGAMA',
+        'PENDIDIKAN',
+        'PEKERJAAN',
+        'STATUS_PERKAWINAN',
+        'GOLONGAN_DARAH',
+        'KEWARGANEGARAAN',
+        'SUKU',
+        'TIDAK_DIKENAL',
+        'BAHASA',
+        'LOCK_AKSES',
+        'TANGGAL',
+        'OLEH',
+        'STATUS',
+    ];
+
     public function keluargaPasien()
     {
         return $this->hasMany(KeluargaPasiens::class, 'NORM', 'NORM');

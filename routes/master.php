@@ -17,4 +17,6 @@ Route::middleware('auth')->group(function () {
     Route::get('master/pasiens/create', [PasienController::class, 'create'])->name('master.pasien.create');
     Route::get('master/pasiens/{pasien}', [PasienController::class, 'detail'])->name('master.pasiens.detail');
     Route::post('master/pasiens', [PasienController::class, 'store'])->name('master.pasien.store');
+    Route::get('master/pasiens/{pasien}/edit', [PasienController::class, 'edit'])->name('master.pasien.edit');
+    Route::put('master/pasiens/{pasien}', [PasienController::class, 'update'])->name('master.pasien.update');
 });

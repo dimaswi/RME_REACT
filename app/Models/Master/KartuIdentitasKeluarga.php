@@ -4,19 +4,21 @@ namespace App\Models\Master;
 
 use Illuminate\Database\Eloquent\Model;
 
-class KartuIdentitasPasien extends Model
+class KartuIdentitasKeluarga extends Model
 {
     protected $connection = 'master';
 
-    protected $table = 'kartu_identitas_pasien';
+    protected $table = 'kartu_identitas_keluarga';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     public $timestamps = false;
 
+    protected $primaryKey = 'ID';
+
     protected $fillable = [
         'JENIS',
-        'NORM',
+        'KELUARGA_PASIEN_ID',
         'NOMOR',
         'ALAMAT',
         'RT',
@@ -25,8 +27,4 @@ class KartuIdentitasPasien extends Model
         'WILAYAH',
     ];
 
-    public function jenisKartuIdentitas()
-    {
-        return $this->belongsTo(Referensi::class, 'JENIS', 'ID')->where('JENIS', 9);
-    }
 }

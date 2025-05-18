@@ -3,11 +3,18 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\KartuIdentitasKeluarga;
+use App\Models\Master\KartuIdentitasPasien;
+use App\Models\Master\KeluargaPasiens;
+use App\Models\Master\KontakKeluarga;
+use App\Models\Master\KontakPasien;
 use App\Models\Master\Pasien;
 use App\Models\Master\Referensi;
 use App\Models\Master\Wilayah;
 use App\Models\Master\Negara;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -31,6 +38,7 @@ class PasienController extends Controller
                 'JENIS_KELAMIN',
                 'ALAMAT',
                 'TEMPAT_LAHIR',
+                'TIDAK_DIKENAL',
                 'RT',
                 'RW',
                 'kel.DESKRIPSI as KELURAHAN',
@@ -143,137 +151,391 @@ class PasienController extends Controller
     }
 
     public function store(Request $request)
-{
-    // Validasi data (contoh, sesuaikan rules sesuai kebutuhan)
-    $validated = $request->validate([
-        'nama' => 'required|string|max:255',
-        'tempat_lahir' => 'required',
-        'tanggal_lahir' => 'required|date',
-        'jenis_kelamin' => 'required',
-        'agama' => 'required',
-        'status_perkawinan' => 'required',
-        'pendidikan' => 'required',
-        'pekerjaan' => 'required',
-        'golongan_darah' => 'nullable',
-        'negara' => 'required',
-        'status_identitas' => 'nullable',
-        'status_aktif' => 'nullable',
+    {
+        if ($request->pasien_tidak_dikenal == true) {
+            try {
+                DB::connection('master')->beginTransaction();
+                Pasien::create([
+                    'NAMA' => $request->nama,
+                    'TANGGAL_LAHIR' => Carbon::parse($request->tanggal_lahir)->format('Y-m-d H:i:s'),
+                    'JENIS_KELAMIN' => $request->jenis_kelamin,
+                    'TANGGAL' => now(),
+                    'OLEH' => Auth::user()->id,
+                    'TIDAK_DIKENAL' => 1,
+                ]);
+                DB::connection('master')->commit();
+                // Untuk Inertia, gunakan Inertia::location agar redirect berjalan di SPA
+                return redirect()->route('master.pasiens.index')->with('success', 'Data pasien berhasil disimpan.');
+            } catch (\Exception $e) {
+                DB::connection('master')->rollBack();
+                // Kirim error ke frontend
+                return back()->with('error', 'Gagal menyimpan data pasien: ' . $e->getMessage());
+            }
+        }
 
-        // Alamat Pasien
-        'alamat_pasien' => 'required',
-        'rukun_tetangga' => 'required',
-        'rukun_warga' => 'required',
-        'kode_pos' => 'required',
-        'alamat_provinsi' => 'required',
-        'alamat_kabupaten' => 'required',
-        'alamat_kecamatan' => 'required',
-        'alamat_kelurahan' => 'required',
+        try {
+            $connectionDatabase = DB::connection('master');
+            $connectionDatabase->beginTransaction();
+            // Simpan data pasien baru
+            $pasienBaru = Pasien::create([
+                'NAMA' => $request->nama,
+                'PANGGILAN' => $request->panggilan,
+                'GELAR_DEPAN' => $request->gelar_depan,
+                'GELAR_BELAKANG' => $request->gelar_belakang,
+                'TEMPAT_LAHIR' => $request->tempat_lahir,
+                'TANGGAL_LAHIR' => Carbon::parse($request->tanggal_lahir)->format('Y-m-d H:i:s'),
+                'JENIS_KELAMIN' => $request->jenis_kelamin,
+                'ALAMAT' => $request->alamat_pasien,
+                'RT' => $request->rukun_tetangga,
+                'RW' => $request->rukun_warga,
+                'KODEPOS' => $request->kode_pos,
+                'WILAYAH' => $request->alamat_kelurahan,
+                'AGAMA' => $request->agama,
+                'PENDIDIKAN' => $request->pendidikan,
+                'PEKERJAAN' => $request->pekerjaan,
+                'STATUS_PERKAWINAN' => $request->status_perkawinan,
+                'GOLONGAN_DARAH' => $request->golongan_darah,
+                'KEWARGANEGARAAN' => $request->negara,
+                'SUKU' => $request->status_identitas,
+                'TIDAK_DIKENAL' => 0, // Set default value
+                'BAHASA' => $request->bahasa ?? 1,
+                'LOCK_AKSES' => 0, // Set default value
+                'TANGGAL' => now(),
+                'OLEH' => Auth::user()->id,
+                'STATUS' => 1, // Set default value
+            ]);
 
-        // Kartu Identitas Pasien
-        'jenis_identitas' => 'required',
-        'nomor_identitas' => 'required',
-        'kartu_alamat_pasien' => 'required',
-        'kartu_rukun_tetangga' => 'required',
-        'kartu_rukun_warga' => 'required',
-        'kartu_kode_pos' => 'required',
-        'kartu_alamat_provinsi' => 'required',
-        'kartu_alamat_kabupaten' => 'required',
-        'kartu_alamat_kecamatan' => 'required',
-        'kartu_alamat_kelurahan' => 'required',
+            // Simpan data kontak pasien jika ada
+            KontakPasien::create([
+                'JENIS' => $request->jenis_kontak,
+                'NORM' => $pasienBaru->NORM,
+                'NOMOR' => $request->telepon_pasien,
+            ]);
 
-        // Kontak Pasien
-        'jenis_kontak' => 'required',
-        'telepon_pasien' => 'required',
+            // Simpan data kartu identitas pasien jika ada
+            KartuIdentitasPasien::create([
+                'JENIS' => $request->jenis_identitas,
+                'NORM' => $pasienBaru->NORM,
+                'NOMOR' => $request->nomor_identitas,
+                'ALAMAT' => $request->kartu_alamat_pasien,
+                'RT' => $request->kartu_rukun_tetangga,
+                'RW' => $request->kartu_rukun_warga,
+                'KODEPOS' => $request->kartu_kode_pos,
+                'WILAYAH' => $request->kartu_alamat_kelurahan,
+            ]);
 
-        // Keluarga Pasien
-        'hubungan_keluarga' => 'required',
-        'nama_keluarga' => 'required',
-        'tanggal_lahir_keluarga' => 'required|date',
-        'jenis_kelamin_keluarga' => 'required',
-        'pendidikan_keluarga' => 'required',
-        'pekerjaan_keluarga' => 'required',
-        'jenis_kontak_keluarga' => 'required',
-        'telepon_keluarga' => 'required',
-        'jenis_identitas_keluarga' => 'required',
-        'nomor_identitas_keluarga' => 'required',
-        'alamat_keluarga' => 'required',
-        'rukun_tetangga_keluarga' => 'required',
-        'rukun_warga_keluarga' => 'required',
-        'kode_pos_keluarga' => 'required',
-        'alamat_provinsi_keluarga' => 'required',
-        'alamat_kabupaten_keluarga' => 'required',
-        'alamat_kecamatan_keluarga' => 'required',
-        'alamat_kelurahan_keluarga' => 'required',
-    ]);
+            // Simpan data keluarga pasien jika ada
+            if ($request->nama_keluarga != null) {
+                $keluargaPasien =  KeluargaPasiens::create([
+                    'SHDK' => $request->hubungan_keluarga,
+                    'NORM' => $pasienBaru->NORM,
+                    'JENIS_KELAMIN' => $request->jenis_kelamin_keluarga,
+                    'NOMOR' => 1,
+                    'NAMA'  => $request->nama_keluarga,
+                    'ALAMAT' => $request->alamat_keluarga,
+                    'PENDIDIKAN' => $request->pendidikan_keluarga ?? 0,
+                    'PEKERJAAN' => $request->pekerjaan_keluarga ?? 0,
+                    'TANGGAL_LAHIR' => Carbon::parse($request->tanggal_lahir_keluarga)->format('Y-m-d H:i:s') ?? '0000-00-00',
+                ]);
 
-    // Simpan data ke tabel pasien (contoh, sesuaikan field dan relasi)
-    // $pasien = Pasien::create([
-    //     'NAMA' => $validated['nama'],
-    //     'TEMPAT_LAHIR' => $validated['tempat_lahir'],
-    //     'TANGGAL_LAHIR' => $validated['tanggal_lahir'],
-    //     'JENIS_KELAMIN' => $validated['jenis_kelamin'],
-    //     'AGAMA' => $validated['agama'],
-    //     'STATUS_PERKAWINAN' => $validated['status_perkawinan'],
-    //     'PENDIDIKAN' => $validated['pendidikan'],
-    //     'PEKERJAAN' => $validated['pekerjaan'],
-    //     'GOLONGAN_DARAH' => $validated['golongan_darah'] ?? null,
-    //     'NEGARA' => $validated['negara'],
-    //     'STATUS_IDENTITAS' => $validated['status_identitas'] ?? null,
-    //     'STATUS_AKTIF' => $validated['status_aktif'] ?? null,
+                // Simpan data kontak keluarga jika ada
+                if ($request->telepon_keluarga != null) {
+                    KontakKeluarga::create([
+                        'SHDK' => $request->hubungan_keluarga,
+                        'JENIS' => $request->jenis_kontak_keluarga,
+                        'NORM' => $pasienBaru->NORM,
+                        'NOMOR' => $request->telepon_keluarga,
+                    ]);
+                }
 
-    //     // Alamat
-    //     'ALAMAT' => $validated['alamat_pasien'],
-    //     'RT' => $validated['rukun_tetangga'],
-    //     'RW' => $validated['rukun_warga'],
-    //     'KODE_POS' => $validated['kode_pos'],
-    //     'PROVINSI' => $validated['alamat_provinsi'],
-    //     'KABUPATEN' => $validated['alamat_kabupaten'],
-    //     'KECAMATAN' => $validated['alamat_kecamatan'],
-    //     'KELURAHAN' => $validated['alamat_kelurahan'],
+                // Simpan data kartu identitas keluarga jika ada
+                if ($request->nomor_identitas_keluarga != null) {
+                    KartuIdentitasKeluarga::create([
+                        'JENIS' => $request->a,
+                        'KELUARGA_PASIEN_ID' => $keluargaPasien->ID,
+                        'NOMOR' => $request->nomor_identitas_keluarga,
+                        'ALAMAT' => $request->alamat_keluarga,
+                        'RT' => $request->rukun_tetangga_keluarga,
+                        'RW' => $request->rukun_warga_keluarga,
+                        'KODEPOS' => $request->kode_pos_keluarga,
+                        'WILAYAH' => $request->alamat_kelurahan_keluarga,
+                    ]);
+                }
+            }
 
-    //     // Kartu Identitas
-    //     'JENIS_IDENTITAS' => $validated['jenis_identitas'],
-    //     'NOMOR_IDENTITAS' => $validated['nomor_identitas'],
-    //     'KARTU_ALAMAT' => $validated['kartu_alamat_pasien'],
-    //     'KARTU_RT' => $validated['kartu_rukun_tetangga'],
-    //     'KARTU_RW' => $validated['kartu_rukun_warga'],
-    //     'KARTU_KODE_POS' => $validated['kartu_kode_pos'],
-    //     'KARTU_PROVINSI' => $validated['kartu_alamat_provinsi'],
-    //     'KARTU_KABUPATEN' => $validated['kartu_alamat_kabupaten'],
-    //     'KARTU_KECAMATAN' => $validated['kartu_alamat_kecamatan'],
-    //     'KARTU_KELURAHAN' => $validated['kartu_alamat_kelurahan'],
+            $connectionDatabase->commit();
+            return redirect()->route('master.pasiens.detail', ['pasien' => $pasienBaru->NORM])->with('success', 'Data pasien berhasil disimpan.');
+        } catch (\Exception $e) {
+            $connectionDatabase->rollBack();
+            return back()->with('error', 'Gagal menyimpan data pasien: ' . $e->getMessage());
+        }
+    }
 
-    //     // Kontak
-    //     'JENIS_KONTAK' => $validated['jenis_kontak'],
-    //     'TELEPON' => $validated['telepon_pasien'],
+    public function edit(Pasien $pasien, Request $request)
+    {
+        // Data awal untuk render form
+        $tempatLahir = Wilayah::where('JENIS', 2)->orderBy('DESKRIPSI', 'asc')->get(['ID', 'DESKRIPSI']);
+        $jenisKelamin = Referensi::where('JENIS', 2)->orderBy('DESKRIPSI', 'asc')->get(['ID', 'DESKRIPSI']);
+        $agama = Referensi::where('JENIS', 1)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $statusPerkawinan = Referensi::where('JENIS', 5)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $pekerjaan = Referensi::where('JENIS', 4)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $pendidikan = Referensi::where('JENIS', 3)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $negara = Negara::orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $statusIdentitas = Referensi::where('JENIS', 140)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $statusAktif = Referensi::where('JENIS', 13)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $golonganDarah = Referensi::where('JENIS', 6)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $provinsi = Wilayah::where('JENIS', 1)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $jenisKontak = Referensi::where('JENIS', 8)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $jenisIdentitas = Referensi::where('JENIS', 9)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $hubunganKeluarga = Referensi::where('JENIS', 7)->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        $kontakPasien = KontakPasien::where('NORM', $pasien->NORM)->first();
+        $kartuIdentitasPasien = KartuIdentitasPasien::where('NORM', $pasien->NORM)->first();
+        $keluargaPasien = KeluargaPasiens::where('NORM', $pasien->NORM)->first();
+        $kartuIdentitasKeluarga = $keluargaPasien
+            ? KartuIdentitasKeluarga::where('KELUARGA_PASIEN_ID', $keluargaPasien->ID)->first()
+            : null;
+        $kontakKeluarga = $keluargaPasien
+            ? KontakKeluarga::where('SHDK', $keluargaPasien->SHDK)->where('NORM', $pasien->NORM)->first()
+            : null;
 
-    //     // Keluarga
-    //     'HUBUNGAN_KELUARGA' => $validated['hubungan_keluarga'],
-    //     'NAMA_KELUARGA' => $validated['nama_keluarga'],
-    //     'TANGGAL_LAHIR_KELUARGA' => $validated['tanggal_lahir_keluarga'],
-    //     'JENIS_KELAMIN_KELUARGA' => $validated['jenis_kelamin_keluarga'],
-    //     'PENDIDIKAN_KELUARGA' => $validated['pendidikan_keluarga'],
-    //     'PEKERJAAN_KELUARGA' => $validated['pekerjaan_keluarga'],
-    //     'JENIS_KONTAK_KELUARGA' => $validated['jenis_kontak_keluarga'],
-    //     'TELEPON_KELUARGA' => $validated['telepon_keluarga'],
-    //     'JENIS_IDENTITAS_KELUARGA' => $validated['jenis_identitas_keluarga'],
-    //     'NOMOR_IDENTITAS_KELUARGA' => $validated['nomor_identitas_keluarga'],
-    //     'ALAMAT_KELUARGA' => $validated['alamat_keluarga'],
-    //     'RT_KELUARGA' => $validated['rukun_tetangga_keluarga'],
-    //     'RW_KELUARGA' => $validated['rukun_warga_keluarga'],
-    //     'KODE_POS_KELUARGA' => $validated['kode_pos_keluarga'],
-    //     'PROVINSI_KELUARGA' => $validated['alamat_provinsi_keluarga'],
-    //     'KABUPATEN_KELUARGA' => $validated['alamat_kabupaten_keluarga'],
-    //     'KECAMATAN_KELUARGA' => $validated['alamat_kecamatan_keluarga'],
-    //     'KELURAHAN_KELUARGA' => $validated['alamat_kelurahan_keluarga'],
-    // ]);
+        // Kirim data pasien ke edit.tsx
+        return Inertia::render('master/pasien/edit', [
+            'pasien' => $pasien,
+            'tempatLahir' => $tempatLahir,
+            'jenisKelamin' => $jenisKelamin,
+            'agama' => $agama,
+            'statusPerkawinan' => $statusPerkawinan,
+            'pekerjaan' => $pekerjaan,
+            'pendidikan' => $pendidikan,
+            'negara' => $negara,
+            'statusIdentitas' => $statusIdentitas,
+            'statusAktif' => $statusAktif,
+            'golonganDarah' => $golonganDarah,
+            'provinsi' => $provinsi,
+            'jenisKontak' => $jenisKontak,
+            'jenisIdentitas' => $jenisIdentitas,
+            'hubunganKeluarga' => $hubunganKeluarga,
+            'kontakPasien' => $kontakPasien,
+            'kartuIdentitasPasien' => $kartuIdentitasPasien,
+            'keluargaPasien' => $keluargaPasien,
+            'kartuIdentitasKeluarga' => $kartuIdentitasKeluarga,
+            'kontakKeluarga' => $kontakKeluarga,
+        ]);
+    }
 
-    // Simpan data kartu identitas pasien (jika ada relasi, gunakan relasi)
-    // Contoh: $pasien->kartuIdentitas()->create([...]);
-    // Simpan data keluarga pasien (jika ada relasi, gunakan relasi)
-    // Contoh: $pasien->keluargaPasien()->create([...]);
+    public function update(Request $request, Pasien $pasien)
+    {
+        if ($request->pasien_tidak_dikenal == true) {
+            try {
+                DB::connection('master')->beginTransaction();
+                $pasien->update([
+                    'NAMA' => $request->nama,
+                    'TANGGAL_LAHIR' => Carbon::parse($request->tanggal_lahir)->format('Y-m-d H:i:s'),
+                    'JENIS_KELAMIN' => $request->jenis_kelamin,
+                    'TANGGAL' => now(),
+                    'OLEH' => Auth::user()->id,
+                    'TIDAK_DIKENAL' => 1,
+                ]);
+                DB::connection('master')->commit();
+                // Untuk Inertia, gunakan Inertia::location agar redirect berjalan di SPA
+                return redirect()->route('master.pasiens.detail', ['pasien' => $pasien->NORM])->with('success', 'Data pasien berhasil disimpan.');
+            } catch (\Exception $e) {
+                DB::connection('master')->rollBack();
+                // Kirim error ke frontend
+                return back()->with('error', 'Gagal menyimpan data pasien: ' . $e->getMessage());
+            }
+        }
 
-    // Redirect atau response sukses
-    return redirect()->route('master.pasiens.index')->with('success', 'Data pasien berhasil disimpan.');
-}
+        try {
+            $connectionDatabase = DB::connection('master');
+            $connectionDatabase->beginTransaction();
+
+            // Update data pasien
+            $pasien->update([
+                'NAMA' => $request->nama,
+                'PANGGILAN' => $request->nama_panggilan,
+                'GELAR_DEPAN' => $request->gelar_depan,
+                'GELAR_BELAKANG' => $request->gelar_belakang,
+                'TEMPAT_LAHIR' => $request->tempat_lahir,
+                'TANGGAL_LAHIR' => $request->tanggal_lahir ? Carbon::parse($request->tanggal_lahir)->format('Y-m-d H:i:s') : null,
+                'JENIS_KELAMIN' => $request->jenis_kelamin,
+                'ALAMAT' => $request->alamat_pasien,
+                'RT' => $request->rukun_tetangga,
+                'RW' => $request->rukun_warga,
+                'KODEPOS' => $request->kode_pos,
+                'WILAYAH' => $request->alamat_kelurahan,
+                'AGAMA' => $request->agama,
+                'PENDIDIKAN' => $request->pendidikan,
+                'PEKERJAAN' => $request->pekerjaan,
+                'STATUS_PERKAWINAN' => $request->status_perkawinan,
+                'GOLONGAN_DARAH' => $request->golongan_darah,
+                'KEWARGANEGARAAN' => $request->negara,
+                'SUKU' => $request->status_identitas,
+                'STATUS' => $request->status_aktif,
+            ]);
+
+            // Update data kontak pasien jika ada
+            $kontakPasien = KontakPasien::where('NORM', $pasien->NORM)->first();
+            if ($kontakPasien) {
+                $kontakPasien->update([
+                    'JENIS' => $request->jenis_kontak,
+                    'NOMOR' => $request->telepon_pasien,
+                ]);
+            } else {
+                if ($request->telepon_pasien != null) {
+                    KontakPasien::create([
+                        'JENIS' => $request->jenis_kontak,
+                        'NORM' => $pasien->NORM,
+                        'NOMOR' => $request->telepon_pasien,
+                    ]);
+                }
+            }
+
+            // Update data kartu identitas pasien jika ada
+            $kartuIdentitasPasien = KartuIdentitasPasien::where('NORM', $pasien->NORM)->first();
+            if ($kartuIdentitasPasien) {
+                $kartuIdentitasPasien->update([
+                    'JENIS' => $request->jenis_identitas,
+                    'NOMOR' => $request->nomor_identitas,
+                    'ALAMAT' => $request->kartu_alamat_pasien,
+                    'RT' => $request->kartu_rukun_tetangga,
+                    'RW' => $request->kartu_rukun_warga,
+                    'KODEPOS' => $request->kartu_kode_pos,
+                    'WILAYAH' => $request->kartu_alamat_kelurahan,
+                ]);
+            } else {
+                if ($request->nomor_identitas != null) {
+                    KartuIdentitasPasien::create([
+                        'JENIS' => $request->jenis_identitas,
+                        'NORM' => $pasien->NORM,
+                        'NOMOR' => $request->nomor_identitas,
+                        'ALAMAT' => $request->kartu_alamat_pasien,
+                        'RT' => $request->kartu_rukun_tetangga,
+                        'RW' => $request->kartu_rukun_warga,
+                        'KODEPOS' => $request->kartu_kode_pos,
+                        'WILAYAH' => $request->kartu_alamat_kelurahan,
+                    ]);
+                }
+            }
+
+            // Update data keluarga pasien jika ada
+            if ($request->nama_keluarga) {
+                $keluargaPasien = KeluargaPasiens::where('NORM', $pasien->NORM)->first();
+                if ($keluargaPasien) {
+                    $keluargaPasien->update([
+                        'SHDK' => $request->hubungan_keluarga,
+                        'JENIS_KELAMIN' => $request->jenis_kelamin_keluarga,
+                        'NOMOR' => 1,
+                        'NAMA'  => $request->nama_keluarga,
+                        'ALAMAT' => $request->alamat_keluarga,
+                        'PENDIDIKAN' => $request->pendidikan_keluarga ?? 0,
+                        'PEKERJAAN' => $request->pekerjaan_keluarga ?? 0,
+                        'TANGGAL_LAHIR' => $request->tanggal_lahir_keluarga ? Carbon::parse($request->tanggal_lahir_keluarga)->format('Y-m-d H:i:s') : '0000-00-00',
+                    ]);
+
+                    // Update data kontak keluarga jika ada
+                    $kontakKeluarga = KontakKeluarga::where('SHDK', $request->hubungan_keluarga)
+                        ->where('NORM', $pasien->NORM)
+                        ->first();
+                    if ($kontakKeluarga) {
+                        $kontakKeluarga->update([
+                            'JENIS' => $request->jenis_kontak_keluarga,
+                            'NOMOR' => $request->telepon_keluarga,
+                        ]);
+                    } else {
+                        if ($request->telepon_keluarga != null) {
+                            KontakKeluarga::create([
+                                'SHDK' => $request->hubungan_keluarga,
+                                'JENIS' => $request->jenis_kontak_keluarga,
+                                'NORM' => $pasien->NORM,
+                                'NOMOR' => $request->telepon_keluarga,
+                            ]);
+                        }
+                    }
+
+                    // Update data kartu identitas keluarga jika ada
+                    $kartuIdentitasKeluarga = KartuIdentitasKeluarga::where('KELUARGA_PASIEN_ID', $keluargaPasien->ID)->first();
+                    if ($kartuIdentitasKeluarga) {
+                        $kartuIdentitasKeluarga->update([
+                            'JENIS' => $request->jenis_identitas_keluarga,
+                            'NOMOR' => $request->nomor_identitas_keluarga,
+                            'ALAMAT' => $request->alamat_keluarga,
+                            'RT' => $request->rukun_tetangga_keluarga,
+                            'RW' => $request->rukun_warga_keluarga,
+                            'KODEPOS' => $request->kode_pos_keluarga,
+                            'WILAYAH' => $request->alamat_kelurahan_keluarga,
+                        ]);
+                    } else {
+                        if ($request->nomor_identitas_keluarga != null) {
+                            KartuIdentitasKeluarga::create([
+                                'JENIS' => $request->jenis_identitas_keluarga,
+                                'KELUARGA_PASIEN_ID' => $keluargaPasien->ID,
+                                'NOMOR' => $request->nomor_identitas_keluarga,
+                                'ALAMAT' => $request->alamat_keluarga,
+                                'RT' => $request->rukun_tetangga_keluarga,
+                                'RW' => $request->rukun_warga_keluarga,
+                                'KODEPOS' => $request->kode_pos_keluarga,
+                                'WILAYAH' => $request->alamat_kelurahan_keluarga,
+                            ]);
+                        }
+                    }
+                } else {
+                    // Jika tidak ada data keluarga pasien, buat data baru
+                    $keluargaPasien = KeluargaPasiens::create([
+                        'SHDK' => $request->hubungan_keluarga,
+                        'NORM' => $pasien->NORM,
+                        'JENIS_KELAMIN' => $request->jenis_kelamin_keluarga,
+                        'NOMOR' => 1,
+                        'NAMA'  => $request->nama_keluarga,
+                        'ALAMAT' => $request->alamat_keluarga,
+                        'PENDIDIKAN' => $request->pendidikan_keluarga ?? 0,
+                        'PEKERJAAN' => $request->pekerjaan_keluarga ?? 0,
+                        'TANGGAL_LAHIR' => $request->tanggal_lahir_keluarga ? Carbon::parse($request->tanggal_lahir_keluarga)->format('Y-m-d H:i:s') : '0000-00-00',
+                    ]);
+
+                    // Simpan data kontak keluarga jika ada
+                    if ($request->telepon_keluarga != null) {
+                        KontakKeluarga::create([
+                            'SHDK' => $request->hubungan_keluarga,
+                            'JENIS' => $request->jenis_kontak_keluarga,
+                            'NORM' => $pasien->NORM,
+                            'NOMOR' => $request->telepon_keluarga,
+                        ]);
+                    }
+
+                    // Simpan data kartu identitas keluarga jika ada
+                    if ($request->nomor_identitas_keluarga != null) {
+                        KartuIdentitasKeluarga::create([
+                            'JENIS' => $request->jenis_identitas_keluarga,
+                            'KELUARGA_PASIEN_ID' => $keluargaPasien->ID,
+                            'NOMOR' => $request->nomor_identitas_keluarga,
+                            'ALAMAT' => $request->alamat_keluarga,
+                            'RT' => $request->rukun_tetangga_keluarga,
+                            'RW' => $request->rukun_warga_keluarga,
+                            'KODEPOS' => $request->kode_pos_keluarga,
+                            'WILAYAH' => $request->alamat_kelurahan_keluarga,
+                        ]);
+                    }
+                }
+            }
+
+            $connectionDatabase->commit();
+            return redirect()->route('master.pasiens.detail', ['pasien' => $pasien->NORM])->with('success', 'Data pasien berhasil diupdate.');
+        } catch (\Exception $e) {
+            DB::connection('master')->rollBack();
+            return back()->with('error', 'Gagal mengupdate data pasien: ' . $e->getMessage());
+        }
+    }
+
+    public function wilayahAjax(Request $request)
+    {
+        $jenis = $request->input('jenis');
+        $parent = $request->input('parent');
+        $query = Wilayah::where('JENIS', $jenis);
+        if ($parent) {
+            $query->where('ID', 'like', $parent . '%');
+        }
+        $wilayah = $query->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
+        return response()->json(['wilayah' => $wilayah]);
+    }
 }

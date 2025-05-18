@@ -81,8 +81,6 @@ export default function Detail() {
         return data.slice(startIndex, endIndex);
     };
 
-    console.log(pasien);
-
     const calculateAge = (birthDate: string) => {
         const today = new Date();
         const birth = new Date(birthDate);
@@ -113,7 +111,7 @@ export default function Detail() {
     ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout breadcrumbs={breadcrumbs} pasien={props.pasien}>
             <Head title={pasien.NAMA} />
             <div className="p-4">
                 {/* Tabs */}

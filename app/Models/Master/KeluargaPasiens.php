@@ -10,7 +10,23 @@ class KeluargaPasiens extends Model
 
     protected $table = 'keluarga_pasien';
 
+    public $incrementing = true;
+
+    public $timestamps = false;
+
     protected $primaryKey = 'ID';
+
+    protected $fillable = [
+        'SHDK',
+        'NORM',
+        'JENIS_KELAMIN',
+        'NOMOR',
+        'NAMA',
+        'ALAMAT',
+        'PENDIDIKAN',
+        'PEKERJAAN',
+        'TANGGAL_LAHIR',
+    ];
 
     public function pasien()
     {

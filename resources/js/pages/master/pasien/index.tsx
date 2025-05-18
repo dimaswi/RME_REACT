@@ -11,7 +11,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Trash, Pencil, PlusCircle } from 'lucide-react';
+import { Trash, Pencil, PlusCircle, Hospital } from 'lucide-react';
 
 
 type Pasien = {
@@ -26,6 +26,7 @@ type Pasien = {
     PROVINSI: string;
     RT: string;
     RW: string;
+    TIDAK_DIKENAL: number;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -40,7 +41,6 @@ export default function PasienIndex() {
         pasiens: { data: Pasien[]; links: any[]; current_page: number; last_page: number };
         filters: { search: string; itemsPerPage: number };
     }>();
-
     const [search, setSearch] = useState(props.filters.search || '');
     const [itemsPerPage, setItemsPerPage] = useState(props.filters.itemsPerPage || 10);
 
@@ -110,14 +110,16 @@ export default function PasienIndex() {
                     </form>
 
                     {/* Add New Pasien Button */}
-                    <Button
-                        variant="outline"
-                        onClick={() => router.get(route('master.pasien.create'))} // Pastikan nama rute sesuai
-                        className="mb-4"
-                    >
-                        <PlusCircle />
-                        Tambah
-                    </Button>
+                    <div className='flex space-x-2'>
+                        <Button
+                            variant="outline"
+                            onClick={() => router.get(route('master.pasien.create'))} // Pastikan nama rute sesuai
+                            className="mb-4"
+                        >
+                            <PlusCircle />
+                            Tambah
+                        </Button>
+                    </div>
 
                 </div>
 
@@ -128,8 +130,8 @@ export default function PasienIndex() {
                             <TableRow>
                                 <TableHead>NORM</TableHead>
                                 <TableHead>Nama</TableHead>
-                                <TableHead>Umur</TableHead>
                                 <TableHead>Tanggal Lahir</TableHead>
+                                <TableHead>Umur</TableHead>
                                 <TableHead>Jenis Kelamin</TableHead>
                                 <TableHead>Kelurahan</TableHead>
                                 <TableHead>Alamat</TableHead>
@@ -139,71 +141,115 @@ export default function PasienIndex() {
                         <TableBody>
                             {props.pasiens.data.length > 0 ? (
                                 props.pasiens.data.map((pasien) => (
-                                    <TableRow
-                                        key={pasien.NORM}
-                                        onClick={() => router.get(`/master/pasiens/${pasien.NORM}`)}
-                                        className="cursor-pointer hover:bg-gray-100"
-                                    >
-                                        <TableCell>{pasien.NORM}</TableCell>
-                                        <TableCell>{pasien.NAMA}</TableCell>
-                                        <TableCell>
-                                            <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">
-                                                {calculateAge(pasien.TANGGAL_LAHIR)}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            {(() => {
-                                                const date = new Date(pasien.TANGGAL_LAHIR);
-                                                const day = String(date.getDate()).padStart(2, '0');
-                                                const monthNames = [
-                                                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                                                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-                                                ];
-                                                const month = monthNames[date.getMonth()];
-                                                const year = date.getFullYear();
-                                                return `${day} ${month} ${year}`;
-                                            })()}
-                                        </TableCell>
-                                        <TableCell>
-                                            <span
-                                                className={`inline-block px-2 py-1 text-xs font-semibold text-white rounded ${pasien.JENIS_KELAMIN === 1 ? 'bg-blue-500' : 'bg-pink-500'
-                                                    }`}
-                                            >
-                                                {pasien.JENIS_KELAMIN === 1 ? 'Laki-laki' : 'Perempuan'}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>{pasien.KECAMATAN}</TableCell>
-                                        <TableCell>DESA {pasien.KELURAHAN}, {pasien.ALAMAT}, RT {pasien.RT} - RW {pasien.RW}</TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="px-2 py-1 text-xs font-semibold text-white bg-gray-500 rounded hover:bg-gray-600">
-                                                        Actions
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        className="flex items-center space-x-2 hover:bg-blue-100"
-                                                        onClick={() => router.get(`/master/pasiens/${pasien.NORM}/edit`)}
-                                                    >
-                                                        <Pencil className="h-4 w-4 text-blue-500" />
-                                                        <span>Edit</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="flex items-center space-x-2 hover:bg-red-100"
-                                                        onClick={() => {
-                                                            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                                                                router.delete(`/master/pasiens/${pasien.NORM}`);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <Trash className="h-4 w-4 text-red-500" />
-                                                        <span>Delete</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
+                                    pasien.TIDAK_DIKENAL == 1 ? (
+                                        <TableRow
+                                            key={pasien.NORM}
+                                            onClick={() => router.get(`/master/pasiens/${pasien.NORM}`)}
+                                            className="cursor-pointer hover:bg-gray-100"
+                                        >
+                                            <TableCell>{pasien.NORM}</TableCell>
+                                            <TableCell>{pasien.NAMA}</TableCell>
+                                            <TableCell>
+                                                <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">
+                                                    {calculateAge(pasien.TANGGAL_LAHIR)}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                {(() => {
+                                                    const date = new Date(pasien.TANGGAL_LAHIR);
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    const monthNames = [
+                                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                                    ];
+                                                    const month = monthNames[date.getMonth()];
+                                                    const year = date.getFullYear();
+                                                    return `${day} ${month} ${year}`;
+                                                })()}
+                                            </TableCell>
+                                            <TableCell>
+                                                <span
+                                                    className={`inline-block px-2 py-1 text-xs font-semibold text-white rounded ${pasien.JENIS_KELAMIN === 1 ? 'bg-blue-500' : 'bg-pink-500'
+                                                        }`}
+                                                >
+                                                    {pasien.JENIS_KELAMIN === 1 ? 'Laki-laki' : 'Perempuan'}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell colSpan={3}>
+                                                <center>
+                                                    <span className="inline-block px-3 py-1 text-xs font-bold text-white bg-red-600 rounded">
+                                                        Pasien Tidak Dikenal
+                                                    </span>
+                                                </center>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        <TableRow
+                                            key={pasien.NORM}
+                                            onClick={() => router.get(`/master/pasiens/${pasien.NORM}`)}
+                                            className="cursor-pointer hover:bg-gray-100"
+                                        >
+                                            <TableCell>{pasien.NORM}</TableCell>
+                                            <TableCell>{pasien.NAMA}</TableCell>
+                                            <TableCell>
+                                                <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">
+                                                    {calculateAge(pasien.TANGGAL_LAHIR)}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                {(() => {
+                                                    const date = new Date(pasien.TANGGAL_LAHIR);
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    const monthNames = [
+                                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                                    ];
+                                                    const month = monthNames[date.getMonth()];
+                                                    const year = date.getFullYear();
+                                                    return `${day} ${month} ${year}`;
+                                                })()}
+                                            </TableCell>
+                                            <TableCell>
+                                                <span
+                                                    className={`inline-block px-2 py-1 text-xs font-semibold text-white rounded ${pasien.JENIS_KELAMIN === 1 ? 'bg-blue-500' : 'bg-pink-500'
+                                                        }`}
+                                                >
+                                                    {pasien.JENIS_KELAMIN === 1 ? 'Laki-laki' : 'Perempuan'}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>{pasien.KECAMATAN}</TableCell>
+                                            <TableCell>DESA {pasien.KELURAHAN}, {pasien.ALAMAT}, RT {pasien.RT} - RW {pasien.RW}</TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="px-2 py-1 text-xs font-semibold text-white bg-gray-500 rounded hover:bg-gray-600">
+                                                            Actions
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem
+                                                            className="flex items-center space-x-2 hover:bg-blue-100"
+                                                            onClick={() => router.get(`/master/pasiens/${pasien.NORM}/edit`)}
+                                                        >
+                                                            <Pencil className="h-4 w-4 text-blue-500" />
+                                                            <span>Edit</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="flex items-center space-x-2 hover:bg-red-100"
+                                                            onClick={() => {
+                                                                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                                                                    router.delete(`/master/pasiens/${pasien.NORM}`);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Trash className="h-4 w-4 text-red-500" />
+                                                            <span>Delete</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
                                 ))
                             ) : (
                                 <TableRow>
