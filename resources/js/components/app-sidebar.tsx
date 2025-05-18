@@ -45,7 +45,7 @@ const mainNavItems: NavGroup[] = [
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="inset" className='top-0'>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>

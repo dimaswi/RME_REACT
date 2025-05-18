@@ -81,7 +81,7 @@ export default function PasienIndex() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pasiens" />
-            <div className="p-4">
+            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-hidden">
                 <h1 className="text-2xl font-bold mb-4">Data Pasien</h1>
 
                 <div className='flex justify-between items-center mb-4'>
@@ -122,8 +122,8 @@ export default function PasienIndex() {
                 </div>
 
                 {/* Table */}
-                <div className="rounded-md border overflow-x-auto">
-                    <Table className="w-full min-w-[600px]">
+                <div className="w-full overflow-x-hidden rounded-md border">
+                    <Table className="w-full min-w-max">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>NORM</TableHead>

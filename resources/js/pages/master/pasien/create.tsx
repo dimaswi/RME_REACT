@@ -68,6 +68,8 @@ export default function PasienIndex(props) {
     const [gelarBelakang, setGelarBelakang] = useState("");
     const [namaPanggilan, setNamaPanggilan] = useState("");
 
+    const [isPasienTidakDikenal, setIsPasienTidakDikenal] = useState(false);
+
     // Card Alamat Pasien
     const [alamatPasien, setAlamatPasien] = useState("");
     const [rukunTetangga, setRukunTetangga] = useState("");
@@ -595,13 +597,14 @@ export default function PasienIndex(props) {
                                 <h3 className="text-base font-medium">Identitas Pasien</h3>
                             </div>
                             <div className="flex items-center space-x-2">
-                                {/* <span className="text-sm">[No Rekam Medis]</span> */}
-                                <div className="flex items-center space-x-2">
-                                    <Label htmlFor="pasienTidakDikenal" className="text-sm">
-                                        Pasien Tidak Dikenal
-                                    </Label>
-                                    <Checkbox id="pasienTidakDikenal" />
-                                </div>
+                                <Label htmlFor="pasienTidakDikenal" className="text-sm">
+                                    Pasien Tidak Dikenal
+                                </Label>
+                                <Checkbox
+                                    id="pasienTidakDikenal"
+                                    checked={isPasienTidakDikenal}
+                                    onCheckedChange={setIsPasienTidakDikenal}
+                                />
                             </div>
                         </CardHeader>
                         <CardContent className="pb-4">
@@ -615,6 +618,7 @@ export default function PasienIndex(props) {
                                         value={gelarDepan}
                                         onChange={e => setGelarDepan(e.target.value)}
                                         name="gelar_depan"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-6">
@@ -633,6 +637,7 @@ export default function PasienIndex(props) {
                                         value={gelarBelakang}
                                         onChange={e => setGelarBelakang(e.target.value)}
                                         name="gelar_belakang"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-2">
@@ -644,6 +649,7 @@ export default function PasienIndex(props) {
                                             value={namaPanggilan}
                                             onChange={e => setNamaPanggilan(e.target.value)}
                                             name="nama_panggilan"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                 </div>
@@ -657,6 +663,7 @@ export default function PasienIndex(props) {
                                         value={tempatLahirValue}
                                         setValue={setTempatLahirValue}
                                         placeholder="Tempat Lahir"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                     {errors.tempatLahirValue && (
                                         <div className="text-xs text-red-500 mt-1">{errors.tempatLahirValue}</div>
@@ -668,6 +675,7 @@ export default function PasienIndex(props) {
                                             <Button
                                                 variant={"outline"}
                                                 className="w-full justify-start text-left font-normal border border-gray-200 rounded-md px-3 py-2 shadow-sm"
+                                                disabled={isPasienTidakDikenal}
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
                                                 {date ? format(date, "dd/MM/yyyy") : "Pilih tanggal lahir"}
@@ -791,6 +799,7 @@ export default function PasienIndex(props) {
                                         value={jenisKelaminValue}
                                         setValue={setJenisKelaminValue}
                                         placeholder="Jenis Kelamin"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                             </div>
@@ -803,6 +812,7 @@ export default function PasienIndex(props) {
                                         value={agamaValue}
                                         setValue={setAgamaValue}
                                         placeholder="Agama"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-3">
@@ -811,6 +821,7 @@ export default function PasienIndex(props) {
                                         value={statusPerkawinanValue}
                                         setValue={setStatusPerkawinanValue}
                                         placeholder="Status Perkawinan"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-3">
@@ -819,6 +830,7 @@ export default function PasienIndex(props) {
                                         value={pendidikanValue}
                                         setValue={setPendidikanValue}
                                         placeholder="Pendidikan"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-3">
@@ -827,6 +839,7 @@ export default function PasienIndex(props) {
                                         value={pekerjaanValue}
                                         setValue={setPekerjaanValue}
                                         placeholder="Pekerjaan"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                             </div>
@@ -839,6 +852,7 @@ export default function PasienIndex(props) {
                                         value={golonganDarahValue}
                                         setValue={setGolonganDarahValue}
                                         placeholder="Golongan Darah"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-3">
@@ -847,6 +861,7 @@ export default function PasienIndex(props) {
                                         value={negaraValue}
                                         setValue={setNegaraValue}
                                         placeholder="Negara"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-3">
@@ -855,6 +870,7 @@ export default function PasienIndex(props) {
                                         value={statusIdentitasValue}
                                         setValue={setStatusIdentitasValue}
                                         placeholder="Status Identitas"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                                 <div className="col-span-3">
@@ -863,6 +879,7 @@ export default function PasienIndex(props) {
                                         value={statusAktifValue}
                                         setValue={setStatusAktifValue}
                                         placeholder="Status Aktif"
+                                        disabled={isPasienTidakDikenal}
                                     />
                                 </div>
                             </div>
@@ -886,6 +903,7 @@ export default function PasienIndex(props) {
                                                 value={alamatPasien}
                                                 onChange={e => setAlamatPasien(e.target.value)}
                                                 name="alamat_pasien"
+                                                disabled={isPasienTidakDikenal}
                                             />
                                         </div>
                                     </div>
@@ -897,6 +915,7 @@ export default function PasienIndex(props) {
                                                 value={rukunTetangga}
                                                 onChange={e => setRukunTetangga(e.target.value)}
                                                 name="rukun_tetangga"
+                                                disabled={isPasienTidakDikenal}
                                             />
                                         </div>
                                     </div>
@@ -908,6 +927,7 @@ export default function PasienIndex(props) {
                                                 value={rukunWarga}
                                                 onChange={e => setRukunWarga(e.target.value)}
                                                 name="rukun_warga"
+                                                disabled={isPasienTidakDikenal}
                                             />
                                         </div>
                                     </div>
@@ -919,6 +939,7 @@ export default function PasienIndex(props) {
                                                 value={kodePos}
                                                 onChange={e => setKodePos(e.target.value)}
                                                 name="kode_pos"
+                                                disabled={isPasienTidakDikenal}
                                             />
                                         </div>
                                     </div>
@@ -928,6 +949,7 @@ export default function PasienIndex(props) {
                                             value={alamatProvinsi}
                                             setValue={setAlamatProvinsi}
                                             placeholder="Masukkan Provinsi"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -936,6 +958,7 @@ export default function PasienIndex(props) {
                                             value={alamatKabupaten}
                                             setValue={setAlamatKabupaten}
                                             placeholder="Masukkan Kabupaten"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -944,6 +967,7 @@ export default function PasienIndex(props) {
                                             value={alamatKecamatan}
                                             setValue={setAlamatKecamatan}
                                             placeholder="Masukkan Kecamatan"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -952,6 +976,7 @@ export default function PasienIndex(props) {
                                             value={alamatKelurahan}
                                             setValue={setAlamatKelurahan}
                                             placeholder="Masukkan Kelurahan"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                 </div>
@@ -972,6 +997,7 @@ export default function PasienIndex(props) {
                                             value={jenisKontak}
                                             setValue={setJenisKontak}
                                             placeholder="Pilih Jenis Kontak"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -982,6 +1008,7 @@ export default function PasienIndex(props) {
                                                 value={teleponPasien}
                                                 onChange={e => setTeleponPasien(e.target.value)}
                                                 name="telepon_pasien"
+                                                disabled={isPasienTidakDikenal}
                                             />
                                         </div>
                                     </div>
@@ -1016,6 +1043,7 @@ export default function PasienIndex(props) {
                                             value={jenisIdentitas}
                                             setValue={setJenisIdentitas}
                                             placeholder="Pilih Jenis Identitas"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1026,6 +1054,7 @@ export default function PasienIndex(props) {
                                                 value={nomorIdentitas}
                                                 onChange={e => setNomorIdentitas(e.target.value)}
                                                 name="nomor_identitas"
+                                                disabled={isPasienTidakDikenal}
                                             />
                                         </div>
                                     </div>
@@ -1036,7 +1065,7 @@ export default function PasienIndex(props) {
                                             value={kartuAlamatPasien}
                                             onChange={e => setKartuAlamatPasien(e.target.value)}
                                             name="alamat_pasien_ktp"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1046,7 +1075,7 @@ export default function PasienIndex(props) {
                                             value={kartuRukunTetangga}
                                             onChange={e => setKartuRukunTetangga(e.target.value)}
                                             name="rukun_tetangga_ktp"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1056,7 +1085,7 @@ export default function PasienIndex(props) {
                                             value={kartuRukunWarga}
                                             onChange={e => setKartuRukunWarga(e.target.value)}
                                             name="rukun_warga_ktp"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1066,7 +1095,7 @@ export default function PasienIndex(props) {
                                             value={kartuKodePos}
                                             onChange={e => setKartuKodePos(e.target.value)}
                                             name="kode_pos_ktp"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1075,7 +1104,7 @@ export default function PasienIndex(props) {
                                             value={kartuAlamatProvinsi}
                                             setValue={setKartuAlamatProvinsi}
                                             placeholder="Masukkan Provinsi"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1084,7 +1113,7 @@ export default function PasienIndex(props) {
                                             value={kartuAlamatKabupaten}
                                             setValue={setKartuAlamatKabupaten}
                                             placeholder="Masukkan Kabupaten"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1093,7 +1122,7 @@ export default function PasienIndex(props) {
                                             value={kartuAlamatKecamatan}
                                             setValue={setKartuAlamatKecamatan}
                                             placeholder="Masukkan Kecamatan"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1102,7 +1131,7 @@ export default function PasienIndex(props) {
                                             value={kartuAlamatKelurahan}
                                             setValue={setKartuAlamatKelurahan}
                                             placeholder="Masukkan Kelurahan"
-                                            disabled={ktpSamaDenganAlamat}
+                                            disabled={ktpSamaDenganAlamat || isPasienTidakDikenal}
                                         />
                                     </div>
                                 </div>
@@ -1133,6 +1162,7 @@ export default function PasienIndex(props) {
                                             value={hubunganKeluarga}
                                             setValue={setHubunganKeluarga}
                                             placeholder="Hubungan Keluarga"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1142,6 +1172,7 @@ export default function PasienIndex(props) {
                                             value={namaKeluarga}
                                             onChange={e => setNamaKeluarga(e.target.value)}
                                             name="nama_keluarga"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1151,6 +1182,7 @@ export default function PasienIndex(props) {
                                                 <Button
                                                     variant={"outline"}
                                                     className="w-full justify-start text-left font-normal border border-gray-200 rounded-md px-3 py-2 shadow-sm"
+                                                    disabled={isPasienTidakDikenal}
                                                 >
                                                     <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
                                                     {tanggalLahirKeluarga ? format(tanggalLahirKeluarga, "dd/MM/yyyy") : "Pilih tanggal lahir keluarga"}
@@ -1272,6 +1304,7 @@ export default function PasienIndex(props) {
                                             value={jenisKelaminKeluarga}
                                             setValue={setJenisKelaminKeluarga}
                                             placeholder="Jenis Kelamin"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1280,6 +1313,7 @@ export default function PasienIndex(props) {
                                             value={pendidikanKeluarga}
                                             setValue={setPendidikanKeluarga}
                                             placeholder="Pendidikan"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1288,6 +1322,7 @@ export default function PasienIndex(props) {
                                             value={pekerjaanKeluarga}
                                             setValue={setPekerjaanKeluarga}
                                             placeholder="Pekerjaan"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1296,6 +1331,7 @@ export default function PasienIndex(props) {
                                             value={jenisKontakKeluarga}
                                             setValue={setJenisKontakKeluarga}
                                             placeholder="Jenis Kontak"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1305,6 +1341,7 @@ export default function PasienIndex(props) {
                                             value={teleponKeluarga}
                                             onChange={e => setTeleponKeluarga(e.target.value)}
                                             name="telepon_keluarga"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1313,6 +1350,7 @@ export default function PasienIndex(props) {
                                             value={jenisIdentitasKeluarga}
                                             setValue={setJenisIdentitasKeluarga}
                                             placeholder="Jenis Identitas"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1322,6 +1360,7 @@ export default function PasienIndex(props) {
                                             value={nomorIdentitasKeluarga}
                                             onChange={e => setNomorIdentitasKeluarga(e.target.value)}
                                             name="nomor_identitas_keluarga"
+                                            disabled={isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-12">
@@ -1331,7 +1370,7 @@ export default function PasienIndex(props) {
                                             value={alamatKeluarga}
                                             onChange={e => setAlamatKeluarga(e.target.value)}
                                             name="alamat_keluarga"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1341,7 +1380,7 @@ export default function PasienIndex(props) {
                                             value={rukunTetanggaKeluarga}
                                             onChange={e => setRukunTetanggaKeluarga(e.target.value)}
                                             name="rt_keluarga"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1351,7 +1390,7 @@ export default function PasienIndex(props) {
                                             value={rukunWargaKeluarga}
                                             onChange={e => setRukunWargaKeluarga(e.target.value)}
                                             name="rw_keluarga"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-4">
@@ -1361,7 +1400,7 @@ export default function PasienIndex(props) {
                                             value={kodePosKeluarga}
                                             onChange={e => setKodePosKeluarga(e.target.value)}
                                             name="kode_pos_keluarga"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1370,7 +1409,7 @@ export default function PasienIndex(props) {
                                             value={alamatProvinsiKeluarga}
                                             setValue={setAlamatProvinsiKeluarga}
                                             placeholder="Provinsi"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1379,7 +1418,7 @@ export default function PasienIndex(props) {
                                             value={alamatKabupatenKeluarga}
                                             setValue={setAlamatKabupatenKeluarga}
                                             placeholder="Kabupaten"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1388,7 +1427,7 @@ export default function PasienIndex(props) {
                                             value={alamatKecamatanKeluarga}
                                             setValue={setAlamatKecamatanKeluarga}
                                             placeholder="Kecamatan"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                     <div className="col-span-6">
@@ -1397,7 +1436,7 @@ export default function PasienIndex(props) {
                                             value={alamatKelurahanKeluarga}
                                             setValue={setAlamatKelurahanKeluarga}
                                             placeholder="Kelurahan"
-                                            disabled={keluargaSamaDenganPasien}
+                                            disabled={keluargaSamaDenganPasien || isPasienTidakDikenal}
                                         />
                                     </div>
                                 </div>
