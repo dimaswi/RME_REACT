@@ -6,14 +6,14 @@ import { Toaster } from '@/components/ui/sonner';
 import { type BreadcrumbItem } from '@/types';
 import { type PropsWithChildren } from 'react';
 
-export default function AppSidebarLayout({ children, breadcrumbs = [], pasien }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[], pasien?: any }>) {
+export default function AppSidebarLayout({ children, breadcrumbs = [], pasien, ruangan }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[], pasien?: any }>) {
     return (
         <>
             <Toaster position="top-right" richColors />
             <AppShell variant="sidebar">
                 <AppSidebar />
                 <AppContent variant="sidebar">
-                    <AppSidebarHeader breadcrumbs={breadcrumbs} pasien={pasien} />
+                    <AppSidebarHeader breadcrumbs={breadcrumbs} pasien={pasien} ruangan={ruangan} />
                     {children}
                 </AppContent>
             </AppShell>

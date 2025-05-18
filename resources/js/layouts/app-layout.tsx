@@ -7,10 +7,11 @@ import { toast } from 'sonner'; // atau react-hot-toast
 interface AppLayoutProps {
     children: ReactNode;
     pasien?: any;
+    ruangan?: any;
     breadcrumbs?: BreadcrumbItem[];
 }
 
-export default ({ children, breadcrumbs, pasien, ...props }: AppLayoutProps) => {
+export default ({ children, breadcrumbs, pasien, ruangan, ...props }: AppLayoutProps) => {
     const { success, error } = usePage().props;
 
     useEffect(() => {
@@ -19,7 +20,7 @@ export default ({ children, breadcrumbs, pasien, ...props }: AppLayoutProps) => 
     }, [success, error]);
 
     return (
-        <AppLayoutTemplate breadcrumbs={breadcrumbs} pasien={pasien}  {...props}>
+        <AppLayoutTemplate breadcrumbs={breadcrumbs} pasien={pasien} ruangan={ruangan} {...props}>
             {children}
         </AppLayoutTemplate>
     );

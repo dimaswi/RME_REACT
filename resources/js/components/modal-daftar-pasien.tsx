@@ -1,38 +1,42 @@
 import { Button } from "@/components/ui/button";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+    SheetFooter,
+    SheetTrigger,
+} from "@/components/ui/sheet";
+import SearchableDropdown from "./SearchableDropdown";
 
-export default function ModalDaftarPasien({ open, onClose, pasien }) {
-    if (!open) return null;
-
-    console.log("ModalDaftarPasien pasien", pasien);
-
+export default function ModalDaftarPasien({ open, onClose, pasien, trigger, ruangan }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                <h2 className="text-lg font-bold mb-4">Pendaftaran Pasien</h2>
-                {/* Tampilkan data pasien */}
-                <div className="mb-4">
-                    <div><b>NORM:</b> {pasien?.NORM}</div>
-                    <div><b>Nama:</b> {pasien?.NAMA}</div>
-                    <div><b>Tanggal Lahir:</b> {pasien?.TANGGAL_LAHIR}</div>
-                    {/* Tambahkan field lain sesuai kebutuhan */}
+        <Sheet open={open} onOpenChange={onClose}>
+            <SheetTrigger asChild>
+                {trigger || <Button>Daftar Pasien</Button>}
+            </SheetTrigger>
+            <SheetContent style={{ maxWidth: '50vw' }}>
+                <SheetHeader>
+                    <SheetTitle>Pendaftaran Pasien</SheetTitle>
+                    <SheetDescription>
+                        Silakan cek data pasien sebelum melanjutkan pendaftaran.
+                    </SheetDescription>
+                </SheetHeader>
+                <div className="mx-6">
+                    <SearchableDropdown
+                    data={ruangan}
+                    placeholder={"Masukan Nama Ruangan"} />
                 </div>
-                {/* Form atau aksi pendaftaran di sini */}
-                <div className="flex justify-end mt-6">
-                    <Button
-                        variant="outline"
-                        className="mr-2"
-                        onClick={onClose}
-                    >
+                <SheetFooter className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline" onClick={onClose}>
                         Batal
                     </Button>
-                    <Button
-                        className="bg-green-600 text-white hover:bg-green-700"
-                        // onClick={...}
-                    >
+                    <Button className="bg-green-600 text-white hover:bg-green-700">
                         Simpan
                     </Button>
-                </div>
-            </div>
-        </div>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

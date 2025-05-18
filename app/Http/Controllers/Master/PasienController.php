@@ -12,6 +12,7 @@ use App\Models\Master\Pasien;
 use App\Models\Master\Referensi;
 use App\Models\Master\Wilayah;
 use App\Models\Master\Negara;
+use App\Models\Master\Ruangan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +66,13 @@ class PasienController extends Controller
 
     public function detail(Pasien $pasien)
     {
+        // Ambil data ruangan untuk pendaftaran
+        $unit = Ruangan::query()
+            ->where('STATUS', 1)
+            ->orderBy('DESKRIPSI', 'asc')
+            ->get(['ID', 'DESKRIPSI']);
+
+        // Ambil data pasien dengan relasi yang diperlukan
         $data_pasien = Pasien::query()
             ->where('pasien.NORM', $pasien->NORM)
             ->with([
@@ -96,6 +104,7 @@ class PasienController extends Controller
 
         return Inertia::render('master/pasien/detail', [
             'pasien' => $data_pasien,
+            'ruangan' => $ruangan,
         ]);
     }
 

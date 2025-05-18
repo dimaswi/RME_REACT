@@ -74,6 +74,8 @@ export default function Detail() {
 
     const itemsPerPage = 10;
 
+    // console.log(props);
+
     // Helper function to paginate data
     const paginate = (data: any[], page: number) => {
         const startIndex = (page - 1) * itemsPerPage;
@@ -111,7 +113,7 @@ export default function Detail() {
     ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs} pasien={props.pasien}>
+        <AppLayout breadcrumbs={breadcrumbs} pasien={props.pasien} ruangan={props.ruangan}>
             <Head title={pasien.NAMA} />
             <div className="p-4">
                 {/* Tabs */}
