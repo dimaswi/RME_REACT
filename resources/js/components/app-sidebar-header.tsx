@@ -2,16 +2,17 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { Input } from '@/components/ui/input';
 import ModalDaftarPasien from "@/components/modal-daftar-pasien";
 import { Hospital, PencilRuler, Search, Trash } from 'lucide-react';
+import SearchableDropdown from './SearchableDropdown';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function AppSidebarHeader({ breadcrumbs = [], pasien, ruangan }: { breadcrumbs?: BreadcrumbItemType[], pasien?: any }) {
+export function AppSidebarHeader({ breadcrumbs = [], pasien, ruangan }: { breadcrumbs?: BreadcrumbItemType[], pasien?: any, ruangan?: any[] }) {
     const { filters } = usePage().props;
     const [search, setSearch] = useState(filters?.search || '');
-    const [open, setOpen] = useState(false);
 
     const handleGlobalSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,13 +52,15 @@ export function AppSidebarHeader({ breadcrumbs = [], pasien, ruangan }: { breadc
                     </Button>
                 )}
             </form>
+
+            {/* Jika url /master/pasien/{RM} dan juga form untuk mendaftarkan pasien */}
             {window.location.pathname.match(/^\/master\/pasiens\/\d+$/) && (
                 <div>
                     {pasien?.NORM && (
                         <Button
                             type="button"
                             variant="default"
-                            className="bg-yellow-600 text-white hover:bg-yellow-700 ml-4"
+                            className="bg-yellow-600 text-white hover:bg-yellow-700 mx-4"
                             onClick={() => router.get(route('master.pasien.edit', { pasien: pasien.NORM }))}
                         >
                             <PencilRuler className='h-5 w-5' />
@@ -66,10 +69,7 @@ export function AppSidebarHeader({ breadcrumbs = [], pasien, ruangan }: { breadc
                     )}
                 </div>
             )}
-            <ModalDaftarPasien  open={open} onClose={setOpen} pasien={pasien} ruangan={ruangan} trigger={<Button className='bg-blue-600 text-white hover:bg-blue-700'>
-                <Hospital className='h-5 w-5'/>
-                Daftar Pasien
-            </Button>} />
+
         </header>
     );
 }

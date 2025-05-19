@@ -1,17 +1,21 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Trash, Pencil, PlusCircle, Hospital } from 'lucide-react';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import ModalDaftarPasien from "@/components/modal-daftar-pasien";
+import ModalBookingBed from "@/./pages/booking/bed/booking-modal";
+import SearchableDropdown from "@/components/SearchableDropdown";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 type Pasien = {
@@ -43,6 +47,13 @@ export default function PasienIndex() {
     }>();
     const [search, setSearch] = useState(props.filters.search || '');
     const [itemsPerPage, setItemsPerPage] = useState(props.filters.itemsPerPage || 10);
+    const [modalDaftarOpen, setModalDaftarOpen] = useState(false);
+    const [selectedPasien, setSelectedPasien] = useState<any>(null);
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+    const [modalBedOpen, setModalBedOpen] = useState(false);
+    const [selectedBed, setSelectedBed] = useState(null);
+    const [ppkList, setPpkList] = useState<any[]>([]);
+    const [selectedPpk, setSelectedPpk] = useState("");
 
     // Fungsi untuk menghitung usia dalam format "X tahun Y bulan Z hari"
     const calculateAge = (birthDate: string) => {
@@ -76,6 +87,76 @@ export default function PasienIndex() {
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setItemsPerPage(Number(e.target.value));
         router.get('/master/pasiens', { search, itemsPerPage: Number(e.target.value) }, { preserveState: true });
+    };
+
+    // State Context Menu Daftar Pasien
+    const [selectedRuangan5, setSelectedRuangan5] = useState("");
+    const [selectedRuangan7, setSelectedRuangan7] = useState("");
+    const [selectedRuangan9, setSelectedRuangan9] = useState("");
+    const [open, setOpen] = useState(false);
+    const [dokterList, setDokterList] = useState<any[]>([]);
+    const [selectedDokter, setSelectedDokter] = useState("");
+
+    // Filter ruangan 5 digit
+    const ruangan5Digit = (props.ruangan || []).filter(r => r.JENIS == 3);
+    // Filter ruangan 7 digit yang mengandung selectedRuangan5
+    const ruangan7Digit = (props.ruangan || []).filter(
+        r =>
+            r.JENIS == 4 &&
+            selectedRuangan5.length === 5 &&
+            String(r.ID).includes(selectedRuangan5)
+    );
+    // Filter ruangan 9 digit yang mengandung selectedRuangan7
+    const ruangan9Digit = (props.ruangan || []).filter(
+        r =>
+            r.JENIS == 5 &&
+            selectedRuangan7.length === 7 &&
+            String(r.ID).includes(selectedRuangan7)
+    );
+
+    // Ambil data dokter sesuai dengan ruangan
+    useEffect(() => {
+        if (selectedRuangan9) {
+            fetch(route('master.dokter.ajax', { ruangan_id: selectedRuangan9 }))
+                .then(res => res.json())
+                .then(data => setDokterList(data.dokter || []));
+        } else {
+            setDokterList([]);
+        }
+    }, [selectedRuangan9]);
+
+    // Load data PPK (Rumah Sakit Perujuk) via controller endpoint
+    useEffect(() => {
+        fetch('/master/ppk-list')
+            .then(res => res.json())
+            .then(data => setPpkList(data || []));
+    }, []);
+
+    const handleCloseModal = (open: boolean) => {
+        setModalDaftarOpen(open);
+        if (!open) {
+            setTimeout(() => {
+                const active = document.activeElement as HTMLElement | null;
+                if (active && active.closest('.modal-daftar-pasien')) {
+                    document.body.focus();
+                }
+            }, 0);
+        }
+    };
+
+    // Ref untuk menyimpan NORM pasien yang diklik kanan
+    const rightClickRowRef = useRef<string | null>(null);
+
+    // Handler klik kanan pada row
+    const handleRowContextMenu = (e: React.MouseEvent, pasien: Pasien) => {
+        e.preventDefault();
+        rightClickRowRef.current = pasien.NORM;
+        setSelectedPasien(pasien);
+        setModalDaftarOpen(true);
+        setSelectedRuangan5("");
+        setSelectedRuangan7("");
+        setSelectedRuangan9("");
+        setSelectedDokter("");
     };
 
     return (
@@ -134,126 +215,63 @@ export default function PasienIndex() {
                                 <TableHead>Umur</TableHead>
                                 <TableHead>Jenis Kelamin</TableHead>
                                 <TableHead>Kelurahan</TableHead>
-                                <TableHead>Alamat</TableHead>
-                                <TableHead>Actions</TableHead>
+                                <TableHead><center>Alamat</center></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {props.pasiens.data.length > 0 ? (
                                 props.pasiens.data.map((pasien) => (
-                                    pasien.TIDAK_DIKENAL == 1 ? (
-                                        <TableRow
-                                            key={pasien.NORM}
-                                            onClick={() => router.get(`/master/pasiens/${pasien.NORM}`)}
-                                            className="cursor-pointer hover:bg-gray-100"
-                                        >
-                                            <TableCell>{pasien.NORM}</TableCell>
-                                            <TableCell>{pasien.NAMA}</TableCell>
-                                            <TableCell>
-                                                <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">
-                                                    {calculateAge(pasien.TANGGAL_LAHIR)}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>
-                                                {(() => {
-                                                    const date = new Date(pasien.TANGGAL_LAHIR);
-                                                    const day = String(date.getDate()).padStart(2, '0');
-                                                    const monthNames = [
-                                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-                                                    ];
-                                                    const month = monthNames[date.getMonth()];
-                                                    const year = date.getFullYear();
-                                                    return `${day} ${month} ${year}`;
-                                                })()}
-                                            </TableCell>
-                                            <TableCell>
-                                                <span
-                                                    className={`inline-block px-2 py-1 text-xs font-semibold text-white rounded ${pasien.JENIS_KELAMIN === 1 ? 'bg-blue-500' : 'bg-pink-500'
-                                                        }`}
-                                                >
-                                                    {pasien.JENIS_KELAMIN === 1 ? 'Laki-laki' : 'Perempuan'}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell colSpan={3}>
+                                    <TableRow
+                                        key={pasien.NORM}
+                                        className="cursor-pointer hover:bg-gray-100"
+                                        onClick={() => router.get(`/master/pasiens/${pasien.NORM}`)}
+                                        onContextMenu={e => handleRowContextMenu(e, pasien)}
+                                    >
+                                        <TableCell>{pasien.NORM}</TableCell>
+                                        <TableCell>{pasien.NAMA}</TableCell>
+                                        <TableCell>
+                                            {(() => {
+                                                const date = new Date(pasien.TANGGAL_LAHIR);
+                                                const day = String(date.getDate()).padStart(2, '0');
+                                                const monthNames = [
+                                                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                                ];
+                                                const month = monthNames[date.getMonth()];
+                                                const year = date.getFullYear();
+                                                return `${day} ${month} ${year}`;
+                                            })()}
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">
+                                                {calculateAge(pasien.TANGGAL_LAHIR)}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span
+                                                className={`inline-block px-2 py-1 text-xs font-semibold text-white rounded ${pasien.JENIS_KELAMIN === 1 ? 'bg-blue-500' : 'bg-pink-500'
+                                                    }`}
+                                            >
+                                                {pasien.JENIS_KELAMIN === 1 ? 'Laki-laki' : 'Perempuan'}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>{pasien.KECAMATAN}</TableCell>
+                                        <TableCell>
+                                            {pasien.TIDAK_DIKENAL == 1 ? (
                                                 <center>
                                                     <span className="inline-block px-3 py-1 text-xs font-bold text-white bg-red-600 rounded">
                                                         Pasien Tidak Dikenal
                                                     </span>
                                                 </center>
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        <TableRow
-                                            key={pasien.NORM}
-                                            onClick={() => router.get(`/master/pasiens/${pasien.NORM}`)}
-                                            className="cursor-pointer hover:bg-gray-100"
-                                        >
-                                            <TableCell>{pasien.NORM}</TableCell>
-                                            <TableCell>{pasien.NAMA}</TableCell>
-                                            <TableCell>
-                                                <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded">
-                                                    {calculateAge(pasien.TANGGAL_LAHIR)}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>
-                                                {(() => {
-                                                    const date = new Date(pasien.TANGGAL_LAHIR);
-                                                    const day = String(date.getDate()).padStart(2, '0');
-                                                    const monthNames = [
-                                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-                                                    ];
-                                                    const month = monthNames[date.getMonth()];
-                                                    const year = date.getFullYear();
-                                                    return `${day} ${month} ${year}`;
-                                                })()}
-                                            </TableCell>
-                                            <TableCell>
-                                                <span
-                                                    className={`inline-block px-2 py-1 text-xs font-semibold text-white rounded ${pasien.JENIS_KELAMIN === 1 ? 'bg-blue-500' : 'bg-pink-500'
-                                                        }`}
-                                                >
-                                                    {pasien.JENIS_KELAMIN === 1 ? 'Laki-laki' : 'Perempuan'}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>{pasien.KECAMATAN}</TableCell>
-                                            <TableCell>DESA {pasien.KELURAHAN}, {pasien.ALAMAT}, RT {pasien.RT} - RW {pasien.RW}</TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <button className="px-2 py-1 text-xs font-semibold text-white bg-gray-500 rounded hover:bg-gray-600">
-                                                            Actions
-                                                        </button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                            className="flex items-center space-x-2 hover:bg-blue-100"
-                                                            onClick={() => router.get(`/master/pasiens/${pasien.NORM}/edit`)}
-                                                        >
-                                                            <Pencil className="h-4 w-4 text-blue-500" />
-                                                            <span>Edit</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            className="flex items-center space-x-2 hover:bg-red-100"
-                                                            onClick={() => {
-                                                                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                                                                    router.delete(`/master/pasiens/${pasien.NORM}`);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <Trash className="h-4 w-4 text-red-500" />
-                                                            <span>Delete</span>
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    )
+                                            ) : (
+                                                <>DESA {pasien.KELURAHAN}, {pasien.ALAMAT}, RT {pasien.RT} - RW {pasien.RW}</>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center">
+                                    <TableCell colSpan={7} className="text-center">
                                         Data pasien tidak ditemukan
                                     </TableCell>
                                 </TableRow>
@@ -305,6 +323,215 @@ export default function PasienIndex() {
                         </div>
                     </div>
                 </div>
+
+                {/* Modal Daftar Pasien */}
+                <ModalDaftarPasien
+                    open={modalDaftarOpen}
+                    onClose={handleCloseModal}
+                    pasien={selectedPasien}
+                >
+                    <div className="grid grid-cols-2 gap-4 mx-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Tujuan</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 mb-2">
+                                    <div>
+                                        <SearchableDropdown
+                                            placeholder="Pilih Instalasi"
+                                            data={ruangan5Digit}
+                                            value={selectedRuangan5}
+                                            setValue={val => {
+                                                setSelectedRuangan5(val);
+                                                setSelectedRuangan7("");
+                                                setSelectedRuangan9("");
+                                            }}
+                                            getOptionLabel={item => item.DESKRIPSI}
+                                            getOptionValue={item => item.ID}
+                                            autoFocus={false}
+                                        />
+                                    </div>
+                                </div>
+                                <div className='grid grid-cols-2 gap-4 mb-2'>
+                                    <div>
+                                        <SearchableDropdown
+                                            placeholder="Pilih Unit"
+                                            data={ruangan7Digit}
+                                            value={selectedRuangan7}
+                                            setValue={val => {
+                                                setSelectedRuangan7(val);
+                                                setSelectedRuangan9("");
+                                            }}
+                                            getOptionLabel={item => item.DESKRIPSI}
+                                            getOptionValue={item => item.ID}
+                                            disabled={!selectedRuangan5}
+                                            autoFocus={false}
+                                        />
+                                    </div>
+                                    <div>
+                                        <SearchableDropdown
+                                            placeholder="Pilih Ruangan"
+                                            data={ruangan9Digit}
+                                            value={selectedRuangan9}
+                                            setValue={setSelectedRuangan9}
+                                            getOptionLabel={item => item.DESKRIPSI}
+                                            getOptionValue={item => item.ID}
+                                            disabled={!selectedRuangan7}
+                                            autoFocus={false}
+                                        />
+                                    </div>
+                                </div>
+                                <div className='grid grid-cols-1'>
+                                    {selectedRuangan9 && (() => {
+                                        const ruanganObj = ruangan9Digit.find(r => String(r.ID) === String(selectedRuangan9));
+                                        if (ruanganObj && Number(ruanganObj.JENIS_KUNJUNGAN) === 3) {
+                                            // Jika rawat inap, tampilkan dropdown dokter DAN input booking bed
+                                            return (
+                                                <>
+                                                    <div className="mb-2">
+                                                        <SearchableDropdown
+                                                            placeholder="Pilih Dokter"
+                                                            data={dokterList}
+                                                            value={selectedDokter}
+                                                            setValue={setSelectedDokter}
+                                                            getOptionLabel={item => {
+                                                                if (!item || !item.data_dokter || !item.data_dokter.pegawai) return 'Tanpa Nama';
+                                                                const pegawai = item.data_dokter.pegawai;
+                                                                const gelarDepan = pegawai.GELAR_DEPAN ? pegawai.GELAR_DEPAN + ' ' : '';
+                                                                const nama = pegawai.NAMA || '';
+                                                                const gelarBelakang = pegawai.GELAR_BELAKANG ? ' ' + pegawai.GELAR_BELAKANG : '';
+                                                                return `${gelarDepan}${nama}${gelarBelakang}`.trim() || 'Tanpa Nama';
+                                                            }}
+                                                            getOptionValue={item => item.DOKTER}
+                                                            autoFocus={false}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Input
+                                                            readOnly
+                                                            value={selectedBed ? `${selectedBed.kamar} - ${selectedBed.nama}` : ""}
+                                                            placeholder="Pilih Tempat Tidur"
+                                                            className="cursor-pointer bg-white"
+                                                            onClick={() => setModalBedOpen(true)}
+                                                        />
+                                                    </div>
+                                                </>
+                                            );
+                                        }
+
+                                        if (ruanganObj && [1, 2, 17].includes(Number(ruanganObj.JENIS_KUNJUNGAN))) {
+                                            return (
+                                                <div className="mb-4">
+                                                    <SearchableDropdown
+                                                        placeholder="Pilih Dokter"
+                                                        data={dokterList}
+                                                        value={selectedDokter}
+                                                        setValue={setSelectedDokter}
+                                                        getOptionLabel={item => {
+                                                            if (!item || !item.data_dokter || !item.data_dokter.pegawai) return 'Tanpa Nama';
+                                                            const pegawai = item.data_dokter.pegawai;
+                                                            const gelarDepan = pegawai.GELAR_DEPAN ? pegawai.GELAR_DEPAN + ' ' : '';
+                                                            const nama = pegawai.NAMA || '';
+                                                            const gelarBelakang = pegawai.GELAR_BELAKANG ? ' ' + pegawai.GELAR_BELAKANG : '';
+                                                            return `${gelarDepan}${nama}${gelarBelakang}`.trim() || 'Tanpa Nama';
+                                                        }}
+                                                        getOptionValue={item => item.DOKTER}
+                                                        autoFocus={false}
+                                                    />
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Rujukan</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 mb-2">
+                                    <div>
+                                        <SearchableDropdown
+                                            placeholder="Pilih Rumah Sakit Perujuk"
+                                            data={ppkList}
+                                            value={selectedPpk}
+                                            setValue={setSelectedPpk}
+                                            getOptionLabel={item => item.NAMA}
+                                            getOptionValue={item => item.ID}
+                                            autoFocus={false}
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className='grid grid-cols-2 gap-4 mx-6 mt-4'>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Penjamin</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 mb-2">
+                                    <div>
+
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Kecelakaan</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 mb-2">
+                                    <div>
+
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className='grid grid-cols-2 gap-4 mx-6 mt-4'>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Penjamin</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 mb-2">
+                                    <div>
+
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Kecelakaan</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4 mb-2">
+                                    <div>
+
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </ModalDaftarPasien>
+                <ModalBookingBed
+                    open={modalBedOpen}
+                    onClose={() => setModalBedOpen(false)}
+                    selectedRuangan9={selectedRuangan9}
+                    onSelectBed={setSelectedBed}
+                />
             </div>
         </AppLayout>
     );

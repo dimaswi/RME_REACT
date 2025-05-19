@@ -130,7 +130,7 @@ export default function PasienEdit(props) {
             setAlamatKelurahan("");
             return;
         }
-        fetch(route('api.wilayah', { jenis: 2, parent: alamatProvinsi }))
+        fetch(route('master.wilayah.ajax', { jenis: 2, parent: alamatProvinsi }))
             .then(res => res.json())
             .then(data => {
                 setKabupaten(data.wilayah || []);
@@ -149,7 +149,7 @@ export default function PasienEdit(props) {
             setAlamatKelurahan("");
             return;
         }
-        fetch(route('api.wilayah', { jenis: 3, parent: alamatKabupaten }))
+        fetch(route('master.wilayah.ajax', { jenis: 3, parent: alamatKabupaten }))
             .then(res => res.json())
             .then(data => {
                 setKecamatan(data.wilayah || []);
@@ -166,7 +166,7 @@ export default function PasienEdit(props) {
             setAlamatKelurahan("");
             return;
         }
-        fetch(route('api.wilayah', { jenis: 4, parent: alamatKecamatan }))
+        fetch(route('master.wilayah.ajax', { jenis: 4, parent: alamatKecamatan }))
             .then(res => res.json())
             .then(data => {
                 setKelurahan(data.wilayah || []);

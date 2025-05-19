@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\DokterRuangan;
 use App\Models\Master\KartuIdentitasKeluarga;
 use App\Models\Master\KartuIdentitasPasien;
 use App\Models\Master\KeluargaPasiens;
@@ -24,6 +25,12 @@ class PasienController extends Controller
     public function index()
     {
         $search = request()->search ?? '';
+
+        // Ambil data ruangan untuk pendaftaran
+        $ruangan = Ruangan::query()
+            ->where('STATUS', 1)
+            ->orderBy('DESKRIPSI', 'asc')
+            ->get(['ID', 'DESKRIPSI', 'JENIS', 'JENIS_KUNJUNGAN']);
 
         // Query pasien dengan pencarian dan pagination
         $pasiens = Pasien::query()
@@ -57,6 +64,7 @@ class PasienController extends Controller
 
         return Inertia::render('master/pasien/index', [
             'pasiens' => $pasiens,
+            'ruangan' => $ruangan,
             'filters' => [
                 'search' => $search,
                 'itemsPerPage' => request()->itemsPerPage ?? 10,
@@ -66,12 +74,6 @@ class PasienController extends Controller
 
     public function detail(Pasien $pasien)
     {
-        // Ambil data ruangan untuk pendaftaran
-        $unit = Ruangan::query()
-            ->where('STATUS', 1)
-            ->orderBy('DESKRIPSI', 'asc')
-            ->get(['ID', 'DESKRIPSI']);
-
         // Ambil data pasien dengan relasi yang diperlukan
         $data_pasien = Pasien::query()
             ->where('pasien.NORM', $pasien->NORM)
@@ -104,7 +106,6 @@ class PasienController extends Controller
 
         return Inertia::render('master/pasien/detail', [
             'pasien' => $data_pasien,
-            'ruangan' => $ruangan,
         ]);
     }
 
@@ -546,5 +547,16 @@ class PasienController extends Controller
         }
         $wilayah = $query->orderBy('DESKRIPSI')->get(['ID', 'DESKRIPSI']);
         return response()->json(['wilayah' => $wilayah]);
+    }
+
+    public function getDokterByRuangan(Request $request)
+    {
+        $ruanganId = $request->input('ruangan_id');
+        $dokter = \App\Models\Master\DokterRuangan::where('RUANGAN', $ruanganId)
+            ->where('STATUS', 1)
+            ->with(['dataDokter.pegawai'])
+            ->get();
+
+        return response()->json(['dokter' => $dokter]);
     }
 }

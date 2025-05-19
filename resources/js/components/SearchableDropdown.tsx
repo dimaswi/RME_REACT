@@ -1,17 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export default function SearchableDropdown({ data, value, setValue, placeholder, disabled = false, warning = false }) {
+export default function SearchableDropdown({
+    data,
+    value,
+    setValue,
+    placeholder,
+    disabled = false,
+    warning = false,
+    getOptionLabel = item => (item && item.DESKRIPSI ? item.DESKRIPSI : ""),
+    getOptionValue = item => (item && item.ID ? item.ID : ""),
+    autoFocus = false, // tambahkan default autoFocus false
+}) {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [highlighted, setHighlighted] = useState(0);
     const ref = useRef(null);
 
     const filtered = data.filter(item =>
-        !search
-            ? true
-            : item.DESKRIPSI &&
-            item.DESKRIPSI.toLowerCase().includes(search.toLowerCase())
+        item && (
+            !search
+                ? true
+                : getOptionLabel(item)
+                    ?.toLowerCase()
+                    .includes(search.toLowerCase())
+        )
     );
 
     useEffect(() => {
@@ -59,7 +72,9 @@ export default function SearchableDropdown({ data, value, setValue, placeholder,
                     placeholder={placeholder}
                     value={
                         value
-                            ? data.find(item => item.ID.toString() === value)?.DESKRIPSI
+                            ? getOptionLabel(
+                                data.find(item => getOptionValue(item).toString() === value)
+                            )
                             : search
                     }
                     onFocus={() => !disabled && setOpen(true)}
@@ -73,6 +88,7 @@ export default function SearchableDropdown({ data, value, setValue, placeholder,
                     autoComplete="off"
                     disabled={disabled}
                     tabIndex={disabled ? -1 : 0}
+                    autoFocus={autoFocus}
                 />
                 <button
                     type="button"
@@ -93,19 +109,19 @@ export default function SearchableDropdown({ data, value, setValue, placeholder,
                     ) : (
                         filtered.map((item, idx) => (
                             <div
-                                key={item.ID}
+                                key={getOptionValue(item)}
                                 className={`px-4 py-2 cursor-pointer transition truncate ${idx === highlighted
                                     ? "bg-gray-200 text-gray-900"
                                     : "hover:bg-gray-100 hover:text-gray-700"
                                     }`}
                                 onMouseDown={() => {
-                                    setValue(item.ID.toString());
+                                    setValue(getOptionValue(item).toString());
                                     setSearch("");
                                     setOpen(false);
                                 }}
                                 onMouseEnter={() => setHighlighted(idx)}
                             >
-                                {item.DESKRIPSI}
+                                {getOptionLabel(item)}
                             </div>
                         ))
                     )}
