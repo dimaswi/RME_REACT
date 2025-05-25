@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Pendaftaran\Kunjungan;
 use App\Models\Pendaftaran\Pendaftaran;
 use Illuminate\Database\Eloquent\Model;
@@ -84,5 +85,10 @@ class Pasien extends Model
     public function riwayatPendaftaran()
     {
         return $this->hasMany(Pendaftaran::class, 'NORM', 'NORM');
+    }
+
+    public function pengajuanKlaim()
+    {
+        return $this->hasMany(PengajuanKlaim::class, 'NORM', 'NORM');
     }
 }

@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavGroup } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Cog, LayoutGrid } from 'lucide-react';
+import { Banknote, Cog, Hospital, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavGroup[] = [
@@ -12,6 +12,28 @@ const mainNavItems: NavGroup[] = [
         title: 'Dashboard',
         url: route('dashboard'),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Keuangan',
+        url: '#',
+        icon: Banknote,
+        subItems: [
+            {
+                title: 'Pendapatan Kasir',
+                url: route('keuangan.pendapatan.kasir.index'),
+            },
+        ],
+    },
+    {
+        title: 'Eklaim',
+        url: '#',
+        icon: Hospital,
+        subItems: [
+            {
+                title: 'Klaim',
+                url: route('eklaim.klaim.index'),
+            },
+        ],
     },
     {
         title: 'Master',
