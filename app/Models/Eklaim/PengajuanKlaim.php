@@ -2,10 +2,13 @@
 
 namespace App\Models\Eklaim;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class PengajuanKlaim extends Model
 {
+    use HasUuids;
+
     protected $connection = 'eklaim';
 
     protected $table = 'pengajuan_klaim';
@@ -14,7 +17,9 @@ class PengajuanKlaim extends Model
         'NORM',
         'nomor_pendaftaran',
         'nomor_SEP',
-        'status', // 0: pending, 1: approved, 2: rejected
-        'petugas' // Nama petugas yang mengajukan klaim
+        'status',
+        'petugas',
+        'request',
+        'tanggal_pengajuan',
     ];
 }

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Master\Pasien;
+use App\Models\Pendaftaran\Pendaftaran;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class KlaimController extends Controller
@@ -17,7 +20,7 @@ class KlaimController extends Controller
         $query = Pasien::query();
 
         if ($q) {
-            $query->where(function($sub) use ($q) {
+            $query->where(function ($sub) use ($q) {
                 $sub->where('NAMA', 'like', "%$q%")
                     ->orWhere('NORM', 'like', "%$q%")
                     ->orWhere('ALAMAT', 'like', "%$q%");
@@ -43,15 +46,18 @@ class KlaimController extends Controller
         $q = $request->input('q');
         $pasien = \App\Models\Master\Pasien::where('NORM', $pasien)->firstOrFail();
 
-        // Filter pengajuan klaim jika ada pencarian
-        $pengajuanKlaimQuery = $pasien->pengajuanKlaim();
-        if ($q) {
-            $pengajuanKlaimQuery->where(function($query) use ($q) {
-                $query->where('no_klaim', 'like', "%$q%")
-                      ->orWhere('status', 'like', "%$q%");
-            });
-        }
-        $pengajuanKlaim = $pengajuanKlaimQuery->get();
+        // Mengambil data pengajuan klaim untuk pasien
+        $pengajuanKlaim = $pasien->pengajuanKlaim()->get();
+
+        // Menambahkan data kunjungan
+        $kunjungan = Pendaftaran::where('NORM', $pasien->NORM)
+            ->with([
+                'penjamin.kunjunganBPJS',
+                'pasien',
+                'riwayatKunjungan.ruangan'
+
+            ])
+            ->get();
 
         return Inertia::render('eklaim/klaim/show', [
             'pasien' => $pasien,
@@ -59,6 +65,35 @@ class KlaimController extends Controller
             'klaimFilter' => [
                 'q' => $q,
             ],
+            'kunjungan' => $kunjungan, // tambahkan data kunjungan ke view
+        ]);
+    }
+
+    public function storePengajuanKlaim(Request $request)
+    {
+        $pasien = Pasien::where('NORM', $request->input('NORM'))->firstOrFail();
+        // dd($request->all());
+        PengajuanKlaim::create([
+            'NORM' => $request->input('NORM'),
+            'nomor_pendaftaran' => $request->input('nomor_pendaftaran'),
+            'nomor_SEP' => $request->input('nomor_SEP'),
+            'status' => 0,
+            'petugas' => Auth::user()->nama,
+            'request' => json_encode($request->input('request')), // pastikan tersimpan sebagai JSON
+            'tanggal_pengajuan' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Pengajuan klaim berhasil dibuat.');
+    }
+
+    public function dataKlaim(PengajuanKlaim $dataKlaim)
+    {
+        $pasien = Pasien::where('NORM', $dataKlaim->NORM)->firstOrFail();
+        $dataPendaftaran = Pendaftaran::where('NOMOR', $dataKlaim->nomor_pendaftaran)->with('pasienPulang')->firstOrFail();
+        return Inertia::render('eklaim/klaim/dataKlaim', [
+            'dataKlaim' => $dataKlaim,
+            'pasien' => $pasien,
+            'dataPendaftaran' => $dataPendaftaran,
         ]);
     }
 }

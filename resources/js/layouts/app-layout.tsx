@@ -2,7 +2,7 @@ import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type ReactNode, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import { toast } from 'sonner'; // atau react-hot-toast
+import { toast, Toaster } from 'sonner';
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -15,13 +15,23 @@ export default ({ children, breadcrumbs, pasien, ruangan, ...props }: AppLayoutP
     const { success, error } = usePage().props;
 
     useEffect(() => {
-        if (success) toast.success(success);
-        if (error) toast.error(error);
+        if (success) {
+            toast.success(success);
+            // Reset flash agar toast bisa muncul lagi pada pesan yang sama
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        }
+        if (error) {
+            toast.error(error);
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        }
     }, [success, error]);
 
     return (
-        <AppLayoutTemplate breadcrumbs={breadcrumbs} pasien={pasien} ruangan={ruangan} {...props}>
-            {children}
-        </AppLayoutTemplate>
+        <>
+            <Toaster position="top-right" richColors />
+            <AppLayoutTemplate breadcrumbs={breadcrumbs} pasien={pasien} ruangan={ruangan} {...props}>
+                {children}
+            </AppLayoutTemplate>
+        </>
     );
 };
