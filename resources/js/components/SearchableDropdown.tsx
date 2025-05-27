@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import "../../css/SearchableDropdown.css";
 
 export default function SearchableDropdown({
     data,
@@ -8,23 +9,21 @@ export default function SearchableDropdown({
     placeholder,
     disabled = false,
     warning = false,
-    getOptionLabel = item => (item && item.DESKRIPSI ? item.DESKRIPSI : ""),
-    getOptionValue = item => (item && item.ID ? item.ID : ""),
-    autoFocus = false, // tambahkan default autoFocus false
+    getOptionLabel = (item) => (item && item.DESKRIPSI ? item.DESKRIPSI : ""),
+    getOptionValue = (item) => (item && item.ID ? item.ID : ""),
+    autoFocus = false,
+    onSearch, // Tambahkan properti onSearch
 }) {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [highlighted, setHighlighted] = useState(0);
     const ref = useRef(null);
 
-    const filtered = data.filter(item =>
-        item && (
-            !search
-                ? true
-                : getOptionLabel(item)
-                    ?.toLowerCase()
-                    .includes(search.toLowerCase())
-        )
+    const filtered = data.filter((item) =>
+        item &&
+        (!search
+            ? true
+            : getOptionLabel(item)?.toLowerCase().includes(search.toLowerCase()))
     );
 
     useEffect(() => {
@@ -59,8 +58,21 @@ export default function SearchableDropdown({
         }
     };
 
+    const handleSearchChange = (e) => {
+        const keyword = e.target.value;
+        setSearch(keyword);
+        setValue("");
+
+        // Panggil fungsi onSearch jika tersedia
+        if (onSearch) {
+            onSearch(keyword);
+        }
+
+        setOpen(true);
+    };
+
     return (
-        <div className="relative" ref={ref}>
+        <div className="relative searchable-dropdown" ref={ref}>
             <div
                 className={`flex items-center border rounded-lg px-2 py-1 bg-white focus-within:ring-2 focus-within:ring-gray-400 transition
                     ${disabled ? "opacity-60 cursor-not-allowed" : ""}
@@ -73,17 +85,14 @@ export default function SearchableDropdown({
                     value={
                         value
                             ? getOptionLabel(
-                                data.find(item => getOptionValue(item).toString() === value)
+                                data.find((item) =>
+                                    getOptionValue(item).toString() === value
+                                )
                             )
                             : search
                     }
                     onFocus={() => !disabled && setOpen(true)}
-                    onChange={e => {
-                        if (disabled) return;
-                        setSearch(e.target.value);
-                        setValue("");
-                        setOpen(true);
-                    }}
+                    onChange={handleSearchChange}
                     onKeyDown={disabled ? undefined : handleKeyDown}
                     autoComplete="off"
                     disabled={disabled}
@@ -92,12 +101,16 @@ export default function SearchableDropdown({
                 />
                 <button
                     type="button"
-                    className="ml-2 text-gray-400 hover:text-gray-600 transition"
+                    className="chevron-button"
                     tabIndex={-1}
-                    onClick={() => !disabled && setOpen(v => !v)}
+                    onClick={() => !disabled && setOpen((v) => !v)}
                     disabled={disabled}
                 >
-                    <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                        className={`w-4 h-4 transition-transform ${
+                            open ? "rotate-180" : ""
+                        }`}
+                    />
                 </button>
             </div>
             {open && !disabled && (
@@ -110,10 +123,11 @@ export default function SearchableDropdown({
                         filtered.map((item, idx) => (
                             <div
                                 key={getOptionValue(item)}
-                                className={`px-4 py-2 cursor-pointer transition truncate ${idx === highlighted
-                                    ? "bg-gray-200 text-gray-900"
-                                    : "hover:bg-gray-100 hover:text-gray-700"
-                                    }`}
+                                className={`px-4 py-2 cursor-pointer transition truncate ${
+                                    idx === highlighted
+                                        ? "bg-gray-200 text-gray-900"
+                                        : "hover:bg-gray-100 hover:text-gray-700"
+                                }`}
                                 onMouseDown={() => {
                                     setValue(getOptionValue(item).toString());
                                     setSearch("");

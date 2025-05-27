@@ -9,6 +9,7 @@ import ModalDaftarPasien from "@/components/modal-daftar-pasien";
 import { Hospital, PencilRuler, Search, Trash } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import "../../css/app-sidebar-header.css";
 
 export function AppSidebarHeader({ breadcrumbs = [], pasien, ruangan }: { breadcrumbs?: BreadcrumbItemType[], pasien?: any, ruangan?: any[] }) {
     const { filters } = usePage().props;
@@ -25,7 +26,10 @@ export function AppSidebarHeader({ breadcrumbs = [], pasien, ruangan }: { breadc
                 <SidebarTrigger className="-ml-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
-            <form onSubmit={handleGlobalSearch} className="relative w-full max-w-xs ml-auto">
+            <form
+                onSubmit={handleGlobalSearch}
+                className="relative w-full max-w-xs ml-auto global-search"
+            >
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                     <Search className="h-5 w-5" />
                 </span>

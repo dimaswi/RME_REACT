@@ -1,0 +1,23 @@
+/* Pastikan dropdown tidak melebihi batas kolom */
+.searchable-dropdown {
+    width: 100%; /* Isi penuh kolom */
+    position: relative;
+}
+
+.searchable-dropdown input {
+    width: 100%; /* Input mengikuti lebar dropdown */
+    box-sizing: border-box; /* Pastikan padding tidak menambah lebar */
+}
+
+.searchable-dropdown button {
+    position: absolute;
+    right: 0.5rem; /* Jarak dari kanan */
+    top: 50%; /* Posisikan di tengah secara vertikal */
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

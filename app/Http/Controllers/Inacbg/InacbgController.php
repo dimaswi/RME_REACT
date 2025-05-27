@@ -9,7 +9,6 @@ class InacbgController extends Controller
 {
     function inacbg_encrypt($data, $key)
     {
-
         /// make binary representasion of $key
         $key = hex2bin($key);
         /// check key length, must be 256 bit or 32 bytes
@@ -21,7 +20,7 @@ class InacbgController extends Controller
         $iv = openssl_random_pseudo_bytes($iv_size); // dengan catatan dibawah
         /// encrypt
         $encrypted = openssl_encrypt(
-            $data,
+            json_encode($data, JSON_UNESCAPED_UNICODE),
             "aes-256-cbc",
             $key,
             OPENSSL_RAW_DATA,

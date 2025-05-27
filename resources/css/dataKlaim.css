@@ -1,0 +1,29 @@
+/* Tabel dengan lebar tetap */
+.table-fixed {
+    table-layout: fixed; /* Lebar kolom tetap */
+    width: 100%; /* Tabel memenuhi lebar penuh */
+    border-collapse: collapse; /* Hilangkan jarak antar border */
+}
+
+.table-fixed td,
+.table-fixed th {
+    word-wrap: break-word; /* Bungkus teks jika terlalu panjang */
+    padding: 8px; /* Tambahkan padding untuk ruang */
+    text-align: left; /* Rata kiri teks */
+}
+
+/* Aturan untuk tampilan mobile */
+@media (max-width: 768px) {
+    .table-fixed {
+        display: block; /* Ubah tabel menjadi block untuk scroll horizontal */
+        overflow-x: auto; /* Tambahkan scroll horizontal */
+        white-space: nowrap; /* Hindari teks terpotong */
+    }
+
+    .table-fixed th,
+    .table-fixed td {
+        white-space: nowrap; /* Hindari teks terpotong */
+        text-overflow: ellipsis; /* Tambahkan elipsis jika teks terlalu panjang */
+        overflow: hidden; /* Sembunyikan teks yang melampaui batas */
+    }
+}

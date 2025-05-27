@@ -1,0 +1,6 @@
+/* Sembunyikan global search pada tampilan mobile */
+@media (max-width: 768px) {
+    .global-search {
+        display: none; /* Sembunyikan elemen */
+    }
+}
