@@ -4,7 +4,7 @@ import { Head, usePage, router } from "@inertiajs/react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import React, { useState } from "react"
-import { PlusCircle, X, Search, Calendar as CalendarIcon, Check, AlignJustify, Pencil } from "lucide-react"
+import { PlusCircle, X, Search, Calendar as CalendarIcon, Check, AlignJustify, Pencil, Trash } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -73,7 +73,13 @@ export default function KlaimShow() {
                 nomor_SEP: selectedKunjungan.noSEP,
                 nomor_pendaftaran: selectedKunjungan.nomorPendaftaran,
                 tanggal_pengajuan: tanggalPengajuan,
-                request: selectedKunjungan,
+                nomor_kartu: selectedKunjungan.noKartu,
+                nomor_sep: selectedKunjungan.noSEP,
+                nomor_rm: pasien.NORM,
+                nama_pasien: pasien.NAMA,
+                tgl_lahir: pasien.TANGGAL_LAHIR,
+                gender: pasien.JENIS_KELAMIN,
+                tanggal_sep: selectedKunjungan.tglSEP,
             },
             {
                 preserveScroll: true,
@@ -90,8 +96,7 @@ export default function KlaimShow() {
 
     // Handler untuk mengajukan klaim ke Eklaim
     const handleAjukanKlaim = (item: any) => {
-        // Contoh: Kirim ulang pengajuan klaim ke backend
-        console.log("Mengajukan klaim untuk:", item);
+        router.post(route('eklaim.klaim.pengajuanUlang', item))
     };
 
     // Helper untuk flatten daftar kunjungan BPJS dari hasil relasi
@@ -211,7 +216,7 @@ export default function KlaimShow() {
                                                     )}
                                                     {item.status === 2 && (
                                                         <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-400 text-white">
-                                                            Selesai
+                                                            Final
                                                         </span>
                                                     )}
                                                 </TableCell>
@@ -228,7 +233,7 @@ export default function KlaimShow() {
                                                         <DropdownMenuContent>
                                                             {item.status === 0 && (
                                                                 <DropdownMenuItem
-                                                                    onClick={() => handleAjukanKlaim(item)}
+                                                                    onClick={() => handleAjukanKlaim(item.id)}
                                                                     className="flex items-center gap-2"
                                                                 >
                                                                     <Check size={16} className="text-green-600" />
@@ -237,13 +242,37 @@ export default function KlaimShow() {
                                                             )}
                                                             {
                                                                 item.status === 1 && (
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }))}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Pencil size={16} className="text-yellow-600" />
-                                                                        Isi Data
-                                                                    </DropdownMenuItem>
+                                                                    <>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }))}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Pencil size={16} className="text-yellow-600" />
+                                                                            Isi Data Klaim
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => router.post(route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }))}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Trash size={16} className="text-red-600" />
+                                                                            Batalkan Klaim
+                                                                        </DropdownMenuItem>
+                                                                    </>
+
+                                                                )
+                                                            }
+                                                            {
+                                                                item.status === 2 && (
+                                                                    <>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => router.post(route('eklaim.klaim.editUlangKlaim', { pengajuanKlaim: item.id }))}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Pencil size={16} className="text-yellow-600" />
+                                                                            Edit Ulang
+                                                                        </DropdownMenuItem>
+                                                                    </>
+
                                                                 )
                                                             }
                                                         </DropdownMenuContent>

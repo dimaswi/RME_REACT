@@ -17,6 +17,7 @@ export default function DataKlaim() {
     const { dataPendaftaran } = usePage().props as { dataPendaftaran: any };
     const [caraMasuk, setCaraMasuk] = useState("");
     const [dataDischargeStatus, setDataDischargeStatus] = useState("");
+    const [dataPenjaminKlaim, setDataPenjaminKlaim] = useState("");
     const caraMasukOptions = [
         { ID: "gp", DESKRIPSI: "Rujukan FKTP" },
         { ID: "hosp-trans", DESKRIPSI: "Rujukan FKRTL" },
@@ -93,6 +94,8 @@ export default function DataKlaim() {
             return {};
         }
     }, [dataKlaim.request]);
+
+    // console.log("isiRequestKlaim:", isiRequestKlaim);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -368,27 +371,35 @@ export default function DataKlaim() {
         }));
     };
 
+    // Poli Eksekutif
+    const [poliEksekutif, setPoliEksekutif] = useState(false);
+    const [namaDokterPoliEksekutif, setNamaDokterPoliEksekutif] = useState("");
+    const [tarifPoliEksekutif, setTarifPoliEksekutif] = useState("");
+
+    // Penggunaan Darah
+    const [penggunaanDarah, setPenggunaanDarah] = useState(false);
+    const [kantongDarahPenggunaan, setKantongDarahPenggunaan] = useState("");
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title="Pengisian Data Klaim" />
             <div className="p-4">
-                <h1 className="text-2xl font-bold mb-4">Pengisian Data Klaim</h1>
                 <div className="mb-4">
                     <div className="mb-3 p-2 border rounded bg-blue-50 text-sm">
                         <div>
                             <b>Tanggal Pengajuan:</b> {formatTanggalIndo(dataKlaim.tanggal_pengajuan)}
                         </div>
                         <div>
-                            <b>Tanggal SEP:</b> {formatTanggalIndo(isiRequestKlaim.tglSEP)}
+                            <b>Tanggal SEP:</b> {formatTanggalIndo(isiRequestKlaim.tanggal_sep)}
                         </div>
                         <div>
-                            <b>Nomor Kartu:</b> {isiRequestKlaim.noKartu || "-"}
+                            <b>Nomor Kartu:</b> {isiRequestKlaim.nomor_kartu || "-"}
                         </div>
                         <div>
-                            <b>Nomor SEP:</b> {isiRequestKlaim.noSEP || "-"}
+                            <b>Nomor SEP:</b> {isiRequestKlaim.nomor_sep || "-"}
                         </div>
                         <div>
-                            <b>Nomor RM:</b> {isiRequestKlaim.NORM || "-"}
+                            <b>Nomor RM:</b> {isiRequestKlaim.nomor_rm || "-"}
                         </div>
                         <div>
                             <b>Nama Pasien:</b> {pasien.NAMA || "-"}
@@ -449,7 +460,29 @@ export default function DataKlaim() {
                                         getOptionValue={(item) => item.ID}
                                     />
                                 </td>
-                                <td colSpan={2} className="border-b border-l border-r border-gray-300 px-4 py-2"></td>
+                                <td className="border-b border-l border-r border-gray-300 px-4 py-2">Penjamin</td>
+                                <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                    <SearchableDropdown
+                                        data={[
+                                            { ID: 3, DESKRIPSI: "JKN" },
+                                            { ID: 71, DESKRIPSI: "JAMINAN COVID-19" },
+                                            { ID: 72, DESKRIPSI: "JAMINAN KIPI" },
+                                            { ID: 73, DESKRIPSI: "JAMINAN BAYI BARU LAHIR" },
+                                            { ID: 74, DESKRIPSI: "JAMINAN PERPANJANG MASA RAWAT" },
+                                            { ID: 75, DESKRIPSI: "JAMINAN CO-INSIDENSE" },
+                                            { ID: 76, DESKRIPSI: "JAMPERSAL" },
+                                            { ID: 77, DESKRIPSI: "JAMINAN PEMULIHAN KESEHATAN PRIORITAS" },
+                                            { ID: 5, DESKRIPSI: "JAMKESDA" },
+                                            { ID: 6, DESKRIPSI: "JAMKESOS" },
+                                            { ID: 1, DESKRIPSI: "PASIEN BAYAR" },
+                                        ]}
+                                        value={dataPenjaminKlaim}
+                                        setValue={setDataPenjaminKlaim}
+                                        placeholder="Pilih Penjamin"
+                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                        getOptionValue={(item) => item.ID}
+                                    />
+                                </td>
                             </tr>
 
                             {/* ICU Fields */}
@@ -622,6 +655,41 @@ export default function DataKlaim() {
                                     </tr>
                                 </>
                             )}
+                            <tr className="hover:bg-gray-50">
+                                <td colSpan={8} className="bg-gray-100 border-b border-l border-r border-gray-300 px-4 py-2">
+                                    <center>
+                                        <h2>Penggunaan Darah</h2>
+                                    </center>
+                                </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50">
+                                <td className="border-b border-l border-r border-gray-300 px-4 py-2">Penggunanaan Darah</td>
+                                <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                    <Checkbox
+                                        id="darah_penggunaan"
+                                        checked={penggunaanDarah}
+                                        onCheckedChange={setPenggunaanDarah}
+                                    />
+                                </td>
+
+                                {penggunaanDarah ? (
+                                    <>
+                                        <td className="border-b border-l border-r border-gray-300 px-4 py-2">Kantong Darah</td>
+                                        <td colSpan={5} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                            <Input
+                                                id="kantong_darah_penggunaan"
+                                                name="kantong_darah_penggunaan"
+                                                type="number"
+                                                placeholder="Masukkan Jumlah Kantong Darah"
+                                                value={kantongDarahPenggunaan}
+                                                onChange={e => setKantongDarahPenggunaan(e.target.value)}
+                                            />
+                                        </td>
+                                    </>
+                                ) : (
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2"></td>
+                                )}
+                            </tr>
 
                             {/* Data Klinis */}
                             <tr className="hover:bg-gray-50">
@@ -745,7 +813,7 @@ export default function DataKlaim() {
                                     </div>
                                     <small className="text-red-500">* Untuk procedure primary pastikan pada pilihan pertama (ICD-9)</small>
                                     <br />
-                                    <small className="text-red-500">* Pilih dua kali jiak procedure digunakan lebih dari sekali</small>
+                                    <small className="text-red-500">* Pilih 2 kali jika procedure digunakan lebih dari sekali</small>
 
                                 </td>
                             </tr>
@@ -1366,7 +1434,57 @@ export default function DataKlaim() {
                                     </tr>
                                 </>
                             ))}
-
+                            {/* Poli Eksekutif */}
+                            <tr className="hover:bg-gray-50">
+                                <td colSpan={8} className="bg-gray-100 border-b border-l border-r border-gray-300 px-4 py-2">
+                                    <center>
+                                        <h2>Poli Eksekutif</h2>
+                                    </center>
+                                </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50">
+                                <td className="border-b border-l border-r border-gray-300 px-4 py-2">Pasien Poli Eksekutif</td>
+                                <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                    <Checkbox
+                                        id="ada_ventilator"
+                                        checked={poliEksekutif}
+                                        onCheckedChange={setPoliEksekutif}
+                                    />
+                                </td>
+                                <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2"></td>
+                            </tr>
+                            {poliEksekutif && (
+                                <tr className="hover:bg-gray-50">
+                                    <td colSpan={2} className="border-b border-l border-r border-gray-300 px-4 py-2">Nama Dokter Poli Eksekutif</td>
+                                    <td colSpan={2} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <Input
+                                            id="nama_dokter_poli_eksekutif"
+                                            name="nama_dokter_poli_eksekutif"
+                                            type="text"
+                                            placeholder="Masukkan Nama Dokter Poli Eksekutif"
+                                            value={namaDokterPoliEksekutif}
+                                            onChange={(e) => setNamaDokterPoliEksekutif(e.target.value)}
+                                        />
+                                    </td>
+                                    <td colSpan={2} className="border-b border-l border-r border-gray-300 px-4 py-2">Tarif Poli Eksekutif</td>
+                                    <td colSpan={2} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <Input
+                                            id="tarif_poli_eksekutif"
+                                            name="tarif_poli_eksekutif"
+                                            type="text"
+                                            placeholder="Masukkan Tarif Poli Eksekutif"
+                                            value={formatRupiah(tarifPoliEksekutif)} // Format nilai menjadi Rupiah
+                                            onChange={(e) => {
+                                                let rawValue = e.target.value.replace(/[^0-9]/g, ""); // Hanya angka
+                                                if (rawValue.startsWith("0")) {
+                                                    rawValue = rawValue.replace(/^0+/, ""); // Hilangkan angka 0 di awal
+                                                }
+                                                setTarifPoliEksekutif(rawValue); // Simpan nilai asli tanpa format
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                            )}
 
                             {/* Apgar Score */}
                             <tr className="hover:bg-gray-50">

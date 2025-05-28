@@ -26,14 +26,9 @@ const mainNavItems: NavGroup[] = [
     },
     {
         title: 'Eklaim',
-        url: '#',
+        url: route('eklaim.klaim.index'),
         icon: Hospital,
-        subItems: [
-            {
-                title: 'Klaim',
-                url: route('eklaim.klaim.index'),
-            },
-        ],
+
     },
     {
         title: 'Master',

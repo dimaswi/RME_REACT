@@ -40,19 +40,9 @@ Route::middleware('auth')->group(function () {
         $inacbg_controller = new InacbgController();
         // contoh encryption key, bukan aktual
         $key = "dc59cb4f4191462adf394017db95ebc6bdd9c85146827c3e2df1f0706d7d145d";
-        // json query
-        $json_request = [
-            "metadata" => [
-                "method" => "search_diagnosis"
-            ],
-            "data" => [
-                "keyword" => $request->keyword,
-            ]
-        ];
         // membuat json juga dapat menggunakan json_encode:
         $ws_query["metadata"]["method"] = "search_diagnosis";
         $ws_query["data"]["keyword"] = $request->keyword;
-        $json_request = json_encode($ws_query);
         $json_request = json_encode($ws_query);
         $payload = $inacbg_controller->inacbg_encrypt(json_decode($json_request), $key);
         $header = array("Content-Type: application/x-www-form-urlencoded");

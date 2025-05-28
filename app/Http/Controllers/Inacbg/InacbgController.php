@@ -89,4 +89,47 @@ class InacbgController extends Controller
 
         return $result == 0;
     }
+
+    public function sendToEklaim($metadata, $data)
+    {
+        $key = "dc59cb4f4191462adf394017db95ebc6bdd9c85146827c3e2df1f0706d7d145d";
+
+        if ($data === "0") {
+            $json_request = [
+                "metadata" => $metadata,
+            ];
+        } else {
+            $json_request = [
+                "metadata" => $metadata,
+                "data" => $data
+            ];
+        }
+
+        $payload = $this->inacbg_encrypt($json_request, $key);
+        $header = array("Content-Type: application/x-www-form-urlencoded");
+        $url = "http://kdm.klinikmuhammadiyahkedungadem.id/E-klaim/ws.php";
+
+        //SETUP CURL
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        // request dengan curl
+        $response = curl_exec($ch);
+
+        $first = strpos($response, "\n") + 1;
+        $last = strrpos($response, "\n") - 1;
+        $response = substr(
+            $response,
+            $first,
+            strlen($response) - $first - $last
+        );
+        // decrypt dengan fungsi inacbg_decrypt
+        $response = $this->inacbg_decrypt($response, $key);
+        $msg = json_decode($response, true);
+        return $msg;
+    }
 }

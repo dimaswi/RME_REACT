@@ -4,6 +4,7 @@ import { BreadcrumbItem } from "@/types";
 import { Head, usePage, router } from "@inertiajs/react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { ListCollapse } from "lucide-react";
 
 export default function KlaimIndex() {
     const { dataPendaftaran, filters } = usePage().props as {
@@ -70,9 +71,8 @@ export default function KlaimIndex() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Klaim"/>
             <div className="p-4">
-                <h1 className="text-xl font-bold mb-4">Daftar Pasien</h1>
                 {/* Single Search Field */}
-                <div className="mb-4 flex flex-wrap gap-2 items-end">
+                <div className="mb-4 flex flex-wrap gap-2 items-end justify-between">
                     <input
                         type="text"
                         value={query}
@@ -80,6 +80,13 @@ export default function KlaimIndex() {
                         className="border rounded-md p-1 text-sm w-64"
                         placeholder="Cari Nama atau NORM"
                     />
+                    <Button
+                        variant="outline"
+                        onClick={() => router.get(route('eklaim.klaim.indexPengajuanKlaim'), { page: 1, per_page: itemsPerPage, q: query }, { preserveState: true })}
+                    >
+                        <ListCollapse size={12}/>
+                        Data Pengajuan
+                    </Button>
                 </div>
                 <div className="w-full overflow-x-auto rounded-md border">
                     <Table className="w-full min-w-max">
