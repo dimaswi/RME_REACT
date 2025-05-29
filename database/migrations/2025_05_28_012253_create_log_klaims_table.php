@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::connection('eklaim')->create('log_klaim', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('nomor_SEP');
-            $table->string('request');
-            $table->string('response');
+            $table->longText('method');
+            $table->longText('request');
+            $table->longText('response');
             $table->timestamps();
         });
     }

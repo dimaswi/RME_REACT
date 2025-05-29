@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Eklaim\BridgeDataController;
 use App\Http\Controllers\Eklaim\KlaimController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,13 @@ Route::middleware('auth')->group(function () {
     Route::post('eklaim/klaim/{pengajuanKlaim}/edit', [KlaimController::class, 'editUlangKlaim'])->name('eklaim.klaim.editUlangKlaim');
     Route::get('eklaim/klaim/{pengajuanKlaim}/detailKlaim', [KlaimController::class, 'getDataKlaim'])->name('eklaim.klaim.getDataKlaim');
     Route::get('eklaim/klaim/{pengajuanKlaim}/statusKlaim', [KlaimController::class, 'getStatusKlaim'])->name('eklaim.klaim.getStatusKlaim');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('loadDataResumeMedis/{pendaftaran}', [BridgeDataController::class, 'loadDataResumeMedis'])->name('loadDataResumeMedis');
+    Route::get('loadDataTagihan/{pendaftaran}', [BridgeDataController::class, 'loadDataTagihan'])->name('loadDataTagihan');
+    Route::get('downloadSEP/{pendaftaran}', [BridgeDataController::class, 'downloadSEP'])->name('downloadSEP');
+    Route::get('downloadResumeMedis/{pendaftaran}', [BridgeDataController::class, 'downloadResumeMedis'])->name('downloadResumeMedis');
+    Route::get('downloadTagihan/{pendaftaran}', [BridgeDataController::class, 'downloadTagihan'])->name('downloadTagihan');
+    Route::get('downloadBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'downloadBerkasKlaim'])->name('downloadBerkasKlaim');
 });

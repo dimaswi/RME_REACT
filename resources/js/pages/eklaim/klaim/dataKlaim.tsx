@@ -5,7 +5,7 @@ import { Head, router, usePage } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronRight, Cross, CrossIcon, Plus, PlusCircle, Trash, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Cross, CrossIcon, Download, Loader, Plus, PlusCircle, Trash, X } from "lucide-react";
 import { set } from "date-fns";
 import axios from "axios";
 import "../../../../css/dataKlaim.css"
@@ -380,11 +380,316 @@ export default function DataKlaim() {
     const [penggunaanDarah, setPenggunaanDarah] = useState(false);
     const [kantongDarahPenggunaan, setKantongDarahPenggunaan] = useState("");
 
+    //Loading State
+    const [loadingResumeMedis, setLoadingResumeMedis] = useState(false);
+    const [loadingLoadTagihan, setLoadingLoadTagihan] = useState(false);
+    const [loadingDownloadSEP, setLoadingDownloadSEP] = useState(false);
+    const [loadingDownloadBerkasKlaim, setLoadingDownloadBerkasKlaim] = useState(false);
+    const [loadingDownloadTagihan, setLoadingDownloadTagihan] = useState(false);
+    const [loadingDownloadResumeMedis, setLoadingDownloadResumeMedis] = useState(false);
+    const [loadingDownloadAll, setLoadingDownloadAll] = useState(false);
+
     return (
         <AppLayout>
             <Head title="Pengisian Data Klaim" />
             <div className="p-4">
                 <div className="mb-4">
+                    <div className="mb-4">
+                        <table className="w-full border border-gray-300 rounded-lg table-fixed">
+                            <tbody>
+                                {/* Cara Masuk dan Jenis Perawatan */}
+                                <tr className="hover:bg-gray-50">
+                                    <td colSpan={8} className="bg-gray-100 border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <center>
+                                            <h2>Data Kunjungan SIMRS</h2>
+                                        </center>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        SEP
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                            disabled={loadingDownloadSEP}
+                                            onClick={async () => {
+                                                setLoadingDownloadSEP(true);
+                                                try {
+                                                    await router.get(
+                                                        route('loadDataResumeMedis', {
+                                                            pendaftaran: dataPendaftaran.NOMOR
+                                                        }),
+                                                        {},
+                                                        {
+                                                            onFinish: () => setLoadingDownloadSEP(false)
+                                                        }
+                                                    );
+                                                    console.log("Ambil Data Resume Medis");
+                                                } catch (error) {
+                                                    console.log(error)
+                                                    setLoadingDownloadSEP(false);
+                                                }
+                                            }}
+                                        >
+                                            {loadingDownloadSEP ? (
+                                                <>
+                                                    <Loader className="animate-spin" />
+                                                    Loading...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download />
+                                                    Download
+                                                </>
+                                            )}
+                                        </Button>
+                                    </td>
+                                    <td rowSpan={4} className="h-[60px] p-0 align-middle">
+                                        <div className="h-full flex items-stretch">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full h-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadAll}
+                                                onClick={async () => {
+                                                    setLoadingDownloadAll(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingDownloadAll(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingDownloadAll(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingDownloadAll ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download All
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Berkas Klaim
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                            disabled={loadingDownloadBerkasKlaim}
+                                            onClick={async () => {
+                                                setLoadingDownloadBerkasKlaim(true);
+                                                try {
+                                                    await router.get(
+                                                        route('loadDataResumeMedis', {
+                                                            pendaftaran: dataPendaftaran.NOMOR
+                                                        }),
+                                                        {},
+                                                        {
+                                                            onFinish: () => setLoadingDownloadBerkasKlaim(false)
+                                                        }
+                                                    );
+                                                    console.log("Ambil Data Resume Medis");
+                                                } catch (error) {
+                                                    console.log(error)
+                                                    setLoadingDownloadBerkasKlaim(false);
+                                                }
+                                            }}
+                                        >
+                                            {loadingDownloadBerkasKlaim ? (
+                                                <>
+                                                    <Loader className="animate-spin" />
+                                                    Loading...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download />
+                                                    Download
+                                                </>
+                                            )}
+                                        </Button>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Resume Medis
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadResumeMedis}
+                                                onClick={async () => {
+                                                    setLoadingDownloadResumeMedis(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingDownloadResumeMedis(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingDownloadResumeMedis(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingDownloadResumeMedis ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
+                                                disabled={loadingResumeMedis}
+                                                onClick={async () => {
+                                                    setLoadingResumeMedis(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingResumeMedis(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingResumeMedis(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingResumeMedis ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Loader />
+                                                        Ambil Data
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Tagihan
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadTagihan}
+                                                onClick={async () => {
+                                                    setLoadingDownloadTagihan(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingDownloadTagihan(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingDownloadTagihan(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingDownloadTagihan ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
+                                                disabled={loadingLoadTagihan}
+                                                onClick={async () => {
+                                                    setLoadingLoadTagihan(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingLoadTagihan(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingLoadTagihan(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingLoadTagihan ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Loader />
+                                                        Ambil Data
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <div className="mb-3 p-2 border rounded bg-blue-50 text-sm">
                         <div>
                             <b>Tanggal Pengajuan:</b> {formatTanggalIndo(dataKlaim.tanggal_pengajuan)}
