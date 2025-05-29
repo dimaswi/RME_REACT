@@ -5,11 +5,17 @@ import { Head, router, usePage } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronRight, Cross, CrossIcon, Download, Loader, Plus, PlusCircle, Trash, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Cross, CrossIcon, Download, Loader, Plus, PlusCircle, Search, Trash, X } from "lucide-react";
 import { set } from "date-fns";
 import axios from "axios";
 import "../../../../css/dataKlaim.css"
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { jsPDF } from "jspdf";
+import bpjsLogo from "../../../../image/bpjs.png"; // Impor gambar PNG
+import { cetakResumeMedis } from "../../../PDF/ResumeMedis";
+import { cetakSEP } from "../../../PDF/SEP";
+import { cetakBerkasKlaim } from "../../../PDF/BerkasKlaim";
 
 export default function DataKlaim() {
     const { dataKlaim } = usePage().props as { dataKlaim: any };
@@ -388,6 +394,36 @@ export default function DataKlaim() {
     const [loadingDownloadTagihan, setLoadingDownloadTagihan] = useState(false);
     const [loadingDownloadResumeMedis, setLoadingDownloadResumeMedis] = useState(false);
     const [loadingDownloadAll, setLoadingDownloadAll] = useState(false);
+    const [loadingDownloadLaboratorium, setLoadingDownloadLaboratorium] = useState(false);
+    const [loadingDownloadRadiologi, setLoadingDownloadRadiologi] = useState(false);
+    const [previewSEP, setPreviewSEP] = useState(false);
+    const [previewBerkasKlaim, setPreviewBerkasKlaim] = useState(false);
+    const [previewTagihan, setPreviewTagihan] = useState(false);
+    const [previewResumeMedis, setPreviewResumeMedis] = useState(false);
+    const [previewLaboratorium, setPreviewLaboratorium] = useState(false);
+    const [previewRadiologi, setPreviewRadiologi] = useState(false);
+    const [previewAll, setPreviewAll] = useState(false);
+
+    // Preview PDF
+    const [previewPDF, setPreviewPDF] = useState(false);
+    const [previewSEPData, setPreviewSEPData] = useState<string | null>(null);
+    const handleSEPPDF = async (data: any, jenis) => {
+        await cetakSEP(data, jenis, pasien, setPreviewSEPData, setPreviewPDF, setBerkasKlaimUrl);
+    };
+
+    const handleResumeMedisPDF = async (data: [], jenis: string) => {
+        await cetakResumeMedis(
+            data, jenis, setPreviewSEPData, setPreviewPDF,
+        );
+
+    };
+
+    const [berkasKlaimUrl, setBerkasKlaimUrl] = useState<string | null>(null);
+    const handlePDFBerkasKlaim = async (nomor_sep: string, jenis: string) => {
+        await cetakBerkasKlaim(
+            nomor_sep, jenis, setBerkasKlaimUrl, setPreviewPDF, setLoadingDownloadBerkasKlaim, setPreviewBerkasKlaim, setPreviewSEPData
+        );
+    };
 
     return (
         <AppLayout>
@@ -395,7 +431,7 @@ export default function DataKlaim() {
             <div className="p-4">
                 <div className="mb-4">
                     <div className="mb-4">
-                        <table className="w-full border border-gray-300 rounded-lg table-fixed">
+                        <table className="w-full border border-gray-300 rounded-lg table-fixed overflow-auto">
                             <tbody>
                                 {/* Cara Masuk dan Jenis Perawatan */}
                                 <tr className="hover:bg-gray-50">
@@ -410,44 +446,104 @@ export default function DataKlaim() {
                                         SEP
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
-                                            disabled={loadingDownloadSEP}
-                                            onClick={async () => {
-                                                setLoadingDownloadSEP(true);
-                                                try {
-                                                    await router.get(
-                                                        route('loadDataResumeMedis', {
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewSEP}
+                                                onClick={async () => {
+                                                    setPreviewSEP(true);
+                                                    toast.info("Memproses mengambil data SEP, mohon tunggu...");
+                                                    try {
+                                                        const response = await axios.get(route('previewSEP', {
                                                             pendaftaran: dataPendaftaran.NOMOR
-                                                        }),
-                                                        {},
-                                                        {
-                                                            onFinish: () => setLoadingDownloadSEP(false)
-                                                        }
-                                                    );
-                                                    console.log("Ambil Data Resume Medis");
-                                                } catch (error) {
-                                                    console.log(error)
-                                                    setLoadingDownloadSEP(false);
-                                                }
-                                            }}
-                                        >
-                                            {loadingDownloadSEP ? (
-                                                <>
-                                                    <Loader className="animate-spin" />
-                                                    Loading...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Download />
-                                                    Download
-                                                </>
-                                            )}
-                                        </Button>
+                                                        }));
+                                                        toast.success("Data SEP berhasil diambil");
+                                                        handleSEPPDF(response.data.penjamin, 'preview');
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewSEP(false);
+                                                    } finally {
+                                                        setPreviewSEP(false);
+                                                    }
+                                                }}
+                                            >
+                                                {previewSEP ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadSEP}
+                                                onClick={async () => {
+                                                    setLoadingDownloadSEP(true);
+                                                    toast.info("Memproses mengambil data SEP, mohon tunggu...");
+                                                    try {
+                                                        const response = await axios.get(route('downloadSEP', {
+                                                            pendaftaran: dataPendaftaran.NOMOR
+                                                        }));
+                                                        toast.success("Data SEP berhasil diambil");
+                                                        handleSEPPDF(response.data.penjamin, 'download');
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingDownloadSEP(false);
+                                                    } finally {
+                                                        setLoadingDownloadSEP(false);
+                                                    }
+
+                                                }}
+                                            >
+                                                {loadingDownloadSEP ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </td>
-                                    <td rowSpan={4} className="h-[60px] p-0 align-middle">
-                                        <div className="h-full flex items-stretch">
+                                    <td rowSpan={6} className="h-[60px] p-0 align-middle">
+                                        <div className="h-full items-stretch grid grid-rows-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full h-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewAll}
+                                                onClick={async () => {
+                                                    setPreviewAll(true);
+                                                    try {
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewAll(false);
+                                                    }
+                                                }}
+                                            >
+                                                {previewAll ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview All
+                                                    </>
+                                                )}
+                                            </Button>
                                             <Button
                                                 variant="outline"
                                                 className="w-full h-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
@@ -491,41 +587,68 @@ export default function DataKlaim() {
                                         Berkas Klaim
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
-                                            disabled={loadingDownloadBerkasKlaim}
-                                            onClick={async () => {
-                                                setLoadingDownloadBerkasKlaim(true);
-                                                try {
-                                                    await router.get(
-                                                        route('loadDataResumeMedis', {
-                                                            pendaftaran: dataPendaftaran.NOMOR
-                                                        }),
-                                                        {},
-                                                        {
-                                                            onFinish: () => setLoadingDownloadBerkasKlaim(false)
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewBerkasKlaim}
+                                                onClick={async () => {
+                                                    setPreviewBerkasKlaim(true);
+                                                    toast.info("Memproses mengambil PDF, mohon tunggu...");
+
+                                                    try {
+                                                        handlePDFBerkasKlaim(dataKlaim.nomor_SEP, "preview")
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewBerkasKlaim(false);
+                                                    }
+
+                                                }}
+                                            >
+                                                {previewBerkasKlaim ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadBerkasKlaim}
+                                                onClick={async () => {
+                                                    setLoadingDownloadBerkasKlaim(true);
+                                                    toast.info("Memproses mengambil PDF, mohon tunggu...");
+                                                    setTimeout(async () => {
+                                                        try {
+                                                            handlePDFBerkasKlaim(dataKlaim.nomor_SEP, "download")
+                                                        } catch (error) {
+                                                            console.log(error)
+                                                            setLoadingDownloadBerkasKlaim(false);
+                                                        } finally {
+                                                            setLoadingDownloadBerkasKlaim(false);
                                                         }
-                                                    );
-                                                    console.log("Ambil Data Resume Medis");
-                                                } catch (error) {
-                                                    console.log(error)
-                                                    setLoadingDownloadBerkasKlaim(false);
-                                                }
-                                            }}
-                                        >
-                                            {loadingDownloadBerkasKlaim ? (
-                                                <>
-                                                    <Loader className="animate-spin" />
-                                                    Loading...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Download />
-                                                    Download
-                                                </>
-                                            )}
-                                        </Button>
+                                                    }, 500);
+                                                }}
+                                            >
+                                                {loadingDownloadBerkasKlaim ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
@@ -533,7 +656,39 @@ export default function DataKlaim() {
                                         Resume Medis
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="lg:grid grid-cols-3 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewResumeMedis}
+                                                onClick={async () => {
+                                                    setPreviewResumeMedis(true);
+                                                    try {
+                                                        const response = await axios.get(route('previewResumeMedis', {
+                                                            pendaftaran: dataPendaftaran.NOMOR
+                                                        }));
+                                                        toast.success("Data Resume Medis berhasil diambil");
+                                                        handleResumeMedisPDF(response.data, 'preview');
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewResumeMedis(false);
+                                                    } finally {
+                                                        setPreviewResumeMedis(false);
+                                                    }
+                                                }}
+                                            >
+                                                {previewResumeMedis ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview
+                                                    </>
+                                                )}
+                                            </Button>
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
@@ -571,23 +726,21 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
+                                                className="button-preview w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
                                                 disabled={loadingResumeMedis}
                                                 onClick={async () => {
                                                     setLoadingResumeMedis(true);
                                                     try {
-                                                        await router.get(
-                                                            route('loadDataResumeMedis', {
-                                                                pendaftaran: dataPendaftaran.NOMOR
-                                                            }),
-                                                            {},
-                                                            {
-                                                                onFinish: () => setLoadingResumeMedis(false)
-                                                            }
-                                                        );
-                                                        console.log("Ambil Data Resume Medis");
+                                                        const response = await axios.get(route('loadDataResumeMedis', {
+                                                            pendaftaran: dataPendaftaran.NOMOR
+                                                        }));
+                                                        console.log("Ambil Data Resume Medis", response.data);
+                                                        toast.success("Data resume medis berhasil diambil");
                                                     } catch (error) {
-                                                        console.log(error)
+                                                        console.error("Error:", error);
+                                                        toast.error("Gagal mengambil data resume medis");
+                                                        setLoadingResumeMedis(false);
+                                                    } finally {
                                                         setLoadingResumeMedis(false);
                                                     }
                                                 }}
@@ -612,7 +765,42 @@ export default function DataKlaim() {
                                         Tagihan
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="lg:grid grid-cols-3 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewTagihan}
+                                                onClick={async () => {
+                                                    setPreviewTagihan(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setPreviewTagihan(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewTagihan(false);
+                                                    }
+                                                }}
+                                            >
+                                                {previewTagihan ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview
+                                                    </>
+                                                )}
+                                            </Button>
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
@@ -650,23 +838,39 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
+                                                className="button-preview w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
                                                 disabled={loadingLoadTagihan}
                                                 onClick={async () => {
                                                     setLoadingLoadTagihan(true);
                                                     try {
-                                                        await router.get(
-                                                            route('loadDataResumeMedis', {
-                                                                pendaftaran: dataPendaftaran.NOMOR
-                                                            }),
-                                                            {},
-                                                            {
-                                                                onFinish: () => setLoadingLoadTagihan(false)
-                                                            }
-                                                        );
-                                                        console.log("Ambil Data Resume Medis");
+                                                        const response = await axios.get(route('loadDataTagihan', {
+                                                            pendaftaran: dataPendaftaran.NOMOR
+                                                        }));
+                                                        console.log("Ambil Data Tagihan", response.data);
+                                                        setTarifProsedurBedah(Number(response.data.pendaftaran_tagihan.tagihan.PROSEDUR_BEDAH));
+                                                        setTarifProsedurNonBedah(Number(response.data.pendaftaran_tagihan.tagihan.PROSEDUR_NON_BEDAH));
+                                                        setTarifKonsultasi(Number(response.data.pendaftaran_tagihan.tagihan.KONSULTASI));
+                                                        setTarifTenagaAhli(Number(response.data.pendaftaran_tagihan.tagihan.TENAGA_AHLI));
+                                                        setTarifKeperawatan(Number(response.data.pendaftaran_tagihan.tagihan.KEPERAWATAN));
+                                                        setTarifPenunjang(Number(response.data.pendaftaran_tagihan.tagihan.PENUNJANG));
+                                                        setTarifRadiologi(Number(response.data.pendaftaran_tagihan.tagihan.RADIOLOGI));
+                                                        setTarifLaboratorium(Number(response.data.pendaftaran_tagihan.tagihan.LABORATORIUM));
+                                                        setTarifPelayananDarah(Number(response.data.pendaftaran_tagihan.tagihan.PELAYANAN_DARAH));
+                                                        setTarifRehabilitasi(Number(response.data.pendaftaran_tagihan.tagihan.REHABILITASI));
+                                                        setTarifKamar(Number(response.data.pendaftaran_tagihan.tagihan.AKOMODASI));
+                                                        setTarifRawatIntensif(Number(response.data.pendaftaran_tagihan.tagihan.RAWAT_INTENSIF));
+                                                        setTarifObat(Number(response.data.pendaftaran_tagihan.tagihan.OBAT));
+                                                        setTarifObatKronis(Number(response.data.pendaftaran_tagihan.tagihan.OBAT_KRONIS));
+                                                        setTarifObatKemoterapi(Number(response.data.pendaftaran_tagihan.tagihan.OBAT_KEMOTERAPI));
+                                                        setTarifAlkes(Number(response.data.pendaftaran_tagihan.tagihan.ALKES));
+                                                        setTarifBMHP(Number(response.data.pendaftaran_tagihan.tagihan.BMHP));
+                                                        setTarifSewaAlat(Number(response.data.pendaftaran_tagihan.tagihan.SEWA_ALAT));
+                                                        toast.success("Data tagihan berhasil diambil");
                                                     } catch (error) {
-                                                        console.log(error)
+                                                        console.error("Error:", error);
+                                                        toast.error("Gagal mengambil data tagihan");
+                                                        setLoadingLoadTagihan(false);
+                                                    } finally {
                                                         setLoadingLoadTagihan(false);
                                                     }
                                                 }}
@@ -685,6 +889,164 @@ export default function DataKlaim() {
                                             </Button>
                                         </div>
 
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Laboratorium
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewLaboratorium}
+                                                onClick={async () => {
+                                                    setPreviewLaboratorium(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setPreviewLaboratorium(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewLaboratorium(false);
+                                                    }
+                                                }}
+                                            >
+                                                {previewLaboratorium ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadLaboratorium}
+                                                onClick={async () => {
+                                                    setLoadingDownloadLaboratorium(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('downloadLaboratorium', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingDownloadLaboratorium(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Laboratorium");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingDownloadLaboratorium(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingDownloadLaboratorium ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Radiologi
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                disabled={previewRadiologi}
+                                                onClick={async () => {
+                                                    setPreviewRadiologi(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('loadDataResumeMedis', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setPreviewRadiologi(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setPreviewRadiologi(false);
+                                                    }
+                                                }}
+                                            >
+                                                {previewRadiologi ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Search />
+                                                        Preview
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                disabled={loadingDownloadRadiologi}
+                                                onClick={async () => {
+                                                    setLoadingDownloadRadiologi(true);
+                                                    try {
+                                                        await router.get(
+                                                            route('downloadRadiologi', {
+                                                                pendaftaran: dataPendaftaran.NOMOR
+                                                            }),
+                                                            {},
+                                                            {
+                                                                onFinish: () => setLoadingDownloadRadiologi(false)
+                                                            }
+                                                        );
+                                                        console.log("Ambil Data Resume Medis");
+                                                    } catch (error) {
+                                                        console.log(error)
+                                                        setLoadingDownloadRadiologi(false);
+                                                    }
+                                                }}
+                                            >
+                                                {loadingDownloadRadiologi ? (
+                                                    <>
+                                                        <Loader className="animate-spin" />
+                                                        Loading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download />
+                                                        Download
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -2315,6 +2677,36 @@ export default function DataKlaim() {
                     </table>
                 </div>
                 {/* Konten lainnya bisa ditambahkan di sini */}
+
+                {/* Modal untuk Preview PDF */}
+                {previewPDF && (berkasKlaimUrl || previewSEPData) && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 overflow-auto py-6"
+                        onClick={() => {
+                            setPreviewPDF(false)
+                            setBerkasKlaimUrl(null);
+                        }} // Tutup modal jika klik di luar
+                    >
+                        <div
+                            className="bg-transparent rounded-lg shadow-lg w-full h-full max-w-7xl relative"
+                            onClick={(e) => e.stopPropagation()} // Hentikan propagasi klik agar tidak menutup modal
+                        >
+                            {previewSEPData ? (
+                                <iframe
+                                    src={previewSEPData}
+                                    className="border rounded w-full h-full"
+                                ></iframe>
+                            ) : berkasKlaimUrl ? (
+                                <iframe
+                                    src={berkasKlaimUrl}
+                                    className="border rounded w-full h-full"
+                                ></iframe>
+                            ) : (
+                                <p>Loading PDF...</p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
             {
                 showDiagnosaModal && (

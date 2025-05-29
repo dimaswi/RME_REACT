@@ -26,4 +26,8 @@
         text-overflow: ellipsis; /* Tambahkan elipsis jika teks terlalu panjang */
         overflow: hidden; /* Sembunyikan teks yang melampaui batas */
     }
+
+    .button-preview {
+        display: none;
+    }
 }

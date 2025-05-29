@@ -23,5 +23,14 @@ Route::middleware('auth')->group(function () {
     Route::get('downloadSEP/{pendaftaran}', [BridgeDataController::class, 'downloadSEP'])->name('downloadSEP');
     Route::get('downloadResumeMedis/{pendaftaran}', [BridgeDataController::class, 'downloadResumeMedis'])->name('downloadResumeMedis');
     Route::get('downloadTagihan/{pendaftaran}', [BridgeDataController::class, 'downloadTagihan'])->name('downloadTagihan');
-    Route::get('downloadBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'downloadBerkasKlaim'])->name('downloadBerkasKlaim');
+    Route::get('downloadBerkasKlaim/{pengajuanKlaim}', [BridgeDataController::class, 'downloadBerkasKlaim'])->name('downloadBerkasKlaim');
+    Route::get('downloadLaboratorium/{pendaftaran}', [BridgeDataController::class, 'downloadLaboratorium'])->name('downloadLaboratorium');
+    Route::get('downloadRadiologi/{pendaftaran}', [BridgeDataController::class, 'downloadRadiologi'])->name('downloadRadiologi');
+    Route::get('previewSEP/{pendaftaran}', [BridgeDataController::class, 'previewSEP'])->name('previewSEP');
+    Route::get('previewResumeMedis/{pendaftaran}', [BridgeDataController::class, 'previewResumeMedis'])->name('previewResumeMedis');
+    Route::get('previewTagihan/{pendaftaran}', [BridgeDataController::class, 'previewTagihan'])->name('previewTagihan');
+    Route::get('previewBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'previewBerkasKlaim'])->name('previewBerkasKlaim');
+    Route::get('previewLaboratorium/{pendaftaran}', [BridgeDataController::class, 'previewLaboratorium'])->name('previewLaboratorium');
+    Route::get('previewRadiologi/{pendaftaran}', [BridgeDataController::class, 'previewRadiologi'])->name('previewRadiologi');
+
 });

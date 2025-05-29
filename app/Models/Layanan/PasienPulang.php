@@ -2,6 +2,7 @@
 
 namespace App\Models\Layanan;
 
+use App\Models\Pendaftaran\Kunjungan;
 use Illuminate\Database\Eloquent\Model;
 
 class PasienPulang extends Model
@@ -25,4 +26,9 @@ class PasienPulang extends Model
         'OLEH',
         'STATUS'
     ];
+
+    public function kunjunganPasien()
+    {
+        return $this->belongsTo(Kunjungan::class, 'KUNJUNGAN', 'NOMOR');
+    }
 }

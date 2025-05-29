@@ -32,4 +32,9 @@ class TagihanPendaftaran extends Model
     {
         return $this->belongsTo(Tagihan::class, 'TAGIHAN', 'ID');
     }
+
+    public function pembayaranTagihan()
+    {
+        return $this->hasOne(PembayaranTagihan::class, 'TAGIHAN', 'TAGIHAN');
+    }
 }

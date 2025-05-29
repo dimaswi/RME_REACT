@@ -434,7 +434,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string)$pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => $pengajuanKlaim->nomor_SEP,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();

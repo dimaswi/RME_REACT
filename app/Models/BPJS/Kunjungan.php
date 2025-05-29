@@ -2,6 +2,7 @@
 
 namespace App\Models\BPJS;
 
+use App\Models\Master\PPK;
 use Illuminate\Database\Eloquent\Model;
 
 class Kunjungan extends Model
@@ -69,4 +70,24 @@ class Kunjungan extends Model
         'batalSEP',
         'errMsgBatalSEP'
     ];
+
+    public function dokterDPJP()
+    {
+        return $this->belongsTo(DPJP::class, 'dpjpLayan', 'kode');
+    }
+
+    public function poliTujuan()
+    {
+        return $this->belongsTo(Poli::class, 'poliTujuan', 'kode');
+    }
+
+    public function faskesPerujuk()
+    {
+        return $this->belongsTo(PPK::class, 'ppkRujukan', 'BPJS');
+    }
+
+    public function dataPeserta()
+    {
+        return $this->belongsTo(Peserta::class, 'noKartu', 'noKartu');
+    }
 }
