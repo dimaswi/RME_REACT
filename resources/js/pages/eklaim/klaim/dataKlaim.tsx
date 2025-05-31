@@ -14,8 +14,9 @@ import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import bpjsLogo from "../../../../image/bpjs.png"; // Impor gambar PNG
 import { cetakResumeMedis } from "../../../PDF/ResumeMedis";
-import { cetakSEP } from "../../../PDF/SEP";
+import { cetakSEP, fetchSEPData } from "../../../PDF/SEP";
 import { cetakBerkasKlaim } from "../../../PDF/BerkasKlaim";
+import { mergePDFs } from "../../../PDF/MergePDF";
 
 export default function DataKlaim() {
     const { dataKlaim } = usePage().props as { dataKlaim: any };
@@ -407,23 +408,11 @@ export default function DataKlaim() {
     // Preview PDF
     const [previewPDF, setPreviewPDF] = useState(false);
     const [previewSEPData, setPreviewSEPData] = useState<string | null>(null);
+    const [berkasKlaimUrl, setBerkasKlaimUrl] = useState<string | null>(null);
     const handleSEPPDF = async (data: any, jenis) => {
         await cetakSEP(data, jenis, pasien, setPreviewSEPData, setPreviewPDF, setBerkasKlaimUrl);
     };
 
-    const handleResumeMedisPDF = async (data: [], jenis: string) => {
-        await cetakResumeMedis(
-            data, jenis, setPreviewSEPData, setPreviewPDF,
-        );
-
-    };
-
-    const [berkasKlaimUrl, setBerkasKlaimUrl] = useState<string | null>(null);
-    const handlePDFBerkasKlaim = async (nomor_sep: string, jenis: string) => {
-        await cetakBerkasKlaim(
-            nomor_sep, jenis, setBerkasKlaimUrl, setPreviewPDF, setLoadingDownloadBerkasKlaim, setPreviewBerkasKlaim, setPreviewSEPData
-        );
-    };
 
     return (
         <AppLayout>
@@ -455,11 +444,10 @@ export default function DataKlaim() {
                                                     setPreviewSEP(true);
                                                     toast.info("Memproses mengambil data SEP, mohon tunggu...");
                                                     try {
-                                                        const response = await axios.get(route('previewSEP', {
-                                                            pendaftaran: dataPendaftaran.NOMOR
-                                                        }));
+                                                        const data = await fetchSEPData(dataPendaftaran.NOMOR); // Panggil fungsi untuk mengambil data
                                                         toast.success("Data SEP berhasil diambil");
-                                                        handleSEPPDF(response.data.penjamin, 'preview');
+                                                        console.log("Data SEP:", data);
+                                                        cetakSEP(data, 'preview', setPreviewSEPData, setPreviewPDF, setBerkasKlaimUrl); // Panggil fungsi untuk membuat PDF
                                                     } catch (error) {
                                                         console.log(error)
                                                         setPreviewSEP(false);
@@ -488,11 +476,9 @@ export default function DataKlaim() {
                                                     setLoadingDownloadSEP(true);
                                                     toast.info("Memproses mengambil data SEP, mohon tunggu...");
                                                     try {
-                                                        const response = await axios.get(route('downloadSEP', {
-                                                            pendaftaran: dataPendaftaran.NOMOR
-                                                        }));
+                                                        const data = await fetchSEPData(dataPendaftaran.NOMOR); // Panggil fungsi untuk mengambil data
                                                         toast.success("Data SEP berhasil diambil");
-                                                        handleSEPPDF(response.data.penjamin, 'download');
+                                                        cetakSEP(data, 'download', setPreviewSEPData, setPreviewPDF, setBerkasKlaimUrl); // Panggil fungsi untuk membuat PDF
                                                     } catch (error) {
                                                         console.log(error)
                                                         setLoadingDownloadSEP(false);
@@ -525,9 +511,16 @@ export default function DataKlaim() {
                                                 onClick={async () => {
                                                     setPreviewAll(true);
                                                     try {
-                                                        console.log("Ambil Data Resume Medis");
+                                                        await mergePDFs(
+                                                            dataPendaftaran.NOMOR,
+                                                            dataKlaim.nomor_SEP,
+                                                            setPreviewPDF,
+                                                            setPreviewSEPData,
+                                                        );
                                                     } catch (error) {
                                                         console.log(error)
+                                                        setPreviewAll(false);
+                                                    } finally {
                                                         setPreviewAll(false);
                                                     }
                                                 }}
@@ -595,9 +588,16 @@ export default function DataKlaim() {
                                                 onClick={async () => {
                                                     setPreviewBerkasKlaim(true);
                                                     toast.info("Memproses mengambil PDF, mohon tunggu...");
-
                                                     try {
-                                                        handlePDFBerkasKlaim(dataKlaim.nomor_SEP, "preview")
+                                                        await cetakBerkasKlaim(
+                                                            dataKlaim.nomor_SEP,
+                                                            "preview",
+                                                            setBerkasKlaimUrl,
+                                                            setPreviewPDF,
+                                                            setLoadingDownloadBerkasKlaim,
+                                                            setPreviewBerkasKlaim,
+                                                            setPreviewSEPData
+                                                        );
                                                     } catch (error) {
                                                         console.log(error)
                                                         setPreviewBerkasKlaim(false);
@@ -626,7 +626,15 @@ export default function DataKlaim() {
                                                     toast.info("Memproses mengambil PDF, mohon tunggu...");
                                                     setTimeout(async () => {
                                                         try {
-                                                            handlePDFBerkasKlaim(dataKlaim.nomor_SEP, "download")
+                                                            await cetakBerkasKlaim(
+                                                                dataKlaim.nomor_SEP,
+                                                                "download",
+                                                                setBerkasKlaimUrl,
+                                                                setPreviewPDF,
+                                                                setLoadingDownloadBerkasKlaim,
+                                                                setPreviewBerkasKlaim,
+                                                                setPreviewSEPData
+                                                            );
                                                         } catch (error) {
                                                             console.log(error)
                                                             setLoadingDownloadBerkasKlaim(false);
@@ -664,11 +672,8 @@ export default function DataKlaim() {
                                                 onClick={async () => {
                                                     setPreviewResumeMedis(true);
                                                     try {
-                                                        const response = await axios.get(route('previewResumeMedis', {
-                                                            pendaftaran: dataPendaftaran.NOMOR
-                                                        }));
+                                                        cetakResumeMedis(dataPendaftaran.NOMOR, 'preview', setPreviewSEPData, setPreviewPDF);
                                                         toast.success("Data Resume Medis berhasil diambil");
-                                                        handleResumeMedisPDF(response.data, 'preview');
                                                     } catch (error) {
                                                         console.log(error)
                                                         setPreviewResumeMedis(false);

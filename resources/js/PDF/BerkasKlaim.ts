@@ -46,6 +46,8 @@ export const cetakBerkasKlaim = async (
             link.click();
             document.body.removeChild(link);
             toast.success("PDF berhasil diunduh");
+        } else if (jenis === "merge") {
+            return new Blob([response.data], { type: "application/pdf" });
         }
 
     } catch (error) {

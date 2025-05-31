@@ -3,7 +3,9 @@
 namespace App\Models\Pendaftaran;
 
 use App\Models\Master\Ruangan;
+use App\Models\RM\JadwalKontrol;
 use App\Models\RM\RPP;
+use App\Models\RM\TTV;
 use Illuminate\Database\Eloquent\Model;
 
 class Kunjungan extends Model
@@ -22,5 +24,15 @@ class Kunjungan extends Model
     public function rpp()
     {
         return $this->hasOne(RPP::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function jadwalKontrol()
+    {
+        return $this->belongsTo(JadwalKontrol::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function tandaVital()
+    {
+        return $this->hasOne(TTV::class, 'KUNJUNGAN', 'NOMOR');
     }
 }

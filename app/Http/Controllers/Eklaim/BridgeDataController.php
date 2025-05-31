@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Pendaftaran\Pendaftaran;
+use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PDO;
@@ -25,7 +26,7 @@ class BridgeDataController extends Controller
 
     public function downloadSEP(Pendaftaran $pendaftaran)
     {
-        $pendaftaran->load(['penjamin.kunjunganBPJS.dokterDPJP', 'penjamin.kunjunganBPJS.poliTujuan', 'penjamin.kunjunganBPJS.faskesPerujuk', 'penjamin.kunjunganBPJS.dataPeserta']);
+        $pendaftaran->load(['pasien', 'penjamin.kunjunganBPJS.dokterDPJP', 'penjamin.kunjunganBPJS.poliTujuan', 'penjamin.kunjunganBPJS.faskesPerujuk', 'penjamin.kunjunganBPJS.dataPeserta']);
         return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
     }
 
@@ -93,14 +94,62 @@ class BridgeDataController extends Controller
 
     public function previewSEP(Pendaftaran $pendaftaran)
     {
-        $pendaftaran->load(['penjamin.kunjunganBPJS.dokterDPJP', 'penjamin.kunjunganBPJS.poliTujuan', 'penjamin.kunjunganBPJS.faskesPerujuk', 'penjamin.kunjunganBPJS.dataPeserta']);
+        $pendaftaran->load(['pasien', 'penjamin.kunjunganBPJS.dokterDPJP', 'penjamin.kunjunganBPJS.poliTujuan', 'penjamin.kunjunganBPJS.faskesPerujuk', 'penjamin.kunjunganBPJS.dataPeserta']);
         return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
     }
 
     public function previewResumeMedis(Pendaftaran $pendaftaran)
     {
-        $pendaftaran->load(['pemeriksaanFisik', 'pasien','penjamin.jenisPenjamin', 'riwayatKunjungan.rpp' ,'anamnesis' ,'pasienPulang.kunjunganPasien.ruangan', 'pendaftaranTagihan.pembayaranTagihan', 'riwayatKunjungan.ruangan', 'resumeMedis']);
-        return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
+        try {
+            $pendaftaran->load([
+                'pasienPulang.kunjunganPasien.jadwalKontrol',
+                'diagnosaPasien.namaDiagnosa',
+                'prosedurPasien.namaProsedur',
+                'pemeriksaanFisik',
+                'pasien',
+                'pasienPulang.keadaanPulang',
+                'pasienPulang.caraPulang',
+                'penjamin.jenisPenjamin',
+                'riwayatKunjungan.rpp',
+                'anamnesis',
+                'pasienPulang.kunjunganPasien.ruangan',
+                'pendaftaranTagihan.pembayaranTagihan',
+                'riwayatKunjungan.ruangan',
+                'resumeMedis',
+                'pasienPulang',
+                'riwayatKunjungan.tandaVital',
+            ]);
+
+            // dd($pendaftaran->riwayatKunjungan->ttv);
+
+            // Ubah gambar menjadi Base64
+            $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+            if (!file_exists($imagePath)) {
+                throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+            }
+            $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+            $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+            $dompdf = new Dompdf();
+            $dompdf->loadHtml(
+                view('eklaim.ResumeMedis', compact(
+                    'pendaftaran',
+                    'imageBase64' // Kirim Base64 ke view
+                ))->render()
+            );
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $pdf = $dompdf->output();
+
+            return response($pdf, 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="ResumeMedis.pdf"');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with([
+                'error' => 'Gagal membuat preview Resume Medis: ' . $th->getMessage(),
+            ]);
+        }
     }
 
     public function previewTagihan(Pendaftaran $pendaftaran)

@@ -1,10 +1,22 @@
+import axios from "axios";
 import { jsPDF } from "jspdf";
 import bpjsLogo from "../../image/bpjs.png"; // Impor gambar PNG
+
+export const fetchSEPData = async (pendaftaranNomor: string) => {
+    try {
+        const response = await axios.get(route('previewSEP', {
+            pendaftaran: pendaftaranNomor,
+        }));
+        return response.data; // Kembalikan data dari respons
+    } catch (error) {
+        console.error("Error fetching SEP data:", error);
+        throw error; // Lempar error agar bisa ditangani di tempat lain
+    }
+};
 
 export const cetakSEP = async (
     data: any,
     jenis: string,
-    pasien: any,
     setPreviewSEPData: (url: string | null) => void,
     setPreviewPDF: (state: boolean) => void,
     setBerkasKlaimUrl: (url: string | null) => void
@@ -27,27 +39,27 @@ export const cetakSEP = async (
 
         // Konten Kiri
         const content = [
-            { label: "No. SEP", value: data.kunjungan_b_p_j_s.noSEP },
-            { label: "Tgl. SEP", value: data.kunjungan_b_p_j_s.tglSEP },
-            { label: "No. Kartu", value: data.kunjungan_b_p_j_s.noKartu + " (" + pasien.NORM + ")" },
-            { label: "Nama Peserta", value: pasien.NAMA },
-            { label: "Tgl. Lahir", value: pasien.TANGGAL_LAHIR },
-            { label: "No. Telepon", value: data.kunjungan_b_p_j_s.noTelp },
-            { label: "Sub/Spesialis", value: data.kunjungan_b_p_j_s.poli_tujuan.nama },
-            { label: "Dokter", value: data.kunjungan_b_p_j_s.dokter_d_p_j_p.nama },
-            { label: "Faskes Perujuk", value: data.kunjungan_b_p_j_s.faskes_perujuk.NAMA },
-            { label: "Diagnosa Awal", value: data.kunjungan_b_p_j_s.diagAwal },
+            { label: "No. SEP", value: data.penjamin.kunjungan_b_p_j_s.noSEP },
+            { label: "Tgl. SEP", value: data.penjamin.kunjungan_b_p_j_s.tglSEP },
+            { label: "No. Kartu", value: data.penjamin.kunjungan_b_p_j_s.noKartu + " (" + data.pasien.NORM + ")" },
+            { label: "Nama Peserta", value: data.pasien.NAMA },
+            { label: "Tgl. Lahir", value: data.pasien.TANGGAL_LAHIR },
+            { label: "No. Telepon", value: data.penjamin.kunjungan_b_p_j_s.noTelp },
+            { label: "Sub/Spesialis", value: data.penjamin.kunjungan_b_p_j_s.poli_tujuan.nama },
+            { label: "Dokter", value: data.penjamin.kunjungan_b_p_j_s.dokter_d_p_j_p.nama },
+            { label: "Faskes Perujuk", value: data.penjamin.kunjungan_b_p_j_s.faskes_perujuk.NAMA },
+            { label: "Diagnosa Awal", value: data.penjamin.kunjungan_b_p_j_s.diagAwal },
         ];
 
         const rightContent = [
-            { label: "Peserta", value: data.kunjungan_b_p_j_s.data_peserta.nmJenisPeserta },
-            { label: "Jns. Rawat", value: data.kunjungan_b_p_j_s.jenisPelayanan == 1 ? "Rawat Inap" : "Rawat Jalan" },
-            { label: "Jns. Kunjungan", value: data.kunjungan_b_p_j_s.tujuanKunj == 0 ? "Normal" : data.kunjungan_b_p_j_s.tujuanKunj == 1 ? "Prosedur" : "Konsul Dokter" },
-            { label: "Prosedur", value: data.kunjungan_b_p_j_s.flagProcedure === "" ? "Tidak Ada" : data.kunjungan_b_p_j_s.flagProcedure == 1 ? "Tidak Berkelanjutan" : "Terapi Berkelanjutan" },
-            { label: "Assesment plyn", value: data.kunjungan_b_p_j_s.assesmentPel === "" ? "Tidak Ada" : data.kunjungan_b_p_j_s.assesmentPel == 1 ? "Poli spesialis tidak tersedia pada hari sebelumnya" : data.kunjungan_b_p_j_s.assesmentPel == 2 ? "am Poli telah berakhir pada hari sebelumnya" : data.kunjungan_b_p_j_s.assesmentPel == 3 ? "Dokter Spesialis yang dimaksud tidak praktek pada hari sebelumnya" : data.kunjungan_b_p_j_s.assesmentPel == 4 ? "Atas Instruksi RS" : "Tujuan Kontrol" },
+            { label: "Peserta", value: data.penjamin.kunjungan_b_p_j_s.data_peserta.nmJenisPeserta },
+            { label: "Jns. Rawat", value: data.penjamin.kunjungan_b_p_j_s.jenisPelayanan == 1 ? "Rawat Inap" : "Rawat Jalan" },
+            { label: "Jns. Kunjungan", value: data.penjamin.kunjungan_b_p_j_s.tujuanKunj == 0 ? "Normal" : data.penjamin.kunjungan_b_p_j_s.tujuanKunj == 1 ? "Prosedur" : "Konsul Dokter" },
+            { label: "Prosedur", value: data.penjamin.kunjungan_b_p_j_s.flagProcedure === "" ? "Tidak Ada" : data.penjamin.kunjungan_b_p_j_s.flagProcedure == 1 ? "Tidak Berkelanjutan" : "Terapi Berkelanjutan" },
+            { label: "Assesment plyn", value: data.penjamin.kunjungan_b_p_j_s.assesmentPel === "" ? "Tidak Ada" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 1 ? "Poli spesialis tidak tersedia pada hari sebelumnya" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 2 ? "am Poli telah berakhir pada hari sebelumnya" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 3 ? "Dokter Spesialis yang dimaksud tidak praktek pada hari sebelumnya" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 4 ? "Atas Instruksi RS" : "Tujuan Kontrol" },
             { label: "Poli Perujuk", value: "-" },
-            { label: "Kelas Hak", value: data.kunjungan_b_p_j_s.data_peserta.nmKelas },
-            { label: "Kelas Rawat", value: data.KELAS == 0 ? "-" : data.KELAS },
+            { label: "Kelas Hak", value: data.penjamin.kunjungan_b_p_j_s.data_peserta.nmKelas },
+            { label: "Kelas Rawat", value: data.penjamin.KELAS == 0 ? "-" : data.penjamin.KELAS },
             { label: "Penjamin", value: "-" },
         ];
 
@@ -106,7 +118,9 @@ export const cetakSEP = async (
             setPreviewPDF(true); // Tampilkan modal
         } else if (jenis === "download") {
             // Simpan PDF ke file
-            doc.save(`SEP_${data.kunjungan_b_p_j_s.noSEP}.pdf`);
+            doc.save(`SEP_${data.penjamin.kunjungan_b_p_j_s.noSEP}.pdf`);
+        } else if (jenis === "merge") {
+            return doc.output("blob");
         }
     } catch (error) {
         console.error("Error generating PDF:", error);

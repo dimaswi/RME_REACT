@@ -8,7 +8,9 @@ use App\Models\Master\Pasien;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Kunjungan as PendaftaranKunjungan;
 use App\Models\RM\Anamnesis;
+use App\Models\RM\Diagnosa;
 use App\Models\RM\PemeriksaanFisik;
+use App\Models\RM\Prosedur;
 use App\Models\RM\Resume;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,7 +24,7 @@ class Pendaftaran extends Model
 
     public function riwayatKunjungan()
     {
-        return $this->hasMany(PendaftaranKunjungan::class, 'NOPEN', 'NOMOR');
+        return $this->hasMany(PendaftaranKunjungan::class, 'NOPEN', 'NOMOR')->orderBy('MASUK', 'ASC');
     }
 
     public function penjamin()
@@ -52,11 +54,21 @@ class Pendaftaran extends Model
 
     public function anamnesis()
     {
-        return $this->hasMany(Anamnesis::class, 'PENDAFTARAN', 'NOMOR');
+        return $this->hasMany(Anamnesis::class, 'PENDAFTARAN', 'NOMOR')->orderBy('TANGGAL', 'DESC');
     }
 
     public function pemeriksaanFisik()
     {
         return $this->hasMany(PemeriksaanFisik::class, 'PENDAFTARAN', 'NOMOR');
+    }
+
+    public function diagnosaPasien()
+    {
+        return $this->hasMany(Diagnosa::class, 'NOPEN', 'NOMOR');
+    }
+
+    public function prosedurPasien()
+    {
+        return $this->hasMany(Prosedur::class, 'NOPEN', 'NOMOR');
     }
 }
