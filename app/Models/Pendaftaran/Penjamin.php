@@ -4,6 +4,7 @@ namespace App\Models\Pendaftaran;
 
 use App\Models\BPJS\Kunjungan;
 use App\Models\Master\Referensi;
+use App\Models\Pendaftaran\Kunjungan as PendaftaranKunjungan;
 use Illuminate\Database\Eloquent\Model;
 
 class Penjamin extends Model
@@ -45,5 +46,10 @@ class Penjamin extends Model
     public function jenisPenjamin()
     {
         return $this->belongsTo(Referensi::class, 'JENIS', 'ID')->where('JENIS', 10);
+    }
+
+    public function kunjunganPasien()
+    {
+        return $this->hasMany(PendaftaranKunjungan::class, 'NOPEN', 'NOPEN');
     }
 }

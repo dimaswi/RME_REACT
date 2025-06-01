@@ -25,6 +25,7 @@ export const cetakSEP = async (
         // Ubah ukuran halaman menjadi A5 (148 x 210 mm) dengan orientasi landscape
         const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: [120, 300] });
 
+        console.log("Data yang diterima:", data); // Log data untuk debugging
         // Tambahkan Gambar BPJS
         const imgWidth = 85; // Lebar gambar (mm)
         const imgHeight = 14; // Tinggi gambar (mm)
@@ -39,22 +40,22 @@ export const cetakSEP = async (
 
         // Konten Kiri
         const content = [
-            { label: "No. SEP", value: data.penjamin.kunjungan_b_p_j_s.noSEP },
-            { label: "Tgl. SEP", value: data.penjamin.kunjungan_b_p_j_s.tglSEP },
-            { label: "No. Kartu", value: data.penjamin.kunjungan_b_p_j_s.noKartu + " (" + data.pasien.NORM + ")" },
-            { label: "Nama Peserta", value: data.pasien.NAMA },
-            { label: "Tgl. Lahir", value: data.pasien.TANGGAL_LAHIR },
-            { label: "No. Telepon", value: data.penjamin.kunjungan_b_p_j_s.noTelp },
-            { label: "Sub/Spesialis", value: data.penjamin.kunjungan_b_p_j_s.poli_tujuan.nama },
-            { label: "Dokter", value: data.penjamin.kunjungan_b_p_j_s.dokter_d_p_j_p.nama },
-            { label: "Faskes Perujuk", value: data.penjamin.kunjungan_b_p_j_s.faskes_perujuk.NAMA },
-            { label: "Diagnosa Awal", value: data.penjamin.kunjungan_b_p_j_s.diagAwal },
+            { label: "No. SEP", value: data.penjamin.kunjungan_b_p_j_s?.noSEP ?? "Tidak Ada" },
+            { label: "Tgl. SEP", value: data.penjamin.kunjungan_b_p_j_s?.tglSEP ?? "Tidak Ada" },
+            { label: "No. Kartu", value: data.penjamin.kunjungan_b_p_j_s?.noKartu + " (" + data.pasien?.NORM + ")" },
+            { label: "Nama Peserta", value: data.pasien?.NAMA ?? "Tidak Ada" },
+            { label: "Tgl. Lahir", value: data.pasien?.TANGGAL_LAHIR ?? "Tidak Ada" },
+            { label: "No. Telepon", value: data.penjamin.kunjungan_b_p_j_s?.noTelp ?? "Tidak Ada" },
+            { label: "Sub/Spesialis", value: data.penjamin.kunjungan_b_p_j_s?.poli_tujuan?.nama ?? "Tidak Ada" },
+            { label: "Dokter", value: data.penjamin.kunjungan_b_p_j_s?.dokter_d_p_j_p?.nama ?? "Tidak Ada" },
+            { label: "Faskes Perujuk", value: data.penjamin.kunjungan_b_p_j_s?.faskes_perujuk?.NAMA ?? "Tidak Ada" },
+            { label: "Diagnosa Awal", value: data.penjamin.kunjungan_b_p_j_s?.diagAwal ?? "Tidak Ada" },
         ];
 
         const rightContent = [
-            { label: "Peserta", value: data.penjamin.kunjungan_b_p_j_s.data_peserta.nmJenisPeserta },
-            { label: "Jns. Rawat", value: data.penjamin.kunjungan_b_p_j_s.jenisPelayanan == 1 ? "Rawat Inap" : "Rawat Jalan" },
-            { label: "Jns. Kunjungan", value: data.penjamin.kunjungan_b_p_j_s.tujuanKunj == 0 ? "Normal" : data.penjamin.kunjungan_b_p_j_s.tujuanKunj == 1 ? "Prosedur" : "Konsul Dokter" },
+            { label: "Peserta", value: data.penjamin.kunjungan_b_p_j_s?.data_peserta?.nmJenisPeserta ?? "Tidak Ada" },
+            { label: "Jns. Rawat", value: data.penjamin.kunjungan_b_p_j_s?.jenisPelayanan == 1 ? "Rawat Inap" : "Rawat Jalan" },
+            { label: "Jns. Kunjungan", value: data.penjamin.kunjungan_b_p_j_s?.tujuanKunj == 0 ? "Normal" : data.penjamin.kunjungan_b_p_j_s?.tujuanKunj == 1 ? "Prosedur" : "Konsul Dokter" },
             { label: "Prosedur", value: data.penjamin.kunjungan_b_p_j_s.flagProcedure === "" ? "Tidak Ada" : data.penjamin.kunjungan_b_p_j_s.flagProcedure == 1 ? "Tidak Berkelanjutan" : "Terapi Berkelanjutan" },
             { label: "Assesment plyn", value: data.penjamin.kunjungan_b_p_j_s.assesmentPel === "" ? "Tidak Ada" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 1 ? "Poli spesialis tidak tersedia pada hari sebelumnya" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 2 ? "am Poli telah berakhir pada hari sebelumnya" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 3 ? "Dokter Spesialis yang dimaksud tidak praktek pada hari sebelumnya" : data.penjamin.kunjungan_b_p_j_s.assesmentPel == 4 ? "Atas Instruksi RS" : "Tujuan Kontrol" },
             { label: "Poli Perujuk", value: "-" },

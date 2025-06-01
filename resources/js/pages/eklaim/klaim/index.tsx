@@ -4,7 +4,7 @@ import { BreadcrumbItem } from "@/types";
 import { Head, usePage, router } from "@inertiajs/react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ListCollapse } from "lucide-react";
+import { Home, ListCollapse } from "lucide-react";
 
 export default function KlaimIndex() {
     const { dataPendaftaran, filters } = usePage().props as {
@@ -26,7 +26,7 @@ export default function KlaimIndex() {
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'Klaim',
+            title: <Home className="inline mr-1" />,
             href: '/eklaim/klaim',
         },
     ];

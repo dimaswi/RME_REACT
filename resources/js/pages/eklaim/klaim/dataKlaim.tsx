@@ -5,7 +5,7 @@ import { Head, router, usePage } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronRight, Cross, CrossIcon, Download, Loader, Plus, PlusCircle, Search, Trash, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Cross, CrossIcon, Download, Home, Loader, Pencil, Plus, PlusCircle, Search, Trash, Upload, X } from "lucide-react";
 import { set } from "date-fns";
 import axios from "axios";
 import "../../../../css/dataKlaim.css"
@@ -17,6 +17,7 @@ import { cetakResumeMedis } from "../../../PDF/ResumeMedis";
 import { cetakSEP, fetchSEPData } from "../../../PDF/SEP";
 import { cetakBerkasKlaim } from "../../../PDF/BerkasKlaim";
 import { mergePDFs } from "../../../PDF/MergePDF";
+import { ModalUpload } from "@/components/modalUpload";
 
 export default function DataKlaim() {
     const { dataKlaim } = usePage().props as { dataKlaim: any };
@@ -106,7 +107,7 @@ export default function DataKlaim() {
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'Klaim',
+            title: <Home className="inline mr-1" />,
             href: route('eklaim.klaim.index'),
         },
         {
@@ -413,6 +414,10 @@ export default function DataKlaim() {
         await cetakSEP(data, jenis, pasien, setPreviewSEPData, setPreviewPDF, setBerkasKlaimUrl);
     };
 
+    const [showUpload, setShowUpload] = useState(false);
+    const [uploadUrl, setUploadUrl] = useState("");
+
+
 
     return (
         <AppLayout>
@@ -438,7 +443,7 @@ export default function DataKlaim() {
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewSEP}
                                                 onClick={async () => {
                                                     setPreviewSEP(true);
@@ -470,7 +475,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadSEP}
                                                 onClick={async () => {
                                                     setLoadingDownloadSEP(true);
@@ -502,11 +507,11 @@ export default function DataKlaim() {
                                             </Button>
                                         </div>
                                     </td>
-                                    <td rowSpan={6} className="h-[60px] p-0 align-middle">
+                                    <td rowSpan={14} className="h-[60px] p-0 align-middle">
                                         <div className="h-full items-stretch grid grid-rows-2 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="w-full h-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="w-full h-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewAll}
                                                 onClick={async () => {
                                                     setPreviewAll(true);
@@ -539,7 +544,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full h-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full h-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadAll}
                                                 onClick={async () => {
                                                     setLoadingDownloadAll(true);
@@ -583,7 +588,7 @@ export default function DataKlaim() {
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewBerkasKlaim}
                                                 onClick={async () => {
                                                     setPreviewBerkasKlaim(true);
@@ -619,7 +624,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadBerkasKlaim}
                                                 onClick={async () => {
                                                     setLoadingDownloadBerkasKlaim(true);
@@ -664,10 +669,20 @@ export default function DataKlaim() {
                                         Resume Medis
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-3 gap-2">
+                                        <div className="lg:grid grid-cols-5 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={ () => router.get(route('eklaim.editData.resumeMedis', {
+                                                    pengajuanKlaim : dataKlaim.id
+                                                })) }
+                                            >
+                                                <Pencil />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewResumeMedis}
                                                 onClick={async () => {
                                                     setPreviewResumeMedis(true);
@@ -696,7 +711,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadResumeMedis}
                                                 onClick={async () => {
                                                     setLoadingDownloadResumeMedis(true);
@@ -731,7 +746,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingResumeMedis}
                                                 onClick={async () => {
                                                     setLoadingResumeMedis(true);
@@ -762,6 +777,13 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -770,10 +792,20 @@ export default function DataKlaim() {
                                         Tagihan
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-3 gap-2">
+                                        <div className="lg:grid grid-cols-5 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={ () => router.get(route('eklaim.editData.tagihan', {
+                                                    pengajuanKlaim : dataKlaim.id
+                                                })) }
+                                            >
+                                                <Pencil />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewTagihan}
                                                 onClick={async () => {
                                                     setPreviewTagihan(true);
@@ -808,7 +840,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadTagihan}
                                                 onClick={async () => {
                                                     setLoadingDownloadTagihan(true);
@@ -843,7 +875,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-green-200 hover:bg-green-500 flex items-center justify-center"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingLoadTagihan}
                                                 onClick={async () => {
                                                     setLoadingLoadTagihan(true);
@@ -892,8 +924,14 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
                                         </div>
-
                                     </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
@@ -901,10 +939,20 @@ export default function DataKlaim() {
                                         Laboratorium
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-2 gap-2">
+                                        <div className="lg:grid grid-cols-4 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={ () => router.get(route('eklaim.editData.laboratorium', {
+                                                    pengajuanKlaim : dataKlaim.id
+                                                })) }
+                                            >
+                                                <Pencil />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewLaboratorium}
                                                 onClick={async () => {
                                                     setPreviewLaboratorium(true);
@@ -939,7 +987,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadLaboratorium}
                                                 onClick={async () => {
                                                     setLoadingDownloadLaboratorium(true);
@@ -972,6 +1020,13 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -980,10 +1035,20 @@ export default function DataKlaim() {
                                         Radiologi
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-2 gap-2">
+                                        <div className="lg:grid grid-cols-4 gap-2">
                                             <Button
                                                 variant="outline"
-                                                className="button-preview w-full bg-yellow-200 hover:bg-yellow-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={ () => router.get(route('eklaim.editData.radiologi', {
+                                                    pengajuanKlaim : dataKlaim.id
+                                                })) }
+                                            >
+                                                <Pencil />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={previewRadiologi}
                                                 onClick={async () => {
                                                     setPreviewRadiologi(true);
@@ -1018,7 +1083,7 @@ export default function DataKlaim() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                className="w-full bg-blue-200 hover:bg-blue-500 flex items-center justify-center"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadRadiologi}
                                                 onClick={async () => {
                                                     setLoadingDownloadRadiologi(true);
@@ -1050,6 +1115,229 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Dokumen Bebas Biaya
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Surat Kematian
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Ruang Perawatan
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Surat Kematian
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Dokumen Penunjang Lainnya
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Resep Obat/Alkes
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Dokumen KIPI
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        Dokumen Lainnya
+                                    </td>
+                                    <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
+                                        <div className="lg:grid grid-cols-2 gap-2">
+                                            <Button
+                                            variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                                onClick={() => {
+                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setShowUpload(true);
+                                                }}
+                                            >
+                                                <Upload />
+                                                Upload
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
+                                            >
+                                                <Upload />
+                                                Kirim
                                             </Button>
                                         </div>
                                     </td>
@@ -2682,6 +2970,15 @@ export default function DataKlaim() {
                     </table>
                 </div>
                 {/* Konten lainnya bisa ditambahkan di sini */}
+
+                <ModalUpload
+                    open={showUpload}
+                    onClose={() => setShowUpload(false)}
+                    uploadUrl={uploadUrl}
+                    onSuccess={(res) => { /* handle sukses */ }}
+                    title="Upload Dokumen"
+                    description="Pilih file yang akan diupload."
+                />
 
                 {/* Modal untuk Preview PDF */}
                 {previewPDF && (berkasKlaimUrl || previewSEPData) && (

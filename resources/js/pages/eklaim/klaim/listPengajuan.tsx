@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { Tab } from "@headlessui/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlignJustify, Check, Pencil, Trash } from "lucide-react";
+import { AlignJustify, Check, Home, Pencil, Trash } from "lucide-react";
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -51,7 +51,7 @@ export default function ListPengajuan() {
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: "Klaim",
+            title: <Home className="inline mr-1" />,
             href: route("eklaim.klaim.index"),
         },
         {

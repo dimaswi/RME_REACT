@@ -2,6 +2,7 @@
 
 namespace App\Models\Eklaim;
 
+use App\Models\Pendaftaran\Penjamin;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,4 +23,9 @@ class PengajuanKlaim extends Model
         'request',
         'tanggal_pengajuan',
     ];
+
+    public function penjamin()
+    {
+        return $this->hasOne(Penjamin::class, 'NOMOR', 'nomor_SEP');
+    }
 }

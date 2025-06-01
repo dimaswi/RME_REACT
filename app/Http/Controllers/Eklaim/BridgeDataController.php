@@ -94,7 +94,13 @@ class BridgeDataController extends Controller
 
     public function previewSEP(Pendaftaran $pendaftaran)
     {
-        $pendaftaran->load(['pasien', 'penjamin.kunjunganBPJS.dokterDPJP', 'penjamin.kunjunganBPJS.poliTujuan', 'penjamin.kunjunganBPJS.faskesPerujuk', 'penjamin.kunjunganBPJS.dataPeserta']);
+        $pendaftaran->load([
+            'pasien',
+            'penjamin.kunjunganBPJS.dokterDPJP',
+            'penjamin.kunjunganBPJS.poliTujuan',
+            'penjamin.kunjunganBPJS.faskesPerujuk',
+            'penjamin.kunjunganBPJS.dataPeserta'
+        ]);
         return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
     }
 

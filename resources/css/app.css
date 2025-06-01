@@ -68,6 +68,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
     *,
     ::after,
     ::before,
@@ -155,5 +156,37 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    @keyframes modal-fade-in {
+        0% {
+            opacity: 0;
+            transform: translateY(40px) scale(0.97);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes modal-fade-out {
+        0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(40px) scale(0.97);
+        }
+    }
+
+    .animate-modal-fade-in {
+        animation: modal-fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .animate-modal-fade-out {
+        animation: modal-fade-out 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }

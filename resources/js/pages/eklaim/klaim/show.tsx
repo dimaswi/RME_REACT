@@ -4,7 +4,7 @@ import { Head, usePage, router } from "@inertiajs/react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import React, { useState } from "react"
-import { PlusCircle, X, Search, Calendar as CalendarIcon, Check, AlignJustify, Pencil, Trash } from "lucide-react"
+import { PlusCircle, X, Search, Calendar as CalendarIcon, Check, AlignJustify, Pencil, Trash, Home } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -33,7 +33,7 @@ export default function KlaimShow() {
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'Klaim',
+            title: <Home className="inline mr-1" />,
             href: '/eklaim/klaim',
         },
         {
@@ -100,26 +100,38 @@ export default function KlaimShow() {
     };
 
     // Helper untuk flatten daftar kunjungan BPJS dari hasil relasi
-    const daftarSEP = React.useMemo(() => {
-        if (!kunjungan) return [];
-        return kunjungan.flatMap((pendaftaran: any) =>
-            (pendaftaran.penjamin || []).flatMap((penjamin: any) =>
-                (penjamin.kunjungan_b_p_j_s || []).map((bpjs: any) => ({
-                    // Field ringkas untuk tampilan
-                    noKartu: penjamin.kunjungan_b_p_j_s?.[0]?.noKartu || "-",
-                    nomorPendaftaran: pendaftaran.NOMOR,
-                    noSEP: bpjs.noSEP,
-                    tglSEP: bpjs.tglSEP,
-                    NORM: pendaftaran.NORM,
-                    tanggalLahir: pasien.TANGGAL_LAHIR,
-                    jenisKelamin: pasien.JENIS_KELAMIN,
-                    ruangTujuan: (pendaftaran.riwayat_kunjungan?.[0]?.ruangan?.DESKRIPSI) || "-",
-                    diagnosa: bpjs.diagAwal,
-                    statusPulang: bpjs.statusPulang,
-                }))
-            )
-        );
-    }, [kunjungan]);
+const daftarSEP = React.useMemo(() => {
+    if (!Array.isArray(kunjungan)) return [];
+    return kunjungan.flatMap((pendaftaran: any) => {
+        // Pastikan penjamin adalah array
+        let penjaminArr: any[] = [];
+        if (Array.isArray(pendaftaran.penjamin)) {
+            penjaminArr = pendaftaran.penjamin;
+        } else if (pendaftaran.penjamin) {
+            penjaminArr = [pendaftaran.penjamin];
+        }
+        return penjaminArr.flatMap((penjamin: any) => {
+            // Pastikan kunjungan_b_p_j_s adalah array
+            const bpjsArr = Array.isArray(penjamin.kunjungan_b_p_j_s)
+                ? penjamin.kunjungan_b_p_j_s
+                : penjamin.kunjungan_b_p_j_s
+                    ? [penjamin.kunjungan_b_p_j_s]
+                    : [];
+            return bpjsArr.map((bpjs: any) => ({
+                noKartu: bpjs.noKartu || "-",
+                nomorPendaftaran: pendaftaran.NOMOR,
+                noSEP: bpjs.noSEP,
+                tglSEP: bpjs.tglSEP,
+                NORM: pendaftaran.NORM,
+                tanggalLahir: pasien.TANGGAL_LAHIR,
+                jenisKelamin: pasien.JENIS_KELAMIN,
+                ruangTujuan: (pendaftaran.riwayat_kunjungan?.[0]?.ruangan?.DESKRIPSI) || "-",
+                diagnosa: bpjs.diagAwal,
+                statusPulang: bpjs.statusPulang,
+            }));
+        });
+    });
+}, [kunjungan, pasien]);
 
     const handleSEPChange = (value: string) => {
         setSelectedSEP(value);
