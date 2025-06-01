@@ -2,6 +2,7 @@
 
 namespace App\Models\Eklaim;
 
+use App\Models\Pendaftaran\Pendaftaran;
 use App\Models\Pendaftaran\Penjamin;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;

@@ -12,7 +12,25 @@ class EditDataController extends Controller
     public function EditResumeMedis(PengajuanKlaim $pengajuanKlaim)
     {
         $pengajuanKlaim->load([
-            'penjamin.kunjunganPasien.ruangan'
+            'penjamin.kunjunganPasien.ruangan',
+            'penjamin.kunjunganPasien.penjaminPasien.jenisPenjamin',
+            'penjamin.kunjunganPasien.pendaftaranPasien.pasien',
+            'penjamin.kunjunganPasien.pendaftaranPasien.resumeMedis',
+            'penjamin.kunjunganPasien.anamnesisPasien',
+            'penjamin.kunjunganPasien.rpp',
+            'penjamin.kunjunganPasien.diagnosaPasien',
+            'penjamin.kunjunganPasien.prosedurPasien',
+            'penjamin.kunjunganPasien.pemeriksaanFisik',
+            'penjamin.kunjunganPasien.permintaanKonsul',
+            'penjamin.kunjunganPasien.permintaanKonsul.jawabanKonsul',
+            'penjamin.kunjunganPasien.riwayatAlergi',
+            'penjamin.kunjunganPasien.pasienPulang.caraPulang',
+            'penjamin.kunjunganPasien.pasienPulang.keadaanPulang',
+            'penjamin.kunjunganPasien.orderResep.orderResepDetil.namaObat',
+            'penjamin.kunjunganPasien.orderResep.orderResepDetil.caraPakai',
+            'penjamin.kunjunganPasien.orderResep.orderResepDetil.frekuensiObat',
+            'penjamin.kunjunganPasien.jadwalKontrol.ruangan',
+            'penjamin.kunjunganPasien.dokterDPJP',
         ]);
 
         //Kop

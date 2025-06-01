@@ -673,9 +673,9 @@ export default function DataKlaim() {
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
-                                                onClick={ () => router.get(route('eklaim.editData.resumeMedis', {
-                                                    pengajuanKlaim : dataKlaim.id
-                                                })) }
+                                                onClick={() => router.get(route('eklaim.editData.resumeMedis', {
+                                                    pengajuanKlaim: dataKlaim.id
+                                                }))}
                                             >
                                                 <Pencil />
                                                 Edit
@@ -686,15 +686,17 @@ export default function DataKlaim() {
                                                 disabled={previewResumeMedis}
                                                 onClick={async () => {
                                                     setPreviewResumeMedis(true);
-                                                    try {
-                                                        cetakResumeMedis(dataPendaftaran.NOMOR, 'preview', setPreviewSEPData, setPreviewPDF);
-                                                        toast.success("Data Resume Medis berhasil diambil");
-                                                    } catch (error) {
-                                                        console.log(error)
-                                                        setPreviewResumeMedis(false);
-                                                    } finally {
-                                                        setPreviewResumeMedis(false);
-                                                    }
+                                                    setTimeout(async () => {
+                                                        try {
+                                                            await cetakResumeMedis(dataPendaftaran.NOMOR, 'preview', setPreviewSEPData, setPreviewPDF);
+                                                            toast.success("Data Resume Medis berhasil diambil");
+                                                        } catch (error) {
+                                                            console.error(error);
+                                                            toast.error("Gagal mengambil data Resume Medis");
+                                                        } finally {
+                                                            setPreviewResumeMedis(false);
+                                                        }
+                                                    }, 100); // Timeout selama 0,5 detik
                                                 }}
                                             >
                                                 {previewResumeMedis ? (
@@ -796,9 +798,9 @@ export default function DataKlaim() {
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
-                                                onClick={ () => router.get(route('eklaim.editData.tagihan', {
-                                                    pengajuanKlaim : dataKlaim.id
-                                                })) }
+                                                onClick={() => router.get(route('eklaim.editData.tagihan', {
+                                                    pengajuanKlaim: dataKlaim.id
+                                                }))}
                                             >
                                                 <Pencil />
                                                 Edit
@@ -943,9 +945,9 @@ export default function DataKlaim() {
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
-                                                onClick={ () => router.get(route('eklaim.editData.laboratorium', {
-                                                    pengajuanKlaim : dataKlaim.id
-                                                })) }
+                                                onClick={() => router.get(route('eklaim.editData.laboratorium', {
+                                                    pengajuanKlaim: dataKlaim.id
+                                                }))}
                                             >
                                                 <Pencil />
                                                 Edit
@@ -1039,9 +1041,9 @@ export default function DataKlaim() {
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
-                                                onClick={ () => router.get(route('eklaim.editData.radiologi', {
-                                                    pengajuanKlaim : dataKlaim.id
-                                                })) }
+                                                onClick={() => router.get(route('eklaim.editData.radiologi', {
+                                                    pengajuanKlaim: dataKlaim.id
+                                                }))}
                                             >
                                                 <Pencil />
                                                 Edit
@@ -1133,7 +1135,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1160,7 +1162,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1187,7 +1189,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1214,7 +1216,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1241,7 +1243,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1268,7 +1270,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1295,7 +1297,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
@@ -1322,7 +1324,7 @@ export default function DataKlaim() {
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
                                         <div className="lg:grid grid-cols-2 gap-2">
                                             <Button
-                                            variant="outline"
+                                                variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 onClick={() => {
                                                     setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan

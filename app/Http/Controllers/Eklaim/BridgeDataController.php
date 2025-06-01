@@ -121,9 +121,9 @@ class BridgeDataController extends Controller
                 'pasienPulang.kunjunganPasien.ruangan',
                 'pendaftaranTagihan.pembayaranTagihan',
                 'riwayatKunjungan.ruangan',
+                'riwayatKunjungan.tandaVital',
                 'resumeMedis',
                 'pasienPulang',
-                'riwayatKunjungan.tandaVital',
             ]);
 
             // dd($pendaftaran->riwayatKunjungan->ttv);
