@@ -7,10 +7,11 @@ import { Head, usePage } from "@inertiajs/react";
 import { set } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Home } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react"; // Tambahkan impor pustaka QR Code
 import SignatureCanvas from "react-signature-canvas"; // Tambahkan impor pustaka Signature Canvas
+import PengkajianAwal from "./PengkajianAwal";
 
 
 export default function EditResumeMedis() {
@@ -200,15 +201,145 @@ export default function EditResumeMedis() {
         toast.success("Tanda tangan berhasil disimpan.");
     };
 
+    const handleLoadAll = () => {
+        // Load Tanggal Masuk
+        if (filteredKunjungan[0]?.pendaftaran_pasien?.TANGGAL) {
+            setTanggalMasuk(filteredKunjungan[0].pendaftaran_pasien.TANGGAL);
+        } else {
+            toast.error("Tanggal masuk tidak tersedia.");
+        }
+
+        // Load Tanggal Keluar
+        if (filteredKunjungan[0]?.KELUAR) {
+            setTanggalKeluar(filteredKunjungan[0].KELUAR);
+        } else {
+            toast.error("Tanggal keluar tidak tersedia.");
+        }
+
+        // Hitung Lama Dirawat
+        if (filteredKunjungan[0]?.pendaftaran_pasien?.TANGGAL && filteredKunjungan[0]?.KELUAR) {
+            const masuk = new Date(filteredKunjungan[0].pendaftaran_pasien.TANGGAL);
+            const keluar = new Date(filteredKunjungan[0].KELUAR);
+            masuk.setHours(0, 0, 0, 0);
+            keluar.setHours(0, 0, 0, 0);
+
+            if (masuk > keluar) {
+                toast.error("Tanggal masuk tidak boleh lebih besar dari tanggal keluar.");
+            } else {
+                const diffDays = (keluar.getTime() - masuk.getTime()) / (1000 * 60 * 60 * 24) + 1;
+                setLamaDirawat(`${diffDays} hari`);
+            }
+        }
+
+        // Load Riwayat Penyakit Sekarang
+        if (filteredKunjungan[0]?.anamnesis_pasien?.DESKRIPSI) {
+            setRiwayatPenyakitSekarang(filteredKunjungan[0].anamnesis_pasien.DESKRIPSI);
+        } else {
+            toast.error("Riwayat penyakit sekarang tidak tersedia.");
+        }
+
+        // Load Riwayat Penyakit Lalu
+        if (filteredKunjungan[0]?.rpp?.DESKRIPSI) {
+            setRiwayatPenyakitLalu(filteredKunjungan[0].rpp.DESKRIPSI);
+        } else {
+            toast.error("Riwayat penyakit lalu tidak tersedia.");
+        }
+
+        // Load Pemeriksaan Fisik
+        if (filteredKunjungan[0]?.pemeriksaan_fisik?.DESKRIPSI) {
+            setPemeriksaanFisik(filteredKunjungan[0].pemeriksaan_fisik.DESKRIPSI);
+        } else {
+            toast.error("Pemeriksaan fisik tidak tersedia.");
+        }
+
+        // Load Diagnosa Utama
+        if (filteredKunjungan[0]?.diagnosa_pasien?.length > 0) {
+            const diagnosaList = filteredKunjungan[0].diagnosa_pasien
+                .filter((d: any) => d.UTAMA === 1)
+                .map((d: any) => d.DIAGNOSA)
+                .join(", ");
+            setDiagnosaUtama(diagnosaList);
+            setIcd10(
+                filteredKunjungan[0].diagnosa_pasien
+                    .filter((d: any) => d.UTAMA === 1)
+                    .map((d: any) => d.KODE)
+                    .join(", ")
+            );
+        } else {
+            toast.error("Diagnosa utama tidak tersedia.");
+        }
+
+        // Load Diagnosa Sekunder
+        const filteredDiagnosaSekunder = filteredKunjungan[0]?.diagnosa_pasien?.filter((d: any) => d.UTAMA === 2);
+        if (filteredDiagnosaSekunder?.length > 0) {
+            const diagnosaList = filteredDiagnosaSekunder.map((d: any) => d.DIAGNOSA).join(", ");
+            setDiagnosaSekunder(diagnosaList);
+            setIcd10Sekunder(filteredDiagnosaSekunder.map((d: any) => d.KODE).join(", "));
+        } else {
+            toast.error("Diagnosa sekunder tidak tersedia.");
+        }
+
+        // Load Prosedur Pasien
+        if (filteredKunjungan[0]?.prosedur_pasien?.length > 0) {
+            const prosedurList = filteredKunjungan[0].prosedur_pasien.map((d: any) => d.TINDAKAN).join(", ");
+            setTindakanProsedur(prosedurList);
+            setIcd9(filteredKunjungan[0].prosedur_pasien.map((d: any) => d.KODE).join(", "));
+        } else {
+            toast.error("Prosedur pasien tidak tersedia.");
+        }
+
+        // Load Riwayat Alergi
+        if (filteredKunjungan[0]?.riwayat_alergi?.length > 0) {
+            const alergiList = filteredKunjungan[0].riwayat_alergi.map((a: any) => a.ALASAN).join(", ");
+            setRiwayatAlergi(alergiList);
+        } else {
+            toast.error("Riwayat alergi tidak tersedia.");
+        }
+
+        // Load Keadaan Pulang
+        if (filteredKunjungan[0]?.pasien_pulang?.keadaan_pulang?.DESKRIPSI) {
+            setKeadaanPulang(filteredKunjungan[0].pasien_pulang.keadaan_pulang.DESKRIPSI);
+        } else {
+            toast.error("Keadaan pulang tidak tersedia.");
+        }
+
+        // Load Cara Pulang
+        if (filteredKunjungan[0]?.pasien_pulang?.cara_pulang?.DESKRIPSI) {
+            setCaraPulang(filteredKunjungan[0].pasien_pulang.cara_pulang.DESKRIPSI);
+        } else {
+            toast.error("Cara pulang tidak tersedia.");
+        }
+
+        // Load Terapi Pulang
+        if (filteredKunjungan[0]?.order_resep?.length > 0) {
+            const obatList = filteredKunjungan[0].order_resep
+                .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
+                .flatMap((resep: any) =>
+                    resep.order_resep_detil?.map((detil: any) => ({
+                        namaObat: detil.nama_obat?.NAMA || "Tidak ada nama obat",
+                        jumlah: detil.JUMLAH || "Tidak ada jumlah",
+                        frekuensi: detil.frekuensi_obat?.FREKUENSI || "Tidak ada frekuensi",
+                        caraPemberian: detil.cara_pakai?.DESKRIPSI || "Tidak ada cara pemberian",
+                    })) || []
+                );
+            setTerapiPulang(obatList);
+        } else {
+            toast.error("Terapi pulang tidak tersedia.");
+        }
+
+        toast.success("Semua data berhasil dimuat.");
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Resume Medis" />
             <div className="p-4">
+                {/* Konten lainnya */}
                 <div>
                     {filteredKunjungan.length === 0 ? (
                         <div className="text-gray-500">Tidak ada data kunjungan dengan JENIS_KUNJUNGAN 1, 3, atau 17.</div>
                     ) : (
-                        <ul className="list-disc pl-5">
+                        <ul className="list-disc">
                             {filteredKunjungan.map((k: any, idx: number) => (
                                 <>
                                     <table style={{ fontFamily: "halvetica, sans-serif", width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
@@ -224,7 +355,7 @@ export default function EditResumeMedis() {
                                                         />
                                                     </center>
                                                 </td>
-                                                <td colSpan={6}>
+                                                <td colSpan={4}>
                                                     <div style={{ lineHeight: "1.2" }}>
                                                         <h3 style={{ fontSize: 20, textAlign: "left", }}>
                                                             KLINIK RAWAT INAP UTAMA MUHAMMADIYAH KEDUNGADEM
@@ -233,6 +364,17 @@ export default function EditResumeMedis() {
                                                             Jl. PUK Desa Drokilo. Kec. Kedungadem Kab. Bojonegoro <br />
                                                             Email : klinik.muh.kedungadem@gmail.com | WA : 082242244646 <br />
                                                         </p>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className="flex justify-end h-full p-4">
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={handleLoadAll}
+                                                            className="h-8 w-24 bg-blue-500 text-white hover:bg-blue-600"
+                                                        >
+                                                            Load
+                                                        </Button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -329,7 +471,7 @@ export default function EditResumeMedis() {
                                                             onChange={(e) => setTanggalMasuk(e.target.value)}
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.pendaftaran_pasien?.TANGGAL) {
@@ -341,7 +483,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -364,7 +506,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         />
 
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.KELUAR) {
@@ -376,7 +518,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -507,7 +649,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan riwayat penyakit sekarang"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.anamnesis_pasien?.DESKRIPSI) {
@@ -519,7 +661,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                     <div className="py-4 px-2 flex flex-col space-y-2">
                                                         <strong>Riwayat Penyakit Lalu :</strong>
@@ -529,7 +671,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan riwayat penyakit lalu"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.rpp?.DESKRIPSI) {
@@ -541,7 +683,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -575,7 +717,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan pemeriksaan fisik"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.pemeriksaan_fisik?.DESKRIPSI) {
@@ -587,7 +729,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -734,7 +876,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan diagnosa utama"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.diagnosa_pasien?.length > 0) {
@@ -749,7 +891,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -791,7 +933,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Prosedur Pasien"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.prosedur_pasien?.length > 0) {
@@ -806,7 +948,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -900,7 +1042,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan diagnosa sekunder"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 const filteredDiagnosa = k.diagnosa_pasien?.filter((d: any) => d.UTAMA == 2);
@@ -916,7 +1058,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -958,7 +1100,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Prosedur Pasien"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.prosedur_pasien?.length > 0) {
@@ -973,7 +1115,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -1028,7 +1170,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan riwayat alergi"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.riwayat_alergi?.length > 0) {
@@ -1042,7 +1184,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1077,7 +1219,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan keadaan pulang"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.pasien_pulang) {
@@ -1091,7 +1233,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1126,7 +1268,7 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan cara pulang"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        <Button
+                                                        {/* <Button
                                                             variant="outline"
                                                             onClick={() => {
                                                                 if (k.pasien_pulang) {
@@ -1140,7 +1282,7 @@ export default function EditResumeMedis() {
                                                             className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                         >
                                                             Load
-                                                        </Button>
+                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1317,7 +1459,7 @@ export default function EditResumeMedis() {
                                                             >
                                                                 Tambah
                                                             </Button>
-                                                            {
+                                                            {/* {
                                                                 index < 1 && (
                                                                     <Button
                                                                         variant="outline"
@@ -1327,7 +1469,7 @@ export default function EditResumeMedis() {
                                                                         Load
                                                                     </Button>
                                                                 )
-                                                            }
+                                                            } */}
                                                             {terapiPulang.length > 1 && index > 0 && ( // Tampilkan tombol Hapus hanya jika lebih dari satu item
                                                                 <Button
                                                                     variant="outline"
@@ -1414,9 +1556,14 @@ export default function EditResumeMedis() {
                                             <strong>{(k.dokter_d_p_j_p?.GELAR_DEPAN ? k.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + k.dokter_d_p_j_p?.NAMA + (k.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + k.dokter_d_p_j_p?.GELAR_BELAKANG : "")}</strong>
                                         </div>
                                     </div>
+
+                                    <PengkajianAwal imageBase64={imageBase64} nomorKunjungan={k.gabung_tagihan?.kunjungan_pasien?.find?.(
+                                        (kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2
+                                    )?.NOMOR || ""} />
                                 </>
                             ))}
                         </ul>
+
                     )}
                 </div >
             </div>

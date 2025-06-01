@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
 use App\Models\Eklaim\PengajuanKlaim;
+use App\Models\Pendaftaran\Kunjungan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -31,6 +32,7 @@ class EditDataController extends Controller
             'penjamin.kunjunganPasien.orderResep.orderResepDetil.frekuensiObat',
             'penjamin.kunjunganPasien.jadwalKontrol.ruangan',
             'penjamin.kunjunganPasien.dokterDPJP',
+            'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.ruangan',
         ]);
 
         //Kop
@@ -120,5 +122,21 @@ class EditDataController extends Controller
 
             return redirect()->back()->with('error', 'Gagal menyimpan data Radiologi: ' . $th->getMessage());
         }
+    }
+
+    public function loadDataPengkajianAwalRIRD(Kunjungan $nomorKunjungan)
+    {
+        if (!$nomorKunjungan->exists) {
+            return redirect()->back()->with('error', 'Nomor kunjungan tidak ditemukan.');
+        }
+
+        $nomorKunjungan->load([
+            'pendaftaranPasien.pasien',
+            'ruangan'
+        ]);
+
+        return response()->json([
+            'kunjungan' => $nomorKunjungan
+        ]);
     }
 }

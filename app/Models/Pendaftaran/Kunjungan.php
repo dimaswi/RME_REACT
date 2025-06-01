@@ -6,6 +6,7 @@ use App\Models\Layanan\OrderResep;
 use App\Models\Layanan\PasienPulang;
 use App\Models\Master\Pegawai;
 use App\Models\Master\Ruangan;
+use App\Models\Pembayaran\GabungTagihan;
 use App\Models\RM\Alergi;
 use App\Models\RM\Anamnesis;
 use App\Models\RM\Diagnosa;
@@ -101,5 +102,10 @@ class Kunjungan extends Model
     public function dokterDPJP()
     {
         return $this->hasOne(Pegawai::class, 'ID', 'DPJP');
+    }
+
+    public function gabungTagihan()
+    {
+        return $this->hasOne(GabungTagihan::class, 'KE', 'NOPEN');
     }
 }

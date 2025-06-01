@@ -46,4 +46,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('eklaim/edit-data/{pengajuanKlaim}/radiologi', [\App\Http\Controllers\Eklaim\EditDataController::class, 'EditRadiologi'])->name('eklaim.editData.radiologi');
     Route::post('eklaim/edit-data/radiologi', [\App\Http\Controllers\Eklaim\EditDataController::class, 'StoreEditRadiologi'])->name('eklaim.editData.storeRadiologi');
+
+    Route::get('load/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'loadDataPengkajianAwalRIRD'])->name('eklaim.loadDataPengkajianAwalRIRD');
 });
