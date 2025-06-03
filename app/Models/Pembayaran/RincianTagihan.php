@@ -28,4 +28,34 @@ class RincianTagihan extends Model
     {
         return $this->belongsTo(Tagihan::class, 'TAGIHAN', 'ID');
     }
+
+    public function tarifAdministrasi()
+    {
+        return $this->belongsTo(TarifPembayaran::class, 'TARIF_ID', 'ID');
+    }
+
+    public function tarifRuangRawat()
+    {
+        return $this->belongsTo(TarifRuangRawat::class, 'TARIF_ID', 'ID');
+    }
+
+    public function tarifTindakan()
+    {
+        return $this->belongsTo(TarifTindakan::class, 'TARIF_ID', 'ID');
+    }
+
+    public function hargaBarang()
+    {
+        return $this->belongsTo(HargaBarang::class, 'TARIF_ID', 'ID');
+    }
+
+    public function paket()
+    {
+        return $this->belongsTo(Paket::class, 'TARIF_ID', 'ID');
+    }
+
+    public function tarifOksigen()
+    {
+        return $this->belongsTo(TarifOksigen::class, 'TARIF_ID', 'ID');
+    }
 }

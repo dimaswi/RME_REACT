@@ -13,6 +13,6 @@ class Diagnosa extends Model
 
     public function namaDiagnosa()
     {
-        return $this->hasMany(MrConso::class, 'CODE', 'KODE');
+        return $this->hasOne(MrConso::class, 'CODE', 'KODE');
     }
 }

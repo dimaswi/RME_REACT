@@ -158,33 +158,33 @@ export default function EditResumeMedis() {
         setTerapiPulang(updatedTerapi);
     };
 
-    const handleLoadObat = (orderResep: any) => {
-        if (!orderResep || orderResep.length === 0) {
-            toast.error("Data order resep tidak tersedia.");
-            return;
-        }
+    // const handleLoadObat = (orderResep: any) => {
+    //     if (!orderResep || orderResep.length === 0) {
+    //         toast.error("Data order resep tidak tersedia.");
+    //         return;
+    //     }
 
-        // Ambil data obat dari order_resep_detil
-        const obatList = orderResep
-            .filter((resep: any) => resep.RESEP_PASIEN_PULANG == 1)
-            .flatMap((resep: any) =>
-                resep.order_resep_detil?.map((detil: any) => ({
-                    namaObat: detil.nama_obat?.NAMA || "Tidak ada nama obat",
-                    jumlah: detil.JUMLAH || "Tidak ada jumlah",
-                    frekuensi: detil.frekuensi_obat.FREKUENSI || "Tidak ada frekuensi",
-                    caraPemberian: detil.cara_pakai.DESKRIPSI || "Tidak ada cara pemberian",
-                })) || []
-            );
+    //     // Ambil data obat dari order_resep_detil
+    //     const obatList = orderResep
+    //         .filter((resep: any) => resep.RESEP_PASIEN_PULANG == 1)
+    //         .flatMap((resep: any) =>
+    //             resep.order_resep_detil?.map((detil: any) => ({
+    //                 namaObat: detil.nama_obat?.NAMA || "Tidak ada nama obat",
+    //                 jumlah: detil.JUMLAH || "Tidak ada jumlah",
+    //                 frekuensi: detil.frekuensi_obat.FREKUENSI || "Tidak ada frekuensi",
+    //                 caraPemberian: detil.cara_pakai.DESKRIPSI || "Tidak ada cara pemberian",
+    //             })) || []
+    //         );
 
-        if (obatList.length === 0) {
-            toast.error("Detail resep tidak tersedia.");
-            return;
-        }
+    //     if (obatList.length === 0) {
+    //         toast.error("Detail resep tidak tersedia.");
+    //         return;
+    //     }
 
-        setTerapiPulang(obatList);
-        setObat(obatList); // Simpan data obat ke state
-        toast.success("Data obat berhasil dimuat.");
-    };
+    //     setTerapiPulang(obatList);
+    //     setObat(obatList); // Simpan data obat ke state
+    //     toast.success("Data obat berhasil dimuat.");
+    // };
 
     const [showSignaturePad, setShowSignaturePad] = useState(false); // State untuk menampilkan pad tanda tangan
     const [signatureData, setSignatureData] = useState<string | null>(null); // State untuk menyimpan tanda tangan
@@ -329,6 +329,63 @@ export default function EditResumeMedis() {
 
         toast.success("Semua data berhasil dimuat.");
     };
+
+    const dataResumeMedis = {
+        // Data Administrasi
+        // Data klaim dan administrasi
+        id_pengajuan_klaim: dataKlaim?.id,
+        tanggal_masuk: tanggalMasuk,
+        tanggal_keluar: tanggalKeluar,
+        lama_dirawat: lamaDirawat,
+
+        // Data Anamnesa & Pemeriksaan Fisik
+        riwayat_penyakit_sekarang: riwayatPenyakitSekarang,
+        riwayat_penyakit_lalu: riwayatPenyakitLalu,
+        pemeriksaan_fisik: pemeriksaanFisik,
+
+        // Data Konsultasi
+        permintaan_konsul: permintaanKonsul,
+
+        // Data Diagnosa & Tindakan Utama
+        diagnosa_utama: diagnosaUtama,
+        icd10_utama: icd10,
+        tindakan_prosedur: tindakanProsedur,
+        icd9_utama: icd9,
+
+        // Data Diagnosa & Tindakan Sekunder
+        diagnosa_sekunder: diagnosaSekunder,
+        icd10_sekunder: icd10Sekunder,
+        tindakan_prosedur_sekunder: tindakanProsedurSekunder,
+        icd9_sekunder: icd9Sekunder,
+
+        // Data Alergi
+        riwayat_alergi: riwayatAlergi,
+
+        // Data Status Pulang
+        keadaan_pulang: keadaanPulang,
+        cara_pulang: caraPulang,
+
+        // Data Obat & Terapi
+        obat: obat, // Ini field obat yang mungkin tidak digunakan lagi
+        terapi_pulang: terapiPulang,
+
+        // Tanda Tangan
+        tanda_tangan: signatureData,
+
+        // Data pendukung lainnya
+        filtered_kunjungan: filteredKunjungan?.map(k => ({
+            nomor: k.NOMOR,
+            ruangan: k.ruangan?.DESKRIPSI,
+            tanggal_pendaftaran: k.pendaftaran_pasien?.TANGGAL,
+            tanggal_keluar: k.KELUAR,
+            dpjp: k.dokter_d_p_j_p?.NAMA,
+            penjamin: k.penjamin_pasien?.jenis_penjamin?.DESKRIPSI
+        })),
+
+        // Metadata
+        timestamp: new Date().toISOString(),
+        user_id: null // Sesuaikan dengan logic autentikasi aplikasi
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -929,7 +986,6 @@ export default function EditResumeMedis() {
                                                             type="text"
                                                             value={tindakanProsedur || ""}
                                                             onChange={(e) => setTindakanProsedur(e.target.value)}
-                                                            readOnly
                                                             placeholder="Prosedur Pasien"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
@@ -1096,7 +1152,6 @@ export default function EditResumeMedis() {
                                                             type="text"
                                                             value={tindakanProsedurSekunder || ""}
                                                             onChange={(e) => setTindakanProsedurSekunder(e.target.value)}
-                                                            readOnly
                                                             placeholder="Prosedur Pasien"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
@@ -1557,15 +1612,36 @@ export default function EditResumeMedis() {
                                         </div>
                                     </div>
 
-                                    <PengkajianAwal imageBase64={imageBase64} nomorKunjungan={k.gabung_tagihan?.kunjungan_pasien?.find?.(
-                                        (kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2
-                                    )?.NOMOR || ""} />
+                                    {
+                                        k.gabung_tagihan != null ? (
+                                            <PengkajianAwal
+                                                imageBase64={imageBase64}
+                                                nomorKunjungan={k.gabung_tagihan?.kunjungan_pasien?.find?.(
+                                                    (kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2
+                                                )?.NOMOR || ""}
+                                                dataResumeMedis={dataResumeMedis}
+                                            />
+                                        ) : (
+                                            <div>
+                                                <div className="flex justify-end mt-4">
+                                                    <Button
+                                                        type="submit"
+                                                        variant="outline"
+                                                        className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                                                    >
+                                                        Simpan
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )
+                                    }
                                 </>
                             ))}
                         </ul>
 
                     )}
                 </div >
+
             </div>
 
             {showSignaturePad && (

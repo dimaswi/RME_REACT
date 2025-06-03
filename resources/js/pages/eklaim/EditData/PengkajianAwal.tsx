@@ -5,14 +5,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { set } from "date-fns";
+import { QRCodeSVG } from "qrcode.react"; // Tambahkan impor pustaka QR Code
+import SignatureCanvas from "react-signature-canvas"; // Tambahkan impor pustaka Signature Canvas
+import { router } from "@inertiajs/react";
 
 interface PengkajianAwalProps {
-    imageBase64: string;
+    imageBase64: any;
     nomorKunjungan: string;
+    dataResumeMedis: any; // Tambahkan tipe data yang sesuai jika perlu
 }
 
-export default function PengkajianAwal({ imageBase64, nomorKunjungan }: PengkajianAwalProps) {
+export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResumeMedis }: PengkajianAwalProps) {
 
     // State untuk data administrasi pasien
     const [ruangan, setRuangan] = useState("");
@@ -94,6 +97,9 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
     const [pekerjaan, setPekerjaan] = useState("");
     const [penghasilan, setPenghasilan] = useState("");
 
+    // State untuk riwayat alergi
+    const [riwayatAlergi, setRiwayatAlergi] = useState("");
+
     // State untuk penilaian nyeri
     const [nyeri, setNyeri] = useState("");
     const [onsetNyeri, setOnsetNyeri] = useState("");
@@ -139,6 +145,240 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
     // State untuk rencana terapi
     const [rencanaTerapi, setRencanaTerapi] = useState("");
 
+    const [namaDokter, setNamaDokter] = useState(""); // State untuk nama dokter
+    const [tanggalTandaTangan, setTanggalTandaTangan] = useState(""); // State untuk tanggal tanda tangan
+
+    console.log("Data Resume Medis:", dataResumeMedis);
+
+    const handleSave = async () => {
+        try {
+            // Kumpulkan semua data form
+            const pengkajianData = {
+                // Nomor kunjungan
+                nomor_kunjungan: nomorKunjungan,
+
+                // 1. Data administrasi pasien
+                ruangan,
+                tanggal_masuk: tanggalMasuk,
+                nama_pasien: namaPasien,
+                alamat,
+                nomor_rm: nomorRM,
+                tanggal_lahir: tanggalLahir,
+                jenis_kelamin: jenisKelamin,
+
+                // 2. Data anamnesa
+                anamnesis: {
+                    auto_anamnesis: autoAnamnesis,
+                    allo_anamnesis: alloAnamnesis,
+                    dari,
+                    keluhan_utama: keluhanUtama,
+                    riwayat_penyakit: riwayatPenyakit,
+                    faktor_resiko: faktorResiko,
+                    riwayat_pengobatan: riwayatPengobatan,
+                    riwayat_penyakit_keluarga: riwayatPenyakitKeluarga,
+                },
+
+                // 3. Data keadaan umum dan tanda vital
+                keadaan_umum: keadaanUmum,
+                tingkat_kesadaran: tingkatKesadaran,
+                tanda_vital: {
+                    gcs,
+                    eye,
+                    motorik,
+                    verbal,
+                    tekanan_darah: tekananDarah,
+                    frekuensi_nadi: frekuensiNadi,
+                    frekuensi_nafas: frekuensiNafas,
+                    suhu,
+                    berat_badan: beratBadan,
+                    saturasi_o2: saturasiO2,
+                },
+
+                // 4. Data pemeriksaan fisik
+                pemeriksaan_fisik: {
+                    mata,
+                    ikterus,
+                    pupil,
+                    diameter_mata: diameterMata,
+                    udema_palpebrae: udemaPalpebrae,
+                    kelainan_mata: kelainanMata,
+                    tht,
+                    tongsil,
+                    faring,
+                    lidah,
+                    bibir,
+                    leher,
+                    jvp,
+                    limfe,
+                    kaku_kuduk: kakuKuduk,
+                    thoraks,
+                    cor,
+                    s1s2: s1S2,
+                    murmur: murMur,
+                    pulmo,
+                    suara_nafas: suaraNafas,
+                    ronchi,
+                    wheezing,
+                    abdomen,
+                    meteorismus,
+                    peristaltik,
+                    asites,
+                    nyeri_tekan: nyeriTekan,
+                    hepar,
+                    lien,
+                    extremitas,
+                    udem,
+                    defeksesi,
+                    urin,
+                    pemeriksaan_lain_lain: pemeriksaanLainLain,
+                },
+
+                // 5. Data status psikososial
+                status_psikososial: {
+                    status_psikologis: statusPsikologis,
+                    status_mental: statusMental,
+                    hubungan_keluarga: hubunganKeluarga,
+                    tempat_tinggal: tempatTinggal,
+                    agama,
+                    kebiasaan_beribadah: kebiasaanBeribadah,
+                    pekerjaan,
+                    penghasilan,
+                },
+
+                // 6. Riwayat alergi
+                riwayat_alergi: riwayatAlergi,
+
+                // 7. Data penilaian nyeri
+                penilaian_nyeri: {
+                    nyeri,
+                    onset: onsetNyeri,
+                    pencetus: pencetusNyeri,
+                    lokasi: lokasiNyeri,
+                    gambaran: gambaranNyeri,
+                    durasi: durasiNyeri,
+                    skala: skalaNyeri,
+                    metode: metodeNyeri,
+                },
+
+                // 8. Data resiko jatuh
+                resiko_jatuh: {
+                    resiko: resikoJatuh,
+                    skor: skorResikoJatuh,
+                    metode: metodeResikoJatuh,
+                },
+
+                // 9. Data resiko dekubitas
+                resiko_dekubitas: {
+                    resiko: resikoDekubitas,
+                    skor: skorResikoDekubitas,
+                },
+
+                // 10. Data resiko gizi
+                resiko_gizi: {
+                    penurunan_berat_badan: penurunanBeratBadan,
+                    penurunan_asupan: penurunanAsupan,
+                    diagnosis_khusus: diagnosisKhusus,
+                },
+
+                // 11. Edukasi pasien
+                edukasi_pasien: edukasiPasien,
+
+                // 12. Discharge planning
+                discharge_planning: {
+                    skrinning: skrinningDischargePlanning,
+                    faktor_resiko: faktorResikoDischargePlanning,
+                    tindak_lanjut: tindakLanjutDischargePlanning,
+                },
+
+                // 13. Rencana keperawatan
+                rencana_keperawatan: rencanaKeperawatan,
+
+                // 14. Diagnosa keperawatan
+                diagnosa_keperawatan: diagnosaKeperawatan,
+
+                // 15. Masalah medis
+                masalah_medis: masalahMedis,
+
+                // 16. Rencana terapi
+                rencana_terapi: rencanaTerapi,
+
+                // 17. Data tanda tangan dan dokter
+                nama_dokter: namaDokter,
+                tanggal_tanda_tangan: tanggalTandaTangan,
+                tanda_tangan: signatureData,
+            };
+
+            // Dengan definisi yang lebih eksplisit seperti ini:
+            const resumeMedis = {
+                // Data Administrasi
+                id_pengajuan_klaim: dataResumeMedis?.id_pengajuan_klaim ?? null,
+                tanggal_masuk: dataResumeMedis?.tanggal_masuk ?? null,
+                tanggal_keluar: dataResumeMedis?.tanggal_keluar ?? null,
+                lama_dirawat: dataResumeMedis?.lama_dirawat ?? null,
+
+                // Data Anamnesa & Pemeriksaan Fisik
+                riwayat_penyakit_sekarang: dataResumeMedis?.riwayat_penyakit_sekarang ?? null,
+                riwayat_penyakit_lalu: dataResumeMedis?.riwayat_penyakit_lalu ?? null,
+                pemeriksaan_fisik: dataResumeMedis?.pemeriksaan_fisik ?? null,
+
+                // Data Konsultasi
+                permintaan_konsul: dataResumeMedis?.permintaan_konsul ?? [],
+
+                // Data Diagnosa & Tindakan
+                diagnosa_utama: dataResumeMedis?.diagnosa_utama ?? null,
+                icd10_utama: dataResumeMedis?.icd10_utama ?? null,
+                tindakan_prosedur: dataResumeMedis?.tindakan_prosedur ?? null,
+                icd9_utama: dataResumeMedis?.icd9_utama ?? null,
+                diagnosa_sekunder: dataResumeMedis?.diagnosa_sekunder ?? null,
+                icd10_sekunder: dataResumeMedis?.icd10_sekunder ?? null,
+                tindakan_prosedur_sekunder: dataResumeMedis?.tindakan_prosedur_sekunder ?? null,
+                icd9_sekunder: dataResumeMedis?.icd9_sekunder ?? null,
+
+                // Data Alergi & Status Pulang
+                riwayat_alergi: dataResumeMedis?.riwayat_alergi ?? null,
+                keadaan_pulang: dataResumeMedis?.keadaan_pulang ?? null,
+                cara_pulang: dataResumeMedis?.cara_pulang ?? null,
+
+                // Data Obat & Terapi
+                obat: dataResumeMedis?.obat ?? null,
+                terapi_pulang: dataResumeMedis?.terapi_pulang ?? [],
+
+                // Tanda tangan & metadata
+                tanda_tangan: dataResumeMedis?.tanda_tangan ?? null,
+                timestamp: dataResumeMedis?.timestamp ?? new Date().toISOString(),
+                user_id: dataResumeMedis?.user_id ?? null,
+
+                // Data Kunjungan
+                filtered_kunjungan: dataResumeMedis?.filtered_kunjungan ?? [],
+
+                // Apapun properti lain yang ada di dataResumeMedis
+                ...dataResumeMedis
+            };
+
+            console.log("Data Pengkajian Awal:", pengkajianData);
+            console.log("Data Resume Medis:", resumeMedis);
+
+            // Kirim data ke server
+            const response = router.post(route("eklaim.editData.storeResumeMedis", {
+                resumeMedis: resumeMedis,
+                pengkajianAwal: pengkajianData,
+
+            }))
+
+            if (response.data.success) {
+                toast.success("Data pengkajian awal berhasil disimpan");
+            } else {
+                toast.error("Gagal menyimpan data: " + response.data.message);
+            }
+        } catch (error) {
+            console.error("Error saving data:", error);
+            toast.error("Terjadi kesalahan saat menyimpan data: " +
+                (error.response?.data?.message || error.message));
+        }
+    };
+
+    // Tambahkan fungsi ini di dalam komponen PengkajianAwal
+
     const handleLoadData = async () => {
         try {
             const response = await axios.get(
@@ -146,14 +386,9 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
                     nomorKunjungan: nomorKunjungan,
                 })
             );
-            console.log(response.data);
-            toast.success("Data pengkajian awal berhasil dimuat.");
-            // Contoh: jika ingin mengisi state dari response
-            // setRuangan(response.data.ruangan ?? "");
-            // setTanggalMasuk(response.data.tanggal_masuk ?? "");
-            // dst...
-
             const data = response.data.kunjungan;
+            // console.log(data);
+            toast.success("Data pengkajian awal berhasil dimuat.");
 
             // Data Administrasi Pasien
             setNamaPasien(data.pendaftaran_pasien?.pasien.NAMA ?? "");
@@ -165,12 +400,82 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
             setJenisKelamin(data.pendaftaran_pasien?.pasien.JENIS_KELAMIN == 1 ? "Laki-laki" : "Perempuan");
 
             // Data Anamnesa
+            if (data.anamnesis_pasien_diperoleh?.AUTOANAMNESIS == 1) {
+                setAutoAnamnesis(true);
+                setAlloAnamnesis(false);
+            } else if (data.anamnesis_pasien_diperoleh?.ALLOANAMNESIS == 1) {
+                setAutoAnamnesis(false);
+                setAlloAnamnesis(true);
+            }
+            setDari(data.anamnesis_pasien_diperoleh?.DARI ?? "");
+            setKeluhanUtama(data.keluhan_utama?.DESKRIPSI ?? "");
+            setRiwayatPenyakit(data.anamnesis_pasien?.DESKRIPSI ?? "");
+            setFaktorResiko(data.rpp.DESKRIPSI ?? "");
+
+            const riwayatOrderObatPasien = data.order_resep?.map((item: any) => item.order_resep_detil)
+            const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
+                item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
+            ).join(", ") || "";
+
+            setRiwayatPengobatan(getNamaRiwayatObat);
+            setRiwayatPenyakitKeluarga(data.riwayat_penyakit_keluarga?.DESKRIPSI ?? "");
+
+            // Data Keadaan Umum
+            setKeadaanUmum(data.tanda_vital?.KEADAAN_UMUM ?? "");
+            setTingkatKesadaran(data.tanda_vital?.KESADARAN ?? "");
+            setGCS(data.tanda_vital?.GCS ?? "");
+            setEye(data.tanda_vital?.EYE ?? "");
+            setMotorik(data.tanda_vital?.MOTORIK ?? "");
+            setVerbal(data.tanda_vital?.VERBAL ?? "");
+            setTekananDarah(data.tanda_vital ? `${Math.ceil(data.tanda_vital.SISTOLIK)}/${Math.ceil(data.tanda_vital.DISTOLIK)}` : "");
+            setFrekuensiNadi(data.tanda_vital?.FREKUENSI_NADI ?? "");
+            setFrekuensiNafas(data.tanda_vital?.FREKUENSI_NAFAS ?? "");
+            setSuhu(data.tanda_vital?.SUHU ?? "");
+            setBeratBadan(data.tanda_vital?.BERAT_BADAN ?? "");
+            setSaturasiO2(data.tanda_vital?.SATURASI_O2 ?? "");
+
+            const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
+            setRiwayatAlergi(riwayatAlergiPasien);
+            setMasalahMedis(data.anamnesis_pasien?.DESKRIPSI ?? "");
+
+            const diagnosaPasien = data.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
+            setDiagnosaKeperawatan(diagnosaPasien);
+
+            setRencanaTerapi(data.rencana_terapi?.DESKRIPSI ?? "");
+            setNamaDokter((data.dokter_d_p_j_p?.GELAR_DEPAN ? data.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + data.dokter_d_p_j_p?.NAMA + (data.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + data.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
+            setTanggalTandaTangan(formatTanggalIndo(data.MASUK) ?? "");
 
         } catch (error) {
-        console.error(error);
-        toast.error("Gagal memuat data pengkajian awal.");
-        // Bisa juga tampilkan notifikasi error di sini
+            console.error(error);
+            toast.error("Gagal memuat data pengkajian awal.");
+            // Bisa juga tampilkan notifikasi error di sini
+        }
     }
+
+    const [showSignaturePad, setShowSignaturePad] = useState(false); // State untuk menampilkan pad tanda tangan
+    const [signatureData, setSignatureData] = useState<string | null>(null); // State untuk menyimpan tanda tangan
+
+    const handleClearSignature = (sigCanvas: SignatureCanvas) => {
+        sigCanvas.clear();
+        setSignatureData(null);
+    };
+
+    const handleSaveSignature = (sigCanvas: SignatureCanvas) => {
+        const dataURL = sigCanvas.toDataURL(); // Simpan tanda tangan sebagai data URL
+        setSignatureData(dataURL);
+        setShowSignaturePad(false); // Sembunyikan pad tanda tangan setelah disimpan
+        toast.success("Tanda tangan berhasil disimpan.");
+    };
+
+    function formatTanggalIndo(tgl: string) {
+        if (!tgl) return "-";
+        const bulan = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+        const [tahun, bulanIdx, tanggal] = tgl.split("-");
+        if (!tahun || !bulanIdx || !tanggal) return tgl;
+        return `${parseInt(tanggal)} ${bulan[parseInt(bulanIdx, 10) - 1]} ${tahun}`;
     }
 
     return (
@@ -182,7 +487,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
                             {/* Gunakan data Base64 untuk menampilkan gambar */}
                             <center>
                                 <img
-                                    src={imageBase64.imageBase64}
+                                    src={imageBase64}
                                     alt="Logo Klinik"
                                     style={{ width: 50, height: 50 }}
                                 />
@@ -349,15 +654,21 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
                                 <Checkbox
                                     id="autoanamnesis"
                                     className="mr-2"
-                                    checked={autoAnamnesis} // Set default checked state
-                                    onChange={() => setAutoAnamnesis(!autoAnamnesis)} // Toggle checked state
+                                    checked={autoAnamnesis}
+                                    onCheckedChange={(checked: boolean) => {
+                                        setAutoAnamnesis(checked);
+                                        if (checked) setAlloAnamnesis(false);
+                                    }}
                                 />
                                 <span className="ml-2">Autoanamnesis</span>
                                 <Checkbox
                                     id="alloanamnesis"
                                     className="mr-2"
-                                    checked={alloAnamnesis} // Set default checked state
-                                    onChange={() => setAlloAnamnesis(!alloAnamnesis)} // Toggle checked state
+                                    checked={alloAnamnesis}
+                                    onCheckedChange={(checked: boolean) => {
+                                        setAlloAnamnesis(checked);
+                                        if (checked) setAutoAnamnesis(false);
+                                    }}
                                 />
                                 <span className="ml-2">Alloanamnesis</span>,
                             </div>
@@ -1276,6 +1587,28 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
                     </td>
                 </tr>
 
+                {/* RIWAYAT ALERGI */}
+                <tr style={{ borderBottom: "1px solid #000" }}>
+                    <td colSpan={8} style={{ textAlign: "left", padding: "5px" }}>
+                        <div>
+                            <u className="text-xl font-bold">Riwayat Alergi</u>
+                        </div>
+
+                        <div className="grid grid-cols-6 gap-1 items-center p-2">
+                            <div className="col-span-6 flex items-center gap-2">
+                                <Textarea
+                                    id="riwayat_alergi"
+                                    value={riwayatAlergi}
+                                    onChange={(e) => setRiwayatAlergi(e.target.value)}
+                                    placeholder="Masukkan Riwayat Alergi"
+                                    className="border border-gray-300 rounded-md"
+                                    style={{ width: "100%", height: "100px" }}
+                                />
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
                 {/* HUBUNGAN STATUS DAN PSIKOSOSIAL SPIRITUAL */}
                 <tr style={{ borderBottom: "1px solid #000" }}>
                     <td colSpan={8} style={{ textAlign: "left", padding: "5px" }}>
@@ -1946,11 +2279,52 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
                 </tr>
 
                 {/* TANDA TANGAN */}
-                <tr style={{ borderBottom: "1px solid #000" }}>
-                    <td colSpan={8} style={{ textAlign: "left", padding: "5px" }}>
+                {
+                    namaDokter && (
+                        <>
+                            <tr style={{ borderBottom: "1px solid #000" }}>
+                                <td colSpan={8} style={{ textAlign: "left", padding: "5px" }}>
+                                    <div className="mt-[-1px] flex justify-center items-center h-full p-4">
+                                        <div className="text-center mx-4 flex-1">
+                                            <br />
+                                            <strong>Perawat</strong>
+                                            <br />
+                                            {/* Tampilkan tanda tangan jika ada */}
+                                            {signatureData && (
+                                                <div className="">
+                                                    <img src={signatureData} alt="Tanda Tangan" className="" />
+                                                </div>
+                                            )}
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowSignaturePad(true)} // Tampilkan pad tanda tangan
+                                                className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
+                                            >
+                                                Tanda Tangan
+                                            </Button>
 
-                    </td>
-                </tr>
+                                        </div>
+                                        <div className="ml-100 flex-1">
+                                            <strong>Bojonegoro, </strong> {tanggalTandaTangan}
+                                            <br />
+                                            <strong>DPJP Pelayanan</strong>
+                                            <div className="m-4">
+                                                <QRCodeSVG
+                                                    value={namaDokter}
+                                                    size={128}
+                                                    bgColor={"#ffffff"}
+                                                    fgColor={"#000000"}
+                                                    level={"L"}
+                                                />
+                                            </div>
+                                            <strong>{namaDokter}</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </>
+                    )
+                }
             </table>
 
             <div>
@@ -1959,11 +2333,44 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan }: Pengkaji
                         type="submit"
                         variant="outline"
                         className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                        onClick={handleSave}
                     >
                         Simpan
                     </Button>
                 </div>
             </div>
+
+            {showSignaturePad && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-4 rounded-md shadow-md">
+                        <SignatureCanvas
+                            penColor="black"
+                            canvasProps={{
+                                width: 500,
+                                height: 200,
+                                className: "border border-gray-300 rounded-md",
+                            }}
+                            ref={(ref) => (window.sigCanvas = ref)}
+                        />
+                        <div className="flex justify-between mt-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => handleClearSignature(window.sigCanvas)}
+                                className="border border-gray-300 rounded-md p-2 bg-red-500 text-white hover:bg-red-600"
+                            >
+                                Clear
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => handleSaveSignature(window.sigCanvas)}
+                                className="border border-gray-300 rounded-md p-2 bg-green-500 text-white hover:bg-green-600"
+                            >
+                                Save
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

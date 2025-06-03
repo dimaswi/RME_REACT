@@ -9,10 +9,13 @@ use App\Models\Master\Ruangan;
 use App\Models\Pembayaran\GabungTagihan;
 use App\Models\RM\Alergi;
 use App\Models\RM\Anamnesis;
+use App\Models\RM\AnamnesisDiperoleh;
 use App\Models\RM\Diagnosa;
 use App\Models\RM\JadwalKontrol;
+use App\Models\RM\KeluhanUtama;
 use App\Models\RM\PemeriksaanFisik;
 use App\Models\RM\Prosedur;
+use App\Models\RM\RiwayatPenyakitKeluarga;
 use App\Models\RM\RPP;
 use App\Models\RM\TTV;
 use Illuminate\Database\Eloquent\Model;
@@ -46,7 +49,7 @@ class Kunjungan extends Model
 
     public function tandaVital()
     {
-        return $this->hasOne(TTV::class, 'KUNJUNGAN', 'NOMOR');
+        return $this->hasOne(TTV::class, 'KUNJUNGAN', 'NOMOR')->orderBy('TANGGAL', 'DESC');
     }
 
     public function pendaftaranPasien()
@@ -62,6 +65,16 @@ class Kunjungan extends Model
     public function anamnesisPasien()
     {
         return $this->hasOne(Anamnesis::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function keluhanUtama()
+    {
+        return $this->hasOne(KeluhanUtama::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function anamnesisPasienDiperoleh()
+    {
+        return $this->hasOne(AnamnesisDiperoleh::class, 'KUNJUNGAN', 'NOMOR');
     }
 
     public function pemeriksaanFisik()
@@ -107,5 +120,15 @@ class Kunjungan extends Model
     public function gabungTagihan()
     {
         return $this->hasOne(GabungTagihan::class, 'KE', 'NOPEN');
+    }
+
+    public function riwayatPenyakitKeluarga()
+    {
+        return $this->hasOne(RiwayatPenyakitKeluarga::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function rencanaTerapi()
+    {
+        return $this->hasOne(\App\Models\RM\RencanaTerapi::class, 'KUNJUNGAN', 'NOMOR');
     }
 }
