@@ -2,20 +2,252 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react"; // Tambahkan impor pustaka QR Code
 import SignatureCanvas from "react-signature-canvas"; // Tambahkan impor pustaka Signature Canvas
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
+import { set } from "date-fns";
 
 interface PengkajianAwalProps {
     imageBase64: any;
-    nomorKunjungan: string;
+    nomorKunjungan: any;
     dataResumeMedis: any; // Tambahkan tipe data yang sesuai jika perlu
 }
 
-export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResumeMedis }: PengkajianAwalProps) {
+export default function PengkajianAwal({ imageBase64, nomorKunjungan = null, dataResumeMedis }: PengkajianAwalProps) {
+
+    const { success, error } = usePage().props;
+
+    useEffect(() => {
+        if (success) toast.success(success);
+        if (error) toast.error(error);
+    }, [success, error]);
+
+    const [dataKlaim, setDataKlaim] = useState(usePage().props.pengajuanKlaim);
+    const [editMode, setEditMode] = useState(dataKlaim.edit);
+
+    // Ambil kunjungan_pasien dari penjamin, handle jika array/object/undefined
+    const filteredKunjungan = (() => {
+        if (editMode === 1 && dataKlaim.resume_medis_edit) {
+            return [dataKlaim.resume_medis_edit];
+        } else if (editMode === 0 && dataKlaim.penjamin) {
+            const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
+                ? dataKlaim.penjamin.kunjungan_pasien
+                : dataKlaim.penjamin.kunjungan_pasien
+                    ? [dataKlaim.penjamin.kunjungan_pasien]
+                    : [];
+            return kunjunganPasienArr.filter(
+                (k: any) =>
+                    k?.ruangan &&
+                    [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
+            );
+        }
+        return [];
+    })();
+
+    useEffect(() => {
+        // filteredKunjungan selalu hasil dari dataKlaim, tidak pernah berubah akibat setState di bawah
+        const k = (() => {
+            if (editMode === 1 && dataKlaim.resume_medis_edit) {
+                return dataKlaim.resume_medis_edit;
+            } else if (editMode === 0 && dataKlaim.penjamin) {
+                const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
+                    ? dataKlaim.penjamin.kunjungan_pasien
+                    : dataKlaim.penjamin.kunjungan_pasien
+                        ? [dataKlaim.penjamin.kunjungan_pasien]
+                        : [];
+                return kunjunganPasienArr.find(
+                    (k: any) =>
+                        k?.ruangan &&
+                        [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
+                );
+            }
+            return null;
+        })();
+
+        if (!k) return;
+
+        if (editMode === 1 && dataKlaim.resume_medis_edit) {
+            const d = filteredKunjungan[0];
+            console.log("Data :", d);
+            setNamaPasien(d?.nama_pasien ?? "");
+            setAlamat(d?.alamat ?? "");
+            setTanggalMasuk(d?.tanggal_masuk ?? "");
+            setRuangan(d?.pengkajian_awal_edit.ruangan ?? "");
+            setNomorRM(d?.NORM ?? "");
+            setTanggalLahir(d?.tanggal_lahir ?? "");
+            setJenisKelamin(d?.jenis_kelamin ?? "");
+            setAlamat(d.pengkajian_awal_edit?.alamat ?? "");
+
+            setAutoAnamnesis(d.pengkajian_awal_edit?.anamnesa_edit?.anamnesa_diperoleh === "Auto Anamnesis" ? true : false);
+            setAlloAnamnesis(d.pengkajian_awal_edit?.anamnesa_edit?.anamnesa_diperoleh !== "Auto Anamnesis" ? true : false);
+            setDari(d.pengkajian_awal_edit?.anamnesa_edit?.anamnesa_diperoleh_dari ?? "");
+            setKeluhanUtama(d.pengkajian_awal_edit?.anamnesa_edit?.keluhan_utama ?? "");
+            setRiwayatPenyakit(d.pengkajian_awal_edit?.anamnesa_edit?.riwayat_penyakit_sekarang ?? "");
+            setFaktorResiko(d.pengkajian_awal_edit?.anamnesa_edit?.riwayat_penyakit_dulu ?? "");
+            setRiwayatPengobatan(d.pengkajian_awal_edit?.anamnesa_edit?.riwayat_pengobatan ?? "");
+            setRiwayatPenyakitKeluarga(d.pengkajian_awal_edit?.anamnesa_edit?.riwayat_penyakit_keluarga ?? "");
+            setKeadaanUmum(d.pengkajian_awal_edit?.keadaan_umum_edit.keadaan_umum ?? "");
+            setTingkatKesadaran(d.pengkajian_awal_edit?.keadaan_umum_edit.tingkat_kesadaran ?? "");
+            setGCS(d.pengkajian_awal_edit?.keadaan_umum_edit.GCS ?? "");
+            setEye(d.pengkajian_awal_edit?.keadaan_umum_edit.eye ?? "");
+            setMotorik(d.pengkajian_awal_edit?.keadaan_umum_edit.motorik ?? "");
+            setVerbal(d.pengkajian_awal_edit?.keadaan_umum_edit.verbal ?? "");
+            setTekananDarah(d.pengkajian_awal_edit?.keadaan_umum_edit.tekanan_darah ?? "");
+            setFrekuensiNadi(d.pengkajian_awal_edit?.keadaan_umum_edit.frekuensi_nadi ?? "");
+            setFrekuensiNafas(d.pengkajian_awal_edit?.keadaan_umum_edit.frekuensi_nafas ?? "");
+            setSuhu(d.pengkajian_awal_edit?.keadaan_umum_edit.suhu ?? "");
+            setBeratBadan(d.pengkajian_awal_edit?.keadaan_umum_edit.berat_badan ?? "");
+            setSaturasiO2(d.pengkajian_awal_edit?.keadaan_umum_edit.saturasi_oksigen ?? "");
+
+            setMata(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.mata ?? "");
+            setIkterus(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.ikterus ?? "");
+            setPupil(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.pupil ?? "");
+            setDiameterMata(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.diameter_mata ?? "");
+            setUdemapalpebrae(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.udem_palpebrae ?? "");
+            setKelainanMata(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.kelainan_mata ?? "");
+            setTHT(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.tht ?? "");
+            setTongsil(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.tongsil ?? "");
+            setFaring(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.faring ?? "");
+            setLidah(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.lidah ?? "");
+            setBibir(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.bibir ?? "");
+            setLeher(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.leher ?? "");
+            setJVP(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.jvp ?? "");
+            setLimfe(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.limfe ?? "");
+            setKakuKuduk(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.kaku_kuduk ?? "");
+            setThoraks(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.thoraks ?? "");
+            setCor(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.cor ?? "");
+            setS1S2(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.s1s2 ?? "");
+            setMurMur(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.mur_mur ?? "");
+            setPulmo(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.pulmo ?? "");
+            setSuaraNafas(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.suara_nafas ?? "");
+            setRonchi(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.ronchi ?? "");
+            setWheezing(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.wheezing ?? "");
+            setAbdomen(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.abdomen ?? "");
+            setMeteorismus(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.meteorismus ?? "");
+            setPeristaltik(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.peristaltik ?? "");
+            setAsites(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.asites ?? "");
+            setNyeriTekan(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.nyeri_tekan ?? "");
+            setHepar(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.hepar ?? "");
+            setLien(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.lien ?? "");
+            setExtremitas(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.extremitas ?? "");
+            setUdem(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.udem ?? "");
+            setDefeksesi(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.defeksesi ?? "");
+            setUrin(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.urin ?? "");
+            setPemeriksaanLainLain(d.pengkajian_awal_edit?.pemeriksaan_fisik_edit?.lain_lain ?? "");
+
+            setRiwayatAlergi(d.pengkajian_awal_edit?.riwayat_alergi ?? "");
+            setStatusPsikologis(d.pengkajian_awal_edit?.psikologi_edit?.status_psikologi ?? "");
+            setStatusMental(d.pengkajian_awal_edit?.psikologi_edit?.status_mental ?? "");
+            setHubunganKeluarga(d.pengkajian_awal_edit?.psikologi_edit?.hubungan_keluarga ?? "");
+            setTempatTinggal(d.pengkajian_awal_edit?.psikologi_edit?.tempat_tinggal ?? "");
+            setAgama(d.pengkajian_awal_edit?.psikologi_edit?.agama ?? "");
+            setKebiasaanBeribadah(d.pengkajian_awal_edit?.psikologi_edit?.kebiasaan_beribadah ?? "");
+            setPekerjaan(d.pengkajian_awal_edit?.psikologi_edit?.pekerjaan ?? "");
+            setPenghasilan(d.pengkajian_awal_edit?.psikologi_edit?.penghasilan ?? "");
+
+            setNyeri(d.pengkajian_awal_edit?.nyeri_edit?.nyeri ?? "");
+            setOnsetNyeri(d.pengkajian_awal_edit?.nyeri_edit?.onset ?? "");
+            setPencetusNyeri(d.pengkajian_awal_edit?.nyeri_edit?.pencetus ?? "");
+            setLokasiNyeri(d.pengkajian_awal_edit?.nyeri_edit?.lokasi_nyeri ?? "");
+            setGambaranNyeri(d.pengkajian_awal_edit?.nyeri_edit?.gambaran_nyeri ?? "");
+            setDurasiNyeri(d.pengkajian_awal_edit?.nyeri_edit?.durasi ?? "");
+            setSkalaNyeri(d.pengkajian_awal_edit?.nyeri_edit?.skala ?? "");
+            setMetodeNyeri(d.pengkajian_awal_edit?.nyeri_edit?.metode ?? "");
+
+            setResikoJatuh(d.pengkajian_awal_edit?.resiko_jatuh ?? "");
+            setSkorResikoJatuh(d.pengkajian_awal_edit?.skor_resiko_jatuh ?? "");
+            setMetodeResikoJatuh(d.pengkajian_awal_edit?.metode_penilaian_resiko_jatuh ?? "");
+
+            setResikoDekubitas(d.pengkajian_awal_edit?.resiko_dekubitus ?? "");
+            setSkorResikoDekubitas(d.pengkajian_awal_edit?.skor_resiko_dekubitus ?? "");
+
+            setPenurunanBeratBadan(d.pengkajian_awal_edit?.penurunan_berat_badan ?? "");
+            setPenurunanAsupan(d.pengkajian_awal_edit?.nafsu_makan ?? "");
+            setDiagnosisKhusus(d.pengkajian_awal_edit?.diagnosa_khusus ?? "");
+
+            setEdukasiPasien(d.pengkajian_awal_edit?.edukasi_pasien ?? "");
+
+            setSkrinningDischargePlanning(d.pengkajian_awal_edit?.skrining_rencana_pulang ?? "");
+            setFaktorResikoDischargePlanning(d.pengkajian_awal_edit?.faktor_risiko_rencana_pulang ?? "");
+            setTindakLanjutDischargePlanning(d.pengkajian_awal_edit?.tindak_lanjut_rencana_pulang ?? "");
+
+            setRencanaKeperawatan(d.pengkajian_awal_edit?.rencana_keperawatan ?? "");
+            setDiagnosaKeperawatan(d.pengkajian_awal_edit?.diagnosa_medis ?? "");
+            setMasalahMedis(d.pengkajian_awal_edit?.masalah_medis ?? "");
+            setRencanaTerapi(d.pengkajian_awal_edit?.rencana_terapi ?? "");
+
+            setNamaDokter(d.pengkajian_awal_edit?.nama_dokter ?? "");
+            setTanggalTandaTangan(d?.tanggal_keluar ?? "");
+
+
+        }
+        // Jika dari kunjungan pasien
+        else if (editMode === 0 && dataKlaim.penjamin) {
+            const k = dataKlaim.penjamin.kunjungan_pasien?.[0]
+                ?.gabung_tagihan?.kunjungan_pasien
+                ?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2);
+
+            if (!k) return;
+            setNamaPasien(k.pendaftaran_pasien?.pasien.NAMA ?? "");
+            setAlamat(k.pendaftaran_pasien?.pasien.ALAMAT ?? "");
+            setTanggalMasuk(k?.MASUK ?? "");
+            setRuangan(k.ruangan.DESKRIPSI ?? "");
+            setNomorRM(k.pendaftaran_pasien?.pasien.NORM ?? "");
+            setTanggalLahir(k.pendaftaran_pasien?.pasien.TANGGAL_LAHIR ?? "");
+            setJenisKelamin(k.pendaftaran_pasien?.pasien.JENIS_KELAMIN == 1 ? "Laki-laki" : "Perempuan");
+
+            // Data Anamnesa
+            if (k.anamnesis_pasien_diperoleh?.AUTOANAMNESIS == 1) {
+                setAutoAnamnesis(true);
+                setAlloAnamnesis(false);
+            } else if (k.anamnesis_pasien_diperoleh?.ALLOANAMNESIS == 1) {
+                setAutoAnamnesis(false);
+                setAlloAnamnesis(true);
+            }
+            setDari(k.anamnesis_pasien_diperoleh?.DARI ?? "");
+            setKeluhanUtama(k.keluhan_utama?.DESKRIPSI ?? "");
+            setRiwayatPenyakit(k.anamnesis_pasien?.DESKRIPSI ?? "");
+            setFaktorResiko(k.rpp?.DESKRIPSI ?? "");
+
+            const riwayatOrderObatPasien = k.order_resep?.map((item: any) => item.order_resep_detil)
+            const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
+                item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
+            ).join(", ") || "";
+
+            setRiwayatPengobatan(getNamaRiwayatObat);
+            setRiwayatPenyakitKeluarga(k.riwayat_penyakit_keluarga?.DESKRIPSI ?? "");
+
+            // Data Keadaan Umum
+            setKeadaanUmum(k.tanda_vital?.KEADAAN_UMUM ?? "");
+            setTingkatKesadaran(k.tanda_vital?.KESADARAN ?? "");
+            setGCS(k.tanda_vital?.GCS ?? "");
+            setEye(k.tanda_vital?.EYE ?? "");
+            setMotorik(k.tanda_vital?.MOTORIK ?? "");
+            setVerbal(k.tanda_vital?.VERBAL ?? "");
+            setTekananDarah(k.tanda_vital ? `${Math.ceil(k.tanda_vital.SISTOLIK)}/${Math.ceil(k.tanda_vital.DISTOLIK)}` : "");
+            setFrekuensiNadi(k.tanda_vital?.FREKUENSI_NADI ?? "");
+            setFrekuensiNafas(k.tanda_vital?.FREKUENSI_NAFAS ?? "");
+            setSuhu(k.tanda_vital?.SUHU ?? "");
+            setBeratBadan(k.tanda_vital?.BERAT_BADAN ?? "");
+            setSaturasiO2(k.tanda_vital?.SATURASI_O2 ?? "");
+
+            const riwayatAlergiPasien = k.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
+            setRiwayatAlergi(riwayatAlergiPasien);
+            setMasalahMedis(k.anamnesis_pasien?.DESKRIPSI ?? "");
+
+            const diagnosaPasien = k.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
+            setDiagnosaKeperawatan(diagnosaPasien);
+
+            setRencanaTerapi(k.rencana_terapi?.DESKRIPSI ?? "");
+            setNamaDokter((k.dokter_d_p_j_p?.GELAR_DEPAN ? k.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + k.dokter_d_p_j_p?.NAMA + (k.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + k.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
+            setTanggalTandaTangan(formatTanggalIndo(k.MASUK) ?? "");
+
+        }
+
+    }, [editMode, dataKlaim]);
 
     // State untuk data administrasi pasien
     const [ruangan, setRuangan] = useState("");
@@ -148,8 +380,6 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResume
     const [namaDokter, setNamaDokter] = useState(""); // State untuk nama dokter
     const [tanggalTandaTangan, setTanggalTandaTangan] = useState(""); // State untuk tanggal tanda tangan
 
-    console.log("Data Resume Medis:", dataResumeMedis);
-
     const handleSave = async () => {
         try {
             // Kumpulkan semua data form
@@ -170,18 +400,18 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResume
                 anamnesis: {
                     auto_anamnesis: autoAnamnesis,
                     allo_anamnesis: alloAnamnesis,
-                    dari,
+                    dari: dari,
                     keluhan_utama: keluhanUtama,
-                    riwayat_penyakit: riwayatPenyakit,
-                    faktor_resiko: faktorResiko,
+                    riwayat_penyakit_sekarang: riwayatPenyakit,
+                    riwayat_penyakit_lalu: faktorResiko,
                     riwayat_pengobatan: riwayatPengobatan,
                     riwayat_penyakit_keluarga: riwayatPenyakitKeluarga,
                 },
 
                 // 3. Data keadaan umum dan tanda vital
-                keadaan_umum: keadaanUmum,
-                tingkat_kesadaran: tingkatKesadaran,
                 tanda_vital: {
+                    tingkat_kesadaran: tingkatKesadaran,
+                    keadaan_umum: keadaanUmum,
                     gcs,
                     eye,
                     motorik,
@@ -200,7 +430,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResume
                     ikterus,
                     pupil,
                     diameter_mata: diameterMata,
-                    udema_palpebrae: udemaPalpebrae,
+                    udem_palpebrae: udemaPalpebrae,
                     kelainan_mata: kelainanMata,
                     tht,
                     tongsil,
@@ -355,102 +585,100 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResume
                 ...dataResumeMedis
             };
 
-            console.log("Data Pengkajian Awal:", pengkajianData);
-            console.log("Data Resume Medis:", resumeMedis);
-
             // Kirim data ke server
-            const response = router.post(route("eklaim.editData.storeResumeMedis", {
-                resumeMedis: resumeMedis,
-                pengkajianAwal: pengkajianData,
-
-            }))
-
+            const response = await axios.post(route("eklaim.editData.storeResumeMedis"), { jenisSave: dataKlaim.edit, resumeMedis: resumeMedis, pengkajianAwal: pengkajianData });
             if (response.data.success) {
-                toast.success("Data pengkajian awal berhasil disimpan");
-            } else {
-                toast.error("Gagal menyimpan data: " + response.data.message);
+                toast.success(response.data.success);
+                window.location.reload(); // Reload halaman setelah sukses
             }
-        } catch (error) {
+            if (response.data.error) toast.error(response.data.error);
+        } catch (error: any) {
+            if (error.response && error.response.data && error.response.data.error) {
+                toast.error(error.response.data.error);
+            } else if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error(error.response.message || "Terjadi kesalahan saat menyimpan data.");
+            }
             console.error("Error saving data:", error);
-            toast.error("Terjadi kesalahan saat menyimpan data: " +
-                (error.response?.data?.message || error.message));
         }
     };
 
     // Tambahkan fungsi ini di dalam komponen PengkajianAwal
 
-    const handleLoadData = async () => {
-        try {
-            const response = await axios.get(
-                route("eklaim.loadDataPengkajianAwalRIRD", {
-                    nomorKunjungan: nomorKunjungan,
-                })
-            );
-            const data = response.data.kunjungan;
-            // console.log(data);
-            toast.success("Data pengkajian awal berhasil dimuat.");
+    // const handleLoadData = async () => {
+    //     console.log("Memuat data pengkajian awal untuk nomor kunjungan:", nomorKunjungan);
+    //     try {
+    //         const response = await axios.get(
+    //             route("eklaim.loadDataPengkajianAwalRIRD", {
+    //                 nomorKunjungan: nomorKunjungan,
+    //             })
+    //         );
+    //         const data = response.data.kunjungan;
+    //         console.log(data);
+    //         toast.success("Data pengkajian awal berhasil dimuat.");
 
-            // Data Administrasi Pasien
-            setNamaPasien(data.pendaftaran_pasien?.pasien.NAMA ?? "");
-            setAlamat(data.pendaftaran_pasien?.pasien.ALAMAT ?? "");
-            setTanggalMasuk(data?.MASUK ?? "");
-            setRuangan(data.ruangan.DESKRIPSI ?? "");
-            setNomorRM(data.pendaftaran_pasien?.pasien.NORM ?? "");
-            setTanggalLahir(data.pendaftaran_pasien?.pasien.TANGGAL_LAHIR ?? "");
-            setJenisKelamin(data.pendaftaran_pasien?.pasien.JENIS_KELAMIN == 1 ? "Laki-laki" : "Perempuan");
+    //         // Data Administrasi Pasien
+    //         setNamaPasien(data.pendaftaran_pasien?.pasien.NAMA ?? "");
+    //         setAlamat(data.pendaftaran_pasien?.pasien.ALAMAT ?? "");
+    //         setTanggalMasuk(data?.MASUK ?? "");
+    //         setRuangan(data.ruangan.DESKRIPSI ?? "");
+    //         setNomorRM(data.pendaftaran_pasien?.pasien.NORM ?? "");
+    //         setTanggalLahir(data.pendaftaran_pasien?.pasien.TANGGAL_LAHIR ?? "");
+    //         setJenisKelamin(data.pendaftaran_pasien?.pasien.JENIS_KELAMIN == 1 ? "Laki-laki" : "Perempuan");
 
-            // Data Anamnesa
-            if (data.anamnesis_pasien_diperoleh?.AUTOANAMNESIS == 1) {
-                setAutoAnamnesis(true);
-                setAlloAnamnesis(false);
-            } else if (data.anamnesis_pasien_diperoleh?.ALLOANAMNESIS == 1) {
-                setAutoAnamnesis(false);
-                setAlloAnamnesis(true);
-            }
-            setDari(data.anamnesis_pasien_diperoleh?.DARI ?? "");
-            setKeluhanUtama(data.keluhan_utama?.DESKRIPSI ?? "");
-            setRiwayatPenyakit(data.anamnesis_pasien?.DESKRIPSI ?? "");
-            setFaktorResiko(data.rpp.DESKRIPSI ?? "");
+    //         // Data Anamnesa
+    //         if (data.anamnesis_pasien_diperoleh?.AUTOANAMNESIS == 1) {
+    //             setAutoAnamnesis(true);
+    //             setAlloAnamnesis(false);
+    //         } else if (data.anamnesis_pasien_diperoleh?.ALLOANAMNESIS == 1) {
+    //             setAutoAnamnesis(false);
+    //             setAlloAnamnesis(true);
+    //         }
+    //         setDari(data.anamnesis_pasien_diperoleh?.DARI ?? "");
+    //         setKeluhanUtama(data.keluhan_utama?.DESKRIPSI ?? "");
+    //         setRiwayatPenyakit(data.anamnesis_pasien?.DESKRIPSI ?? "");
+    //         setFaktorResiko(data.rpp.DESKRIPSI ?? "");
 
-            const riwayatOrderObatPasien = data.order_resep?.map((item: any) => item.order_resep_detil)
-            const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
-                item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
-            ).join(", ") || "";
+    //         const riwayatOrderObatPasien = data.order_resep?.map((item: any) => item.order_resep_detil)
+    //         const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
+    //             item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
+    //         ).join(", ") || "";
 
-            setRiwayatPengobatan(getNamaRiwayatObat);
-            setRiwayatPenyakitKeluarga(data.riwayat_penyakit_keluarga?.DESKRIPSI ?? "");
+    //         setRiwayatPengobatan(getNamaRiwayatObat);
+    //         setRiwayatPenyakitKeluarga(data.riwayat_penyakit_keluarga?.DESKRIPSI ?? "");
 
-            // Data Keadaan Umum
-            setKeadaanUmum(data.tanda_vital?.KEADAAN_UMUM ?? "");
-            setTingkatKesadaran(data.tanda_vital?.KESADARAN ?? "");
-            setGCS(data.tanda_vital?.GCS ?? "");
-            setEye(data.tanda_vital?.EYE ?? "");
-            setMotorik(data.tanda_vital?.MOTORIK ?? "");
-            setVerbal(data.tanda_vital?.VERBAL ?? "");
-            setTekananDarah(data.tanda_vital ? `${Math.ceil(data.tanda_vital.SISTOLIK)}/${Math.ceil(data.tanda_vital.DISTOLIK)}` : "");
-            setFrekuensiNadi(data.tanda_vital?.FREKUENSI_NADI ?? "");
-            setFrekuensiNafas(data.tanda_vital?.FREKUENSI_NAFAS ?? "");
-            setSuhu(data.tanda_vital?.SUHU ?? "");
-            setBeratBadan(data.tanda_vital?.BERAT_BADAN ?? "");
-            setSaturasiO2(data.tanda_vital?.SATURASI_O2 ?? "");
+    //         // Data Keadaan Umum
+    //         setKeadaanUmum(data.tanda_vital?.KEADAAN_UMUM ?? "");
+    //         setTingkatKesadaran(data.tanda_vital?.KESADARAN ?? "");
+    //         setGCS(data.tanda_vital?.GCS ?? "");
+    //         setEye(data.tanda_vital?.EYE ?? "");
+    //         setMotorik(data.tanda_vital?.MOTORIK ?? "");
+    //         setVerbal(data.tanda_vital?.VERBAL ?? "");
+    //         setTekananDarah(data.tanda_vital ? `${Math.ceil(data.tanda_vital.SISTOLIK)}/${Math.ceil(data.tanda_vital.DISTOLIK)}` : "");
+    //         setFrekuensiNadi(data.tanda_vital?.FREKUENSI_NADI ?? "");
+    //         setFrekuensiNafas(data.tanda_vital?.FREKUENSI_NAFAS ?? "");
+    //         setSuhu(data.tanda_vital?.SUHU ?? "");
+    //         setBeratBadan(data.tanda_vital?.BERAT_BADAN ?? "");
+    //         setSaturasiO2(data.tanda_vital?.SATURASI_O2 ?? "");
 
-            const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
-            setRiwayatAlergi(riwayatAlergiPasien);
-            setMasalahMedis(data.anamnesis_pasien?.DESKRIPSI ?? "");
+    //         const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
+    //         setRiwayatAlergi(riwayatAlergiPasien);
+    //         setMasalahMedis(data.anamnesis_pasien?.DESKRIPSI ?? "");
 
-            const diagnosaPasien = data.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
-            setDiagnosaKeperawatan(diagnosaPasien);
+    //         const diagnosaPasien = data.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
+    //         setDiagnosaKeperawatan(diagnosaPasien);
 
-            setRencanaTerapi(data.rencana_terapi?.DESKRIPSI ?? "");
-            setNamaDokter((data.dokter_d_p_j_p?.GELAR_DEPAN ? data.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + data.dokter_d_p_j_p?.NAMA + (data.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + data.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
-            setTanggalTandaTangan(formatTanggalIndo(data.MASUK) ?? "");
+    //         setRencanaTerapi(data.rencana_terapi?.DESKRIPSI ?? "");
+    //         setNamaDokter((data.dokter_d_p_j_p?.GELAR_DEPAN ? data.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + data.dokter_d_p_j_p?.NAMA + (data.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + data.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
+    //         setTanggalTandaTangan(formatTanggalIndo(data.MASUK) ?? "");
 
-        } catch (error) {
-            console.error(error);
-            toast.error("Gagal memuat data pengkajian awal.");
-            // Bisa juga tampilkan notifikasi error di sini
-        }
-    }
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Gagal memuat data pengkajian awal.");
+    //         // Bisa juga tampilkan notifikasi error di sini
+    //     }
+    // }
 
     const [showSignaturePad, setShowSignaturePad] = useState(false); // State untuk menampilkan pad tanda tangan
     const [signatureData, setSignatureData] = useState<string | null>(null); // State untuk menyimpan tanda tangan
@@ -504,7 +732,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResume
                                 </p>
                             </div>
                         </td>
-                        <td>
+                        {/* <td>
                             <div className="flex justify-end h-full p-4">
                                 <Button
                                     variant={"outline"}
@@ -514,7 +742,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, dataResume
                                     Load
                                 </Button>
                             </div>
-                        </td>
+                        </td> */}
                     </tr>
                     <tr style={{ background: "black", color: "white", textAlign: "center" }}>
                         <td colSpan={8}>

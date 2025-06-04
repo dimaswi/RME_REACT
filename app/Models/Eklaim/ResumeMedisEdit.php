@@ -42,4 +42,24 @@ class ResumeMedisEdit extends Model
         'dokter',
         'tanda_tangan_pasien'
     ];
+
+    public function pengkajianAwalEdit()
+    {
+        return $this->hasOne(PengkajianAwalEdit::class, 'resume_medis', 'id');
+    }
+
+    public function intruksiTindakLanjutEdit()
+    {
+        return $this->hasOne(IntruksiTindakLanjutEdit::class, 'resume_medis', 'id');
+    }
+
+    public function terapiPulangEdit()
+    {
+        return $this->hasMany(TerapiPulangEdit::class, 'resume_medis', 'id');
+    }
+
+    public function konsultasiEdit()
+    {
+        return $this->hasMany(KonsultasiEdit::class, 'resume_medis', 'id');
+    }
 }

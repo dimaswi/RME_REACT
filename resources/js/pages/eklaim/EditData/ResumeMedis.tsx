@@ -3,36 +3,190 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import { set } from "date-fns";
-import { tr } from "date-fns/locale";
+import { id, tr } from "date-fns/locale";
 import { Home } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react"; // Tambahkan impor pustaka QR Code
 import SignatureCanvas from "react-signature-canvas"; // Tambahkan impor pustaka Signature Canvas
 import PengkajianAwal from "./PengkajianAwal";
+import axios from "axios";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 
 export default function EditResumeMedis() {
-    const dataKlaim = usePage().props.pengajuanKlaim;
     const imageBase64 = usePage().props.imageBase64;
 
+    const [dataKlaim, setDataKlaim] = useState(usePage().props.pengajuanKlaim);
+    const [editMode, setEditMode] = useState(dataKlaim.edit);
+
     // Ambil kunjungan_pasien dari penjamin, handle jika array/object/undefined
-    const kunjunganPasienArr = Array.isArray(dataKlaim?.penjamin?.kunjungan_pasien)
-        ? dataKlaim.penjamin.kunjungan_pasien
-        : dataKlaim?.penjamin?.kunjungan_pasien
-            ? [dataKlaim.penjamin.kunjungan_pasien]
-            : [];
+    const filteredKunjungan = (() => {
+        if (editMode === 1 && dataKlaim.resume_medis_edit) {
+            return [dataKlaim.resume_medis_edit];
+        } else if (editMode === 0 && dataKlaim.penjamin) {
+            const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
+                ? dataKlaim.penjamin.kunjungan_pasien
+                : dataKlaim.penjamin.kunjungan_pasien
+                    ? [dataKlaim.penjamin.kunjungan_pasien]
+                    : [];
+            return kunjunganPasienArr.filter(
+                (k: any) =>
+                    k?.ruangan &&
+                    [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
+            );
+        }
+        return [];
+    })();
 
-    // Filter berdasarkan JENIS_KUNJUNGAN = 1, 3, 17 dan handle jika ruangan kosong
-    const filteredKunjungan = kunjunganPasienArr.filter(
-        (k: any) =>
-            k?.ruangan &&
-            [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
-    );
+    useEffect(() => {
+        // filteredKunjungan selalu hasil dari dataKlaim, tidak pernah berubah akibat setState di bawah
+        const k = (() => {
+            if (editMode === 1 && dataKlaim.resume_medis_edit) {
+                return dataKlaim.resume_medis_edit;
+            } else if (editMode === 0 && dataKlaim.penjamin) {
+                const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
+                    ? dataKlaim.penjamin.kunjungan_pasien
+                    : dataKlaim.penjamin.kunjungan_pasien
+                        ? [dataKlaim.penjamin.kunjungan_pasien]
+                        : [];
+                return kunjunganPasienArr.find(
+                    (k: any) =>
+                        k?.ruangan &&
+                        [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
+                );
+            }
+            return null;
+        })();
 
-    console.log("Data Klaim:", filteredKunjungan);
+        if (!k) return;
+
+        if (editMode === 1 && dataKlaim.resume_medis_edit) {
+            const d = filteredKunjungan[0];
+            // console.log("Data Resume Medis Edit:", d);
+            setNamaPasien(d.nama_pasien ?? "");
+            setNomorKunjungan(d.pengkajian_awal_edit?.nomor_kunjungan ?? "");
+            setNoRM(d.NORM ?? "");
+            setTanggalLahir(d.tanggal_lahir ?? "");
+            setJenisKelamin(d.jenis_kelamin ?? "");
+            setRuangRawat(d.ruang_rawat ?? "");
+            setIndikasiRawatInap(d.indikasi_rawat_inap ?? "");
+            setPenjamin(d.penjamin ?? "");
+            setTanggalMasuk(d.tanggal_masuk ?? "");
+            setTanggalKeluar(d.tanggal_keluar ?? "");
+            setLamaDirawat(handleLamaDirawat(d.tanggal_masuk, d.tanggal_keluar));
+            setRiwayatPenyakitSekarang(d.riwayat_penyakit_sekarang ?? "");
+            setRiwayatPenyakitLalu(d.riwayat_penyakit_dulu ?? "");
+            setPemeriksaanFisik(d.pemeriksaan_fisik ?? "");
+            setPermintaanKonsul(
+                Array.isArray(d.konsultasi_edit)
+                    ? d.konsultasi_edit.map((item: any) => ({
+                        permintaan: item.pertanyaan || "",
+                        jawaban: item.jawaban || "",
+                    }))
+                    : []
+            );
+            setTerapiPulang(
+                Array.isArray(d.terapi_pulang_edit)
+                    ? d.terapi_pulang_edit.map((item: any) => ({
+                        namaObat: item.nama_obat || "",
+                        jumlah: item.jumlah || "",
+                        frekuensi: item.frekuensi || "",
+                        caraPemberian: item.cara_pemakaian || "",
+                    }))
+                    : []
+            );
+            setDiagnosaUtama(d.diagnosa_utama ?? "");
+            setIcd10(d.icd10_utama ?? "");
+            setTindakanProsedur(d.prosedur_utama ?? "");
+            setIcd9(d.icd9_utama ?? "");
+            setDiagnosaSekunder(d.diagnosa_sekunder ?? "");
+            setIcd10Sekunder(d.icd10_sekunder ?? "");
+            setTindakanProsedurSekunder(d.prosedur_sekunder ?? "");
+            setIcd9Sekunder(d.icd9_sekunder ?? "");
+            setRiwayatAlergi(d.riwayat_alergi ?? "");
+            setKeadaanPulang(d.keadaan_pulang ?? "");
+            setCaraPulang(d.cara_pulang ?? "");
+            setPoliTujuan(d.intruksi_tindak_lanjut_edit.poli_tujuan ?? "");
+            setTanggalKontrol(d.intruksi_tindak_lanjut_edit.tanggal ?? "");
+            setJamKontrol(d.intruksi_tindak_lanjut_edit.jam ?? "");
+            setNoSuratBPJS(d.intruksi_tindak_lanjut_edit.nomor_bpjs ?? "");
+            setNamaDokter(d.dokter ?? "");
+            setIdResumeMedis(d.id ?? null);
+        }
+        // Jika dari kunjungan pasien
+        else if (
+            editMode === 0 &&
+            dataKlaim.penjamin &&
+            (Array.isArray(dataKlaim.penjamin.kunjungan_pasien) || dataKlaim.penjamin.kunjungan_pasien)
+        ) {
+            const k = filteredKunjungan[0];
+            setIdResumeMedis(null);
+            setNamaPasien(k.pendaftaran_pasien?.pasien?.NAMA ?? "");
+            setNomorKunjungan(dataKlaim.penjamin.kunjungan_pasien?.[0]
+                ?.gabung_tagihan?.kunjungan_pasien
+                ?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2)
+                ?.NOMOR);
+            setNoRM(k.pendaftaran_pasien?.pasien?.NORM ?? "");
+            setTanggalLahir(k.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? "");
+            setJenisKelamin(k.pendaftaran_pasien?.pasien?.JENIS_KELAMIN ?? null);
+            setRuangRawat(k.ruangan?.DESKRIPSI ?? "");
+            setIndikasiRawatInap(k.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? "");
+            setPenjamin(k.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? "");
+            setTanggalMasuk(k.pendaftaran_pasien?.TANGGAL ?? "");
+            setTanggalKeluar(k.KELUAR ?? "");
+            setLamaDirawat(handleLamaDirawat(k.pendaftaran_pasien?.TANGGAL, k.KELUAR));
+            setRiwayatPenyakitSekarang(k.anamnesis_pasien?.DESKRIPSI ?? "");
+            setRiwayatPenyakitLalu(k.rpp?.DESKRIPSI ?? "");
+            setPemeriksaanFisik(k.pemeriksaan_fisik?.DESKRIPSI ?? "");
+            setDiagnosaUtama(k.diagnosa_pasien?.find((d: any) => d.UTAMA === 1)?.DIAGNOSA ?? "");
+            setIcd10(k.diagnosa_pasien?.find((d: any) => d.UTAMA === 1)?.KODE ?? "");
+            setTindakanProsedur(k.prosedur_pasien?.map((p: any) => p.TINDAKAN).join(", ") ?? "");
+            setIcd9(k.prosedur_pasien?.map((p: any) => p.KODE).join(", ") ?? "");
+            setDiagnosaSekunder(k.diagnosa_pasien?.filter((d: any) => d.UTAMA === 2).map((d: any) => d.DIAGNOSA).join(", ") ?? "");
+            setIcd10Sekunder(k.diagnosa_pasien?.filter((d: any) => d.UTAMA === 2).map((d: any) => d.KODE).join(", ") ?? "");
+            setTindakanProsedurSekunder(k.prosedur_pasien?.filter((p: any) => p.UTAMA === 2).map((p: any) => p.TINDAKAN).join(", ") ?? "");
+            setIcd9Sekunder(k.prosedur_pasien?.filter((p: any) => p.UTAMA === 2).map((p: any) => p.KODE).join(", ") ?? "");
+            setRiwayatAlergi(k.riwayat_alergi?.map((a: any) => a.DESKRIPSI).join(", ") ?? "");
+            setKeadaanPulang(k.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? "");
+            setCaraPulang(k.pasien_pulang?.cara_pulang?.DESKRIPSI ?? "");
+            setPoliTujuan(k.jadwal_kontrol?.ruangan.DESKRIPSI ?? "");
+            setTanggalKontrol(k.jadwal_kontrol?.TANGGAL ?? "");
+            setJamKontrol(k.jadwal_kontrol?.JAM ?? "");
+            setNoSuratBPJS(k.jadwal_kontrol?.NOMOR_REFERENSI ?? "");
+            setPermintaanKonsul(
+                Array.isArray(k.permintaan_konsul)
+                    ? k.permintaan_konsul.map((item: any) => ({
+                        permintaan: item.PERMINTAAN_TINDAKAN || "",
+                        jawaban: item.jawaban_konsul?.JAWABAN || "",
+                    }))
+                    : []
+            );
+            setTerapiPulang(
+                Array.isArray(k.order_resep)
+                    ? k.order_resep
+                        .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
+                        .flatMap((resep: any) =>
+                            Array.isArray(resep.order_resep_detil)
+                                ? resep.order_resep_detil.map((detil: any) => ({
+                                    namaObat: detil.nama_obat?.NAMA || "",
+                                    jumlah: detil.JUMLAH || "",
+                                    frekuensi: detil.frekuensi_obat?.FREKUENSI || "",
+                                    caraPemberian: detil.cara_pakai?.DESKRIPSI || "",
+                                }))
+                                : []
+                        )
+                    : []
+            );
+            setGelarDepanDokter(k.dokter_d_p_j_p?.GELAR_DEPAN + "." || "");
+            setGelarBelakangDokter(k.dokter_d_p_j_p?.GELAR_BELAKANG || "");
+            setNamaDokter(k.dokter_d_p_j_p?.NAMA || "");
+        }
+
+    }, [editMode, dataKlaim]);
 
     function formatTanggalIndo(tgl: string) {
         if (!tgl) return "-";
@@ -64,6 +218,14 @@ export default function EditResumeMedis() {
         }
     ]
 
+    const [idResumeMedis, setIdResumeMedis] = useState<number | null>(null);
+    const [namaPasien, setNamaPasien] = useState<string | null>(null);
+    const [noRM, setNoRM] = useState<string | null>(null);
+    const [tanggalLahir, setTanggalLahir] = useState<string | null>(null);
+    const [jenisKelamin, setJenisKelamin] = useState<number | null>(null);
+    const [ruangRawat, setRuangRawat] = useState<string | null>(null);
+    const [indikasiRawatInap, setIndikasiRawatInap] = useState<string | null>(null);
+    const [penjamin, setPenjamin] = useState<string | null>(null);
     const [tanggalMasuk, setTanggalMasuk] = useState<string | null>(null);
     const [tanggalKeluar, setTanggalKeluar] = useState<string | null>(null);
     const [lamaDirawat, setLamaDirawat] = useState<string | null>(null);
@@ -82,7 +244,71 @@ export default function EditResumeMedis() {
     const [riwayatAlergi, setRiwayatAlergi] = useState<string | null>(null);
     const [keadaanPulang, setKeadaanPulang] = useState<string | null>(null);
     const [caraPulang, setCaraPulang] = useState<string | null>(null);
-    const [obat, setObat] = useState<string | null>(null);
+    const [poliTujuan, setPoliTujuan] = useState<string | null>(null);
+    const [tanggalKontrol, setTanggalKontrol] = useState<string | null>(null);
+    const [jamKontrol, setJamKontrol] = useState<string | null>(null);
+    const [noSuratBPJS, setNoSuratBPJS] = useState<string | null>(null);
+    const [gelarDepanDokter, setGelarDepanDokter] = useState<string | null>(null);
+    const [gelarBelakangDokter, setGelarBelakangDokter] = useState<string | null>(null);
+    const [namaDokter, setNamaDokter] = useState<string | null>(null);
+    const [gabungTagihan, setGabungTagihan] = useState<[]>(false);
+    const [nomorKunjungan, setNomorKunjungan] = useState<string | null>(null);
+    const [terapiPulang, setTerapiPulang] = useState<{ namaObat: string; jumlah: string; frekuensi: string; caraPemberian: string }[]>([]);
+
+    const dataResumeMedis = {
+        id_resume_medis: idResumeMedis || null,
+        id_pengajuan_klaim: dataKlaim.id,
+        nama_pasien: namaPasien || null,
+        no_rm: noRM || null,
+        tanggal_lahir: tanggalLahir || null,
+        jenis_kelamin: jenisKelamin || null,
+        ruang_rawat: ruangRawat || null,
+        penjamin: penjamin || null,
+        indikasi_rawat_inap: indikasiRawatInap || null,
+        tanggal_masuk: tanggalMasuk || null,
+        tanggal_keluar: tanggalKeluar || null,
+        lama_dirawat: lamaDirawat || null,
+        riwayat_penyakit_sekarang: riwayatPenyakitSekarang || null,
+        riwayat_penyakit_lalu: riwayatPenyakitLalu || null,
+        pemeriksaan_fisik: pemeriksaanFisik || null,
+        diagnosa_utama: diagnosaUtama || null,
+        icd10_utama: icd10 || null,
+        diagnosa_sekunder: diagnosaSekunder || null,
+        icd10_sekunder: icd10Sekunder || null,
+        tindakan_prosedur: tindakanProsedur || null,
+        icd9_utama: icd9 || null,
+        tindakan_prosedur_sekunder: tindakanProsedurSekunder || null,
+        icd9_sekunder: icd9Sekunder || null,
+        riwayat_alergi: riwayatAlergi || null,
+        keadaan_pulang: keadaanPulang || null,
+        cara_pulang: caraPulang || null,
+        dokter: gelarDepanDokter + " " + namaDokter + " " + gelarBelakangDokter || null,
+        // tanda_tangan_pasien: signatureData || null,
+        permintaan_konsul: permintaanKonsul || null,
+        terapi_pulang: terapiPulang || null,
+        instruksi_tindak_lanjut: {
+            poliTujuan: poliTujuan || null,
+            tanggal: tanggalKontrol || null,
+            jam: jamKontrol || null,
+            nomor_bpjs: noSuratBPJS || null,
+        }
+    };
+
+    function handleLamaDirawat(tanggalMasuk: string | null | undefined, tanggalKeluar: string | null | undefined): string {
+        if (tanggalMasuk && tanggalKeluar) {
+            const masuk = new Date(tanggalMasuk);
+            const keluar = new Date(tanggalKeluar);
+            masuk.setHours(0, 0, 0, 0);
+            keluar.setHours(0, 0, 0, 0);
+            if (masuk > keluar) {
+                toast.error("Tanggal masuk tidak boleh lebih besar dari tanggal keluar.");
+                return "";
+            }
+            const diffDays = (keluar.getTime() - masuk.getTime()) / (1000 * 60 * 60 * 24) + 1;
+            return `${diffDays} hari`;
+        }
+        return "";
+    }
 
     const handleAddKonsul = () => {
         setPermintaanKonsul([...permintaanKonsul, { permintaan: "", jawaban: "" }]);
@@ -102,8 +328,6 @@ export default function EditResumeMedis() {
     const handleLoadKonsul = () => {
         // Iterasi setiap elemen dalam filteredKunjungan untuk mengakses permintaan_konsul
         const konsulData = filteredKunjungan.flatMap((k: any) => k.permintaan_konsul || []);
-
-        console.log("Konsul Data:", konsulData);
 
         // Validasi jika konsulData kosong
         if (!konsulData || konsulData.length === 0) {
@@ -132,10 +356,6 @@ export default function EditResumeMedis() {
         return html.replace(/<\/?[^>]+(>|$)/g, ""); // Hapus semua tag HTML
     }
 
-    const [terapiPulang, setTerapiPulang] = useState([
-        { namaObat: "", jumlah: "", frekuensi: "", caraPemberian: "" }, // Default satu array kosong
-    ]);
-
     const handleAddTerapi = () => {
         setTerapiPulang([
             ...terapiPulang,
@@ -158,34 +378,6 @@ export default function EditResumeMedis() {
         setTerapiPulang(updatedTerapi);
     };
 
-    // const handleLoadObat = (orderResep: any) => {
-    //     if (!orderResep || orderResep.length === 0) {
-    //         toast.error("Data order resep tidak tersedia.");
-    //         return;
-    //     }
-
-    //     // Ambil data obat dari order_resep_detil
-    //     const obatList = orderResep
-    //         .filter((resep: any) => resep.RESEP_PASIEN_PULANG == 1)
-    //         .flatMap((resep: any) =>
-    //             resep.order_resep_detil?.map((detil: any) => ({
-    //                 namaObat: detil.nama_obat?.NAMA || "Tidak ada nama obat",
-    //                 jumlah: detil.JUMLAH || "Tidak ada jumlah",
-    //                 frekuensi: detil.frekuensi_obat.FREKUENSI || "Tidak ada frekuensi",
-    //                 caraPemberian: detil.cara_pakai.DESKRIPSI || "Tidak ada cara pemberian",
-    //             })) || []
-    //         );
-
-    //     if (obatList.length === 0) {
-    //         toast.error("Detail resep tidak tersedia.");
-    //         return;
-    //     }
-
-    //     setTerapiPulang(obatList);
-    //     setObat(obatList); // Simpan data obat ke state
-    //     toast.success("Data obat berhasil dimuat.");
-    // };
-
     const [showSignaturePad, setShowSignaturePad] = useState(false); // State untuk menampilkan pad tanda tangan
     const [signatureData, setSignatureData] = useState<string | null>(null); // State untuk menyimpan tanda tangan
 
@@ -202,190 +394,144 @@ export default function EditResumeMedis() {
     };
 
     const handleLoadAll = () => {
-        // Load Tanggal Masuk
-        if (filteredKunjungan[0]?.pendaftaran_pasien?.TANGGAL) {
-            setTanggalMasuk(filteredKunjungan[0].pendaftaran_pasien.TANGGAL);
-        } else {
-            toast.error("Tanggal masuk tidak tersedia.");
+        // Ambil data asli dari penjamin.kunjungan_pasien
+        let kunjunganPasienArr = [];
+        if (Array.isArray(dataKlaim.penjamin?.kunjungan_pasien)) {
+            kunjunganPasienArr = dataKlaim.penjamin.kunjungan_pasien;
+        } else if (dataKlaim.penjamin?.kunjungan_pasien) {
+            kunjunganPasienArr = [dataKlaim.penjamin.kunjungan_pasien];
         }
 
-        // Load Tanggal Keluar
-        if (filteredKunjungan[0]?.KELUAR) {
-            setTanggalKeluar(filteredKunjungan[0].KELUAR);
-        } else {
-            toast.error("Tanggal keluar tidak tersedia.");
+        console.log("Kunjungan Pasien Array:", dataKlaim);
+
+        // Cari kunjungan dengan JENIS_KUNJUNGAN 1, 3, atau 17
+        const k = kunjunganPasienArr.find(
+            (item: any) =>
+                item?.ruangan &&
+                [1, 3, 17].includes(Number(item.ruangan.JENIS_KUNJUNGAN))
+        );
+
+        if (!k) {
+            toast.error("Data kunjungan tidak ditemukan.");
+            return;
         }
 
-        // Hitung Lama Dirawat
-        if (filteredKunjungan[0]?.pendaftaran_pasien?.TANGGAL && filteredKunjungan[0]?.KELUAR) {
-            const masuk = new Date(filteredKunjungan[0].pendaftaran_pasien.TANGGAL);
-            const keluar = new Date(filteredKunjungan[0].KELUAR);
-            masuk.setHours(0, 0, 0, 0);
-            keluar.setHours(0, 0, 0, 0);
+        setNamaPasien(k.pendaftaran_pasien?.pasien?.NAMA ?? "");
+        setNoRM(k.pendaftaran_pasien?.pasien?.NORM ?? "");
+        setTanggalLahir(k.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? "");
+        setJenisKelamin(k.pendaftaran_pasien?.pasien?.JENIS_KELAMIN ?? null);
+        setRuangRawat(k.ruangan?.DESKRIPSI ?? "");
+        setIndikasiRawatInap(k.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? "");
+        setPenjamin(k.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? "");
+        setTanggalMasuk(k.pendaftaran_pasien?.TANGGAL ?? "");
+        setTanggalKeluar(k.KELUAR ?? "");
+        setLamaDirawat(handleLamaDirawat(k.pendaftaran_pasien?.TANGGAL, k.KELUAR));
+        setRiwayatPenyakitSekarang(k.anamnesis_pasien?.DESKRIPSI ?? "");
+        setRiwayatPenyakitLalu(k.rpp?.DESKRIPSI ?? "");
+        setPemeriksaanFisik(k.pemeriksaan_fisik?.DESKRIPSI ?? "");
+        setDiagnosaUtama(
+            Array.isArray(k.diagnosa_pasien)
+                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 1).map((d: any) => d.DIAGNOSA).join(", ")
+                : ""
+        );
+        setIcd10(
+            Array.isArray(k.diagnosa_pasien)
+                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 1).map((d: any) => d.KODE).join(", ")
+                : ""
+        );
+        setDiagnosaSekunder(
+            Array.isArray(k.diagnosa_pasien)
+                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 2).map((d: any) => d.DIAGNOSA).join(", ")
+                : ""
+        );
+        setIcd10Sekunder(
+            Array.isArray(k.diagnosa_pasien)
+                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 2).map((d: any) => d.KODE).join(", ")
+                : ""
+        );
+        setTindakanProsedur(
+            Array.isArray(k.prosedur_pasien)
+                ? k.prosedur_pasien.map((p: any) => p.TINDAKAN).join(", ")
+                : ""
+        );
+        setIcd9(
+            Array.isArray(k.prosedur_pasien)
+                ? k.prosedur_pasien.map((p: any) => p.KODE).join(", ")
+                : ""
+        );
+        setTindakanProsedurSekunder(
+            Array.isArray(k.prosedur_pasien)
+                ? k.prosedur_pasien.filter((p: any) => p.UTAMA === 2).map((p: any) => p.TINDAKAN).join(", ")
+                : ""
+        );
+        setIcd9Sekunder(
+            Array.isArray(k.prosedur_pasien)
+                ? k.prosedur_pasien.filter((p: any) => p.UTAMA === 2).map((p: any) => p.KODE).join(", ")
+                : ""
+        );
+        setRiwayatAlergi(
+            Array.isArray(k.riwayat_alergi)
+                ? k.riwayat_alergi.map((a: any) => a.DESKRIPSI).join(", ")
+                : ""
+        );
+        setKeadaanPulang(k.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? "");
+        setCaraPulang(k.pasien_pulang?.cara_pulang?.DESKRIPSI ?? "");
+        setPoliTujuan(k.jadwal_kontrol?.ruangan?.DESKRIPSI ?? "");
+        setTanggalKontrol(k.jadwal_kontrol?.TANGGAL ?? "");
+        setJamKontrol(k.jadwal_kontrol?.JAM ?? "");
+        setNoSuratBPJS(k.jadwal_kontrol?.NOMOR_REFERENSI ?? "");
+        setPermintaanKonsul(
+            Array.isArray(k.permintaan_konsul)
+                ? k.permintaan_konsul.map((item: any) => ({
+                    permintaan: item.PERMINTAAN_TINDAKAN || "",
+                    jawaban: item.jawaban_konsul?.JAWABAN || "",
+                }))
+                : []
+        );
+        setTerapiPulang(
+            Array.isArray(k.order_resep)
+                ? k.order_resep
+                    .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
+                    .flatMap((resep: any) =>
+                        Array.isArray(resep.order_resep_detil)
+                            ? resep.order_resep_detil.map((detil: any) => ({
+                                namaObat: detil.nama_obat?.NAMA || "",
+                                jumlah: detil.JUMLAH || "",
+                                frekuensi: detil.frekuensi_obat?.FREKUENSI || "",
+                                caraPemberian: detil.cara_pakai?.DESKRIPSI || "",
+                            }))
+                            : []
+                    )
+                : []
+        );
+        setGelarDepanDokter(k.dokter_d_p_j_p?.GELAR_DEPAN + "." || "");
+        setGelarBelakangDokter(k.dokter_d_p_j_p?.GELAR_BELAKANG || "");
+        setNamaDokter(k.dokter_d_p_j_p?.NAMA || "");
 
-            if (masuk > keluar) {
-                toast.error("Tanggal masuk tidak boleh lebih besar dari tanggal keluar.");
-            } else {
-                const diffDays = (keluar.getTime() - masuk.getTime()) / (1000 * 60 * 60 * 24) + 1;
-                setLamaDirawat(`${diffDays} hari`);
-            }
-        }
-
-        // Load Riwayat Penyakit Sekarang
-        if (filteredKunjungan[0]?.anamnesis_pasien?.DESKRIPSI) {
-            setRiwayatPenyakitSekarang(filteredKunjungan[0].anamnesis_pasien.DESKRIPSI);
-        } else {
-            toast.error("Riwayat penyakit sekarang tidak tersedia.");
-        }
-
-        // Load Riwayat Penyakit Lalu
-        if (filteredKunjungan[0]?.rpp?.DESKRIPSI) {
-            setRiwayatPenyakitLalu(filteredKunjungan[0].rpp.DESKRIPSI);
-        } else {
-            toast.error("Riwayat penyakit lalu tidak tersedia.");
-        }
-
-        // Load Pemeriksaan Fisik
-        if (filteredKunjungan[0]?.pemeriksaan_fisik?.DESKRIPSI) {
-            setPemeriksaanFisik(filteredKunjungan[0].pemeriksaan_fisik.DESKRIPSI);
-        } else {
-            toast.error("Pemeriksaan fisik tidak tersedia.");
-        }
-
-        // Load Diagnosa Utama
-        if (filteredKunjungan[0]?.diagnosa_pasien?.length > 0) {
-            const diagnosaList = filteredKunjungan[0].diagnosa_pasien
-                .filter((d: any) => d.UTAMA === 1)
-                .map((d: any) => d.DIAGNOSA)
-                .join(", ");
-            setDiagnosaUtama(diagnosaList);
-            setIcd10(
-                filteredKunjungan[0].diagnosa_pasien
-                    .filter((d: any) => d.UTAMA === 1)
-                    .map((d: any) => d.KODE)
-                    .join(", ")
-            );
-        } else {
-            toast.error("Diagnosa utama tidak tersedia.");
-        }
-
-        // Load Diagnosa Sekunder
-        const filteredDiagnosaSekunder = filteredKunjungan[0]?.diagnosa_pasien?.filter((d: any) => d.UTAMA === 2);
-        if (filteredDiagnosaSekunder?.length > 0) {
-            const diagnosaList = filteredDiagnosaSekunder.map((d: any) => d.DIAGNOSA).join(", ");
-            setDiagnosaSekunder(diagnosaList);
-            setIcd10Sekunder(filteredDiagnosaSekunder.map((d: any) => d.KODE).join(", "));
-        } else {
-            toast.error("Diagnosa sekunder tidak tersedia.");
-        }
-
-        // Load Prosedur Pasien
-        if (filteredKunjungan[0]?.prosedur_pasien?.length > 0) {
-            const prosedurList = filteredKunjungan[0].prosedur_pasien.map((d: any) => d.TINDAKAN).join(", ");
-            setTindakanProsedur(prosedurList);
-            setIcd9(filteredKunjungan[0].prosedur_pasien.map((d: any) => d.KODE).join(", "));
-        } else {
-            toast.error("Prosedur pasien tidak tersedia.");
-        }
-
-        // Load Riwayat Alergi
-        if (filteredKunjungan[0]?.riwayat_alergi?.length > 0) {
-            const alergiList = filteredKunjungan[0].riwayat_alergi.map((a: any) => a.ALASAN).join(", ");
-            setRiwayatAlergi(alergiList);
-        } else {
-            toast.error("Riwayat alergi tidak tersedia.");
-        }
-
-        // Load Keadaan Pulang
-        if (filteredKunjungan[0]?.pasien_pulang?.keadaan_pulang?.DESKRIPSI) {
-            setKeadaanPulang(filteredKunjungan[0].pasien_pulang.keadaan_pulang.DESKRIPSI);
-        } else {
-            toast.error("Keadaan pulang tidak tersedia.");
-        }
-
-        // Load Cara Pulang
-        if (filteredKunjungan[0]?.pasien_pulang?.cara_pulang?.DESKRIPSI) {
-            setCaraPulang(filteredKunjungan[0].pasien_pulang.cara_pulang.DESKRIPSI);
-        } else {
-            toast.error("Cara pulang tidak tersedia.");
-        }
-
-        // Load Terapi Pulang
-        if (filteredKunjungan[0]?.order_resep?.length > 0) {
-            const obatList = filteredKunjungan[0].order_resep
-                .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
-                .flatMap((resep: any) =>
-                    resep.order_resep_detil?.map((detil: any) => ({
-                        namaObat: detil.nama_obat?.NAMA || "Tidak ada nama obat",
-                        jumlah: detil.JUMLAH || "Tidak ada jumlah",
-                        frekuensi: detil.frekuensi_obat?.FREKUENSI || "Tidak ada frekuensi",
-                        caraPemberian: detil.cara_pakai?.DESKRIPSI || "Tidak ada cara pemberian",
-                    })) || []
-                );
-            setTerapiPulang(obatList);
-        } else {
-            toast.error("Terapi pulang tidak tersedia.");
-        }
-
-        toast.success("Semua data berhasil dimuat.");
+        toast.success("Data kunjungan pasien berhasil dimuat dari sumber asli.");
     };
 
-    const dataResumeMedis = {
-        // Data Administrasi
-        // Data klaim dan administrasi
-        id_pengajuan_klaim: dataKlaim?.id,
-        tanggal_masuk: tanggalMasuk,
-        tanggal_keluar: tanggalKeluar,
-        lama_dirawat: lamaDirawat,
 
-        // Data Anamnesa & Pemeriksaan Fisik
-        riwayat_penyakit_sekarang: riwayatPenyakitSekarang,
-        riwayat_penyakit_lalu: riwayatPenyakitLalu,
-        pemeriksaan_fisik: pemeriksaanFisik,
-
-        // Data Konsultasi
-        permintaan_konsul: permintaanKonsul,
-
-        // Data Diagnosa & Tindakan Utama
-        diagnosa_utama: diagnosaUtama,
-        icd10_utama: icd10,
-        tindakan_prosedur: tindakanProsedur,
-        icd9_utama: icd9,
-
-        // Data Diagnosa & Tindakan Sekunder
-        diagnosa_sekunder: diagnosaSekunder,
-        icd10_sekunder: icd10Sekunder,
-        tindakan_prosedur_sekunder: tindakanProsedurSekunder,
-        icd9_sekunder: icd9Sekunder,
-
-        // Data Alergi
-        riwayat_alergi: riwayatAlergi,
-
-        // Data Status Pulang
-        keadaan_pulang: keadaanPulang,
-        cara_pulang: caraPulang,
-
-        // Data Obat & Terapi
-        obat: obat, // Ini field obat yang mungkin tidak digunakan lagi
-        terapi_pulang: terapiPulang,
-
-        // Tanda Tangan
-        tanda_tangan: signatureData,
-
-        // Data pendukung lainnya
-        filtered_kunjungan: filteredKunjungan?.map(k => ({
-            nomor: k.NOMOR,
-            ruangan: k.ruangan?.DESKRIPSI,
-            tanggal_pendaftaran: k.pendaftaran_pasien?.TANGGAL,
-            tanggal_keluar: k.KELUAR,
-            dpjp: k.dokter_d_p_j_p?.NAMA,
-            penjamin: k.penjamin_pasien?.jenis_penjamin?.DESKRIPSI
-        })),
-
-        // Metadata
-        timestamp: new Date().toISOString(),
-        user_id: null // Sesuaikan dengan logic autentikasi aplikasi
-    }
+    const handleSave = async () => {
+        try {
+            const response = await axios.post(route("eklaim.editData.storeResumeMedis"), { jenisSave: dataKlaim.edit, resumeMedis: dataResumeMedis }, { headers: { 'Content-Type': 'application/json' } });
+            if (response.data.success) {
+                toast.success(response.data.success);
+                window.location.reload(); // Reload halaman setelah sukses
+            }
+            if (response.data.error) toast.error(response.data.error);
+        } catch (error: any) {
+            // Tangani error dari axios
+            if (error.response && error.response.data && error.response.data.error) {
+                toast.error(error.response.data.error);
+            } else if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Terjadi kesalahan saat menyimpan data.");
+            }
+            console.error("Error saving data:", error);
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -424,14 +570,29 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div className="flex justify-end h-full p-4">
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={handleLoadAll}
-                                                            className="h-8 w-24 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button>
+                                                    <div className="flex items-center gap-4 mb-4">
+                                                        <Label htmlFor="mode-switch" className=" text-base">
+                                                            Asli
+                                                        </Label>
+                                                        <Switch
+                                                            id="mode-switch"
+                                                            checked={editMode === 1}
+                                                            onCheckedChange={async (checked) => {
+                                                                try {
+                                                                    router.get(route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }), {}, {
+                                                                        preserveScroll: true,
+                                                                        preserveState: false,
+                                                                    });
+                                                                } catch (error) {
+                                                                    toast.error("Gagal switch mode data.");
+                                                                    console.error("Error switching mode:", error);
+                                                                }
+                                                            }}
+                                                            className="scale-150" // Membesarkan switch
+                                                        />
+                                                        <span className="ml-2 text-lg">
+                                                            Edit
+                                                        </span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -457,7 +618,7 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>Nama Pasien :</strong>
                                                     <br />
-                                                    {k?.pendaftaran_pasien?.pasien?.NAMA || "Tidak ada nama pasien"}
+                                                    {namaPasien || "Tidak ada nama"}
                                                 </td>
                                                 <td
                                                     colSpan={2}
@@ -471,7 +632,7 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>No. RM :</strong>
                                                     <br />
-                                                    {k?.pendaftaran_pasien?.pasien?.NORM || "Tidak ada No. RM"}
+                                                    {noRM || "Tidak ada No. RM"}
                                                 </td>
                                                 <td
                                                     colSpan={2}
@@ -485,8 +646,8 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>Tanggal Lahir :</strong>
                                                     <br />
-                                                    {k?.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR
-                                                        ? formatTanggalIndo(k.pendaftaran_pasien.pasien.TANGGAL_LAHIR)
+                                                    {tanggalLahir
+                                                        ? formatTanggalIndo(tanggalLahir)
                                                         : "Tidak ada tanggal lahir"}
                                                 </td>
                                                 <td
@@ -501,11 +662,11 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>Jenis Kelamin :</strong>
                                                     <br />
-                                                    {k?.pendaftaran_pasien?.pasien?.JENIS_KELAMIN === 1
+                                                    {jenisKelamin === 1
                                                         ? "Laki-laki"
-                                                        : k?.pendaftaran_pasien?.pasien?.JENIS_KELAMIN === 2
+                                                        : jenisKelamin === 2
                                                             ? "Perempuan"
-                                                            : "Tidak ada jenis kelamin"}
+                                                            : jenisKelamin}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -643,7 +804,7 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>Ruang Rawat :</strong>
                                                     <br />
-                                                    {k?.ruangan?.DESKRIPSI || "Tidak ada Ruang Rawat"}
+                                                    {ruangRawat || "Tidak ada Ruang Rawat"}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -659,7 +820,7 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>Penjamin :</strong>
                                                     <br />
-                                                    {k?.penjamin_pasien?.jenis_penjamin?.DESKRIPSI || "Tidak ada Penjamin"}
+                                                    {penjamin || "Tidak ada Penjamin"}
                                                 </td>
                                                 <td
                                                     colSpan={4}
@@ -673,7 +834,7 @@ export default function EditResumeMedis() {
                                                 >
                                                     <strong>Indikasi Rawat Inap :</strong>
                                                     <br />
-                                                    {k?.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP || "Tidak ada Indikasi Rawat Inap"}
+                                                    {indikasiRawatInap || "Tidak ada Indikasi Rawat Inap"}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -706,19 +867,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan riwayat penyakit sekarang"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.anamnesis_pasien?.DESKRIPSI) {
-                                                                    setRiwayatPenyakitSekarang(k.anamnesis_pasien.DESKRIPSI);
-                                                                } else {
-                                                                    toast.error("Riwayat penyakit sekarang tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                     <div className="py-4 px-2 flex flex-col space-y-2">
                                                         <strong>Riwayat Penyakit Lalu :</strong>
@@ -728,19 +876,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan riwayat penyakit lalu"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.rpp?.DESKRIPSI) {
-                                                                    setRiwayatPenyakitLalu(k.rpp.DESKRIPSI);
-                                                                } else {
-                                                                    toast.error("Riwayat penyakit sekarang tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -774,19 +909,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan pemeriksaan fisik"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.pemeriksaan_fisik?.DESKRIPSI) {
-                                                                    setPemeriksaanFisik(k.pemeriksaan_fisik.DESKRIPSI);
-                                                                } else {
-                                                                    toast.error("Pemeriksaan fisik sekarang tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -815,34 +937,37 @@ export default function EditResumeMedis() {
                                                 >
                                                     <div className="py-2">
                                                         {/* Render semua permintaan konsul */}
-                                                        {permintaanKonsul.map((konsul, index) => (
-                                                            <div key={index} className="px-2">
-                                                                <div className="flex items-center justify-between mb-2 gap-2">
-                                                                    <Input
-                                                                        type="text"
-                                                                        value={konsul.permintaan}
-                                                                        onChange={(e) => handleUpdateKonsul(index, "permintaan", e.target.value)}
-                                                                        placeholder="Masukkan permintaan konsul"
-                                                                        className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                                                                    />
-                                                                    <Input
-                                                                        type="text"
-                                                                        value={stripHtmlTags(konsul.jawaban)} // Bersihkan tag HTML sebelum ditampilkan
-                                                                        onChange={(e) => handleUpdateKonsul(index, "jawaban", e.target.value)}
-                                                                        placeholder="Masukkan jawaban konsul"
-                                                                        className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                                                                    />
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        onClick={() => handleRemoveKonsul(index)}
-                                                                        className="border border-gray-300 rounded-md p-2 bg-red-500 text-white hover:bg-red-600"
-                                                                    >
-                                                                        Hapus
-                                                                    </Button>
+                                                        {permintaanKonsul.length === 0 ? (
+                                                            <div className="text-gray-400 italic px-2 pb-2">Belum ada permintaan konsul.</div>
+                                                        ) : (
+                                                            permintaanKonsul.map((konsul, index) => (
+                                                                <div key={index} className="px-2">
+                                                                    <div className="flex items-center justify-between mb-2 gap-2">
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={konsul.permintaan}
+                                                                            onChange={(e) => handleUpdateKonsul(index, "permintaan", e.target.value)}
+                                                                            placeholder="Masukkan permintaan konsul"
+                                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                                        />
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={stripHtmlTags(konsul.jawaban)}
+                                                                            onChange={(e) => handleUpdateKonsul(index, "jawaban", e.target.value)}
+                                                                            placeholder="Masukkan jawaban konsul"
+                                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                                        />
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            onClick={() => handleRemoveKonsul(index)}
+                                                                            className="border border-gray-300 rounded-md p-2 bg-red-500 text-white hover:bg-red-600"
+                                                                        >
+                                                                            Hapus
+                                                                        </Button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        ))}
-
+                                                            ))
+                                                        )}
 
                                                         {/* Tombol Tambah Konsul */}
                                                         <div className="flex px-2 pb-2">
@@ -855,7 +980,7 @@ export default function EditResumeMedis() {
                                                             </Button>
                                                             <Button
                                                                 variant="outline"
-                                                                onClick={() => handleLoadKonsul()} // Bungkus dengan arrow function
+                                                                onClick={handleLoadKonsul}
                                                                 className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
                                                             >
                                                                 Load
@@ -933,22 +1058,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan diagnosa utama"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.diagnosa_pasien?.length > 0) {
-                                                                    const diagnosaList = k.diagnosa_pasien?.filter((d: any) => d.UTAMA == 1).map((d: any) => d.DIAGNOSA).join(", ");
-                                                                    setDiagnosaUtama(diagnosaList);
-                                                                    setIcd10(k.diagnosa_pasien?.filter((d: any) => d.UTAMA == 1).map((d: any) => d.KODE).join(", "));
-                                                                    toast.success(`Diagnosa utama berhasil dimuat: ${diagnosaList}`);
-                                                                } else {
-                                                                    toast.error("Diagnosa utama tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -989,22 +1098,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Prosedur Pasien"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.prosedur_pasien?.length > 0) {
-                                                                    const prosedurList = k.prosedur_pasien.map((d: any) => d.TINDAKAN).join(", ");
-                                                                    setTindakanProsedur(prosedurList);
-                                                                    setIcd9(k.prosedur_pasien.map((d: any) => d.KODE).join(", "));
-                                                                    toast.success(`Prosedur pasien berhasil dimuat: ${prosedurList}`);
-                                                                } else {
-                                                                    toast.error("Prosedur pasien tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -1098,23 +1191,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan diagnosa sekunder"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                const filteredDiagnosa = k.diagnosa_pasien?.filter((d: any) => d.UTAMA == 2);
-                                                                if (filteredDiagnosa?.length > 0) {
-                                                                    const diagnosaList = filteredDiagnosa.map((d: any) => d.DIAGNOSA).join(", ");
-                                                                    setDiagnosaSekunder(diagnosaList);
-                                                                    setIcd10Sekunder(filteredDiagnosa.map((d: any) => d.KODE).join(", "));
-                                                                    toast.success(`Diagnosa sekunder berhasil dimuat: ${diagnosaList}`);
-                                                                } else {
-                                                                    toast.error("Diagnosa sekunder tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -1155,22 +1231,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Prosedur Pasien"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.prosedur_pasien?.length > 0) {
-                                                                    const prosedurList = k.prosedur_pasien.map((d: any) => d.TINDAKAN).join(", ");
-                                                                    setTindakanProsedurSekunder(prosedurList);
-                                                                    setIcd9Sekunder(k.prosedur_pasien.map((d: any) => d.KODE).join(", "));
-                                                                    toast.success(`Prosedur pasien berhasil dimuat: ${prosedurList}`);
-                                                                } else {
-                                                                    toast.error("Prosedur pasien tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                                 <td
@@ -1225,21 +1285,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan riwayat alergi"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.riwayat_alergi?.length > 0) {
-                                                                    const alergiList = k.riwayat_alergi.map((a: any) => a.ALASAN).join(", ");
-                                                                    setRiwayatAlergi(alergiList);
-                                                                    toast.success(`Riwayat alergi berhasil dimuat: ${alergiList}`);
-                                                                } else {
-                                                                    toast.error("Riwayat alergi tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1274,21 +1319,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan keadaan pulang"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.pasien_pulang) {
-                                                                    const keadaanList = k.pasien_pulang.keadaan_pulang.DESKRIPSI;
-                                                                    setKeadaanPulang(keadaanList);
-                                                                    toast.success(`Keadaan pulang berhasil dimuat: ${keadaanList} `);
-                                                                } else {
-                                                                    toast.error("Keadaan pulang tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1323,21 +1353,6 @@ export default function EditResumeMedis() {
                                                             placeholder="Masukkan cara pulang"
                                                             className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                                                         />
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (k.pasien_pulang) {
-                                                                    const caraList = k.pasien_pulang.cara_pulang.DESKRIPSI;
-                                                                    setCaraPulang(caraList);
-                                                                    toast.success(`Cara pulang berhasil dimuat: ${caraList} `);
-                                                                } else {
-                                                                    toast.error("Cara pulang tidak tersedia untuk kunjungan ini.");
-                                                                }
-                                                            }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                        >
-                                                            Load
-                                                        </Button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1562,13 +1577,13 @@ export default function EditResumeMedis() {
                                                     }}
                                                 >
                                                     <div className="px-2 py-4 gap-2">
-                                                        <strong>Poli Tujuan :</strong> {formatTanggalIndo(k.jadwal_kontrol?.ruangan.DESKRIPSI) ?? "Tidak ada"}
+                                                        <strong>Poli Tujuan :</strong> {poliTujuan ?? "Tidak ada"}
                                                         <br />
-                                                        <strong>Tanggal :</strong> {formatTanggalIndo(k.jadwal_kontrol?.TANGGAL) ?? "Tidak ada"}
+                                                        <strong>Tanggal :</strong> {tanggalKontrol ?? "Tidak ada"}
                                                         <br />
-                                                        <strong>Jam :</strong> {k.jadwal_kontrol?.JAM ?? "Tidak ada"}
+                                                        <strong>Jam :</strong> {jamKontrol ?? "Tidak ada"}
                                                         <br />
-                                                        <strong>No Surat BPJS :</strong> {k.jadwal_kontrol?.NOMOR_REFERENSI ?? "Tidak ada"}
+                                                        <strong>No Surat BPJS :</strong> {noSuratBPJS ?? "Tidak ada"}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1596,29 +1611,27 @@ export default function EditResumeMedis() {
 
                                         </div>
                                         <div className="ml-100 flex-1">
-                                            <strong>Bojonegoro, </strong> {formatTanggalIndo(k.KELUAR)}
+                                            <strong>Bojonegoro, </strong> {formatTanggalIndo(tanggalKeluar)}
                                             <br />
                                             <strong>DPJP Pelayanan</strong>
                                             <div className="m-4">
                                                 <QRCodeSVG
-                                                    value={(k.dokter_d_p_j_p?.GELAR_DEPAN ? k.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + k.dokter_d_p_j_p?.NAMA + (k.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + k.dokter_d_p_j_p?.GELAR_BELAKANG : "")}
+                                                    value={(gelarDepanDokter ? gelarDepanDokter + "." : "") + namaDokter + (gelarBelakangDokter ? " " + gelarBelakangDokter : "")}
                                                     size={128}
                                                     bgColor={"#ffffff"}
                                                     fgColor={"#000000"}
                                                     level={"L"}
                                                 />
                                             </div>
-                                            <strong>{(k.dokter_d_p_j_p?.GELAR_DEPAN ? k.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + k.dokter_d_p_j_p?.NAMA + (k.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + k.dokter_d_p_j_p?.GELAR_BELAKANG : "")}</strong>
+                                            <strong>{(gelarDepanDokter ? gelarDepanDokter + "." : "") + namaDokter + (gelarBelakangDokter ? " " + gelarBelakangDokter : "")}</strong>
                                         </div>
                                     </div>
 
                                     {
-                                        k.gabung_tagihan != null ? (
+                                        gabungTagihan != null ? (
                                             <PengkajianAwal
                                                 imageBase64={imageBase64}
-                                                nomorKunjungan={k.gabung_tagihan?.kunjungan_pasien?.find?.(
-                                                    (kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2
-                                                )?.NOMOR || ""}
+                                                nomorKunjungan={nomorKunjungan}
                                                 dataResumeMedis={dataResumeMedis}
                                             />
                                         ) : (
@@ -1627,6 +1640,7 @@ export default function EditResumeMedis() {
                                                     <Button
                                                         type="submit"
                                                         variant="outline"
+                                                        onClick={handleSave}
                                                         className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
                                                     >
                                                         Simpan

@@ -29,7 +29,7 @@ class PemeriksaanFisikEdit extends Model
         'kaku_kuduk',
         'thoraks',
         'cor',
-        's1',
+        's1s2',
         'mur_mur',
         'pulmo',
         'suara_nafas',

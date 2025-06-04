@@ -8,7 +8,7 @@ class PsikologiEdit extends Model
 {
     protected $connection = 'eklaim';
 
-    protected $table = 'psikologi';
+    protected $table = 'psikologi_edit';
 
     protected $fillable = [
         'pengkajian_awal',

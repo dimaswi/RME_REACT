@@ -54,7 +54,7 @@ class Pendaftaran extends Model
 
     public function anamnesis()
     {
-        return $this->hasMany(Anamnesis::class, 'PENDAFTARAN', 'NOMOR')->orderBy('TANGGAL', 'DESC');
+        return $this->hasOne(Anamnesis::class, 'PENDAFTARAN', 'NOMOR')->orderBy('TANGGAL', 'DESC');
     }
 
     public function pemeriksaanFisik()

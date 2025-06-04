@@ -12,6 +12,7 @@ class PengkajianAwalEdit extends Model
 
     protected $fillable = [
         'resume_medis',
+        'nomor_kunjungan',
         'nama_pasien',
         'ruangan',
         'tanggal_masuk',
@@ -44,4 +45,29 @@ class PengkajianAwalEdit extends Model
         'dokter',
         'tanda_tangan_perawat'
     ];
+
+    public function pemeriksaanFisikEdit()
+    {
+        return $this->hasOne(PemeriksaanFisikEdit::class, 'pengkajian_awal', 'id');
+    }
+
+    public function anamnesaEdit()
+    {
+        return $this->hasOne(AnamnesaEdit::class, 'pengkajian_awal', 'id');
+    }
+
+    public function psikologiEdit()
+    {
+        return $this->hasOne(PsikologiEdit::class, 'pengkajian_awal', 'id');
+    }
+
+    public function nyeriEdit()
+    {
+        return $this->hasOne(NyeriEdit::class, 'pengkajian_awal', 'id');
+    }
+
+    public function keadaanUmumEdit()
+    {
+        return $this->hasOne(KeadaanUmumEdit::class, 'pengkajian_awal', 'id');
+    }
 }

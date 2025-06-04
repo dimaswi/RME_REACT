@@ -8,9 +8,10 @@ class IntruksiTindakLanjutEdit extends Model
 {
     protected $connection = 'eklaim';
 
-    protected $table = 'intruksi_tindak_lanjut_edits';
+    protected $table = 'intruksi_tindak_lanjut_edit';
 
     protected $fillable = [
+        'resume_medis',
         'poli_tujuan',
         'tanggal',
         'jam',

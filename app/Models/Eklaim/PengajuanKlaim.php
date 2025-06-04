@@ -23,10 +23,16 @@ class PengajuanKlaim extends Model
         'petugas',
         'request',
         'tanggal_pengajuan',
+        'edit',
     ];
 
     public function penjamin()
     {
         return $this->hasOne(Penjamin::class, 'NOMOR', 'nomor_SEP');
+    }
+
+    public function resumeMedisEdit()
+    {
+        return $this->hasOne(ResumeMedisEdit::class, 'pengajuan_klaim', 'id');
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Models\Eklaim\AnamnesaEdit;
+use App\Models\Eklaim\IntruksiTindakLanjutEdit;
 use App\Models\Eklaim\KeadaanUmumEdit;
 use App\Models\Eklaim\KonsultasiEdit;
 use App\Models\Eklaim\NyeriEdit;
@@ -22,29 +24,6 @@ class EditDataController extends Controller
 {
     public function EditResumeMedis(PengajuanKlaim $pengajuanKlaim)
     {
-        $pengajuanKlaim->load([
-            'penjamin.kunjunganPasien.ruangan',
-            'penjamin.kunjunganPasien.penjaminPasien.jenisPenjamin',
-            'penjamin.kunjunganPasien.pendaftaranPasien.pasien',
-            'penjamin.kunjunganPasien.pendaftaranPasien.resumeMedis',
-            'penjamin.kunjunganPasien.anamnesisPasien',
-            'penjamin.kunjunganPasien.rpp',
-            'penjamin.kunjunganPasien.diagnosaPasien',
-            'penjamin.kunjunganPasien.prosedurPasien',
-            'penjamin.kunjunganPasien.pemeriksaanFisik',
-            'penjamin.kunjunganPasien.permintaanKonsul',
-            'penjamin.kunjunganPasien.permintaanKonsul.jawabanKonsul',
-            'penjamin.kunjunganPasien.riwayatAlergi',
-            'penjamin.kunjunganPasien.pasienPulang.caraPulang',
-            'penjamin.kunjunganPasien.pasienPulang.keadaanPulang',
-            'penjamin.kunjunganPasien.orderResep.orderResepDetil.namaObat',
-            'penjamin.kunjunganPasien.orderResep.orderResepDetil.caraPakai',
-            'penjamin.kunjunganPasien.orderResep.orderResepDetil.frekuensiObat',
-            'penjamin.kunjunganPasien.jadwalKontrol.ruangan',
-            'penjamin.kunjunganPasien.dokterDPJP',
-            'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.ruangan',
-        ]);
-
         //Kop
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
@@ -53,217 +32,493 @@ class EditDataController extends Controller
         $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
         $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
 
-        // Handle jika penjamin atau kunjunganPasien kosong/null
-        if (!$pengajuanKlaim->penjamin || !$pengajuanKlaim->penjamin->kunjunganPasien) {
-            return Inertia::render('eklaim/EditData/ResumeMedis', [
-                'pengajuanKlaim' => $pengajuanKlaim,
-                'imageBase64' => $imageBase64
-            ])->with('error', 'Tidak ada data resume medis untuk diedit');
+        if ($pengajuanKlaim->edit == 1) {
+            $pengajuanKlaim->load([
+                'resumeMedisEdit.pengkajianAwalEdit.pemeriksaanFisikEdit',
+                'resumeMedisEdit.pengkajianAwalEdit.anamnesaEdit',
+                'resumeMedisEdit.pengkajianAwalEdit.psikologiEdit',
+                'resumeMedisEdit.pengkajianAwalEdit.nyeriEdit',
+                'resumeMedisEdit.pengkajianAwalEdit.keadaanUmumEdit',
+                'resumeMedisEdit.intruksiTindakLanjutEdit',
+                'resumeMedisEdit.terapiPulangEdit',
+                'resumeMedisEdit.konsultasiEdit',
+            ]);
         }
 
-        if (
-            $pengajuanKlaim->penjamin->kunjunganPasien->count() < 1
-        ) {
-            return Inertia::render('eklaim/EditData/ResumeMedis', [
-                'pengajuanKlaim' => $pengajuanKlaim,
-                'imageBase64' => $imageBase64
-            ])->with('error', 'Tidak ada data resume medis untuk diedit');
+        if ($pengajuanKlaim->edit == 0) {
+            $pengajuanKlaim->load([
+                'penjamin.kunjunganPasien.ruangan',
+                'penjamin.kunjunganPasien.penjaminPasien.jenisPenjamin',
+                'penjamin.kunjunganPasien.pendaftaranPasien.pasien',
+                'penjamin.kunjunganPasien.pendaftaranPasien.resumeMedis',
+                'penjamin.kunjunganPasien.anamnesisPasien',
+                'penjamin.kunjunganPasien.rpp',
+                'penjamin.kunjunganPasien.diagnosaPasien',
+                'penjamin.kunjunganPasien.prosedurPasien',
+                'penjamin.kunjunganPasien.pemeriksaanFisik',
+                'penjamin.kunjunganPasien.permintaanKonsul',
+                'penjamin.kunjunganPasien.permintaanKonsul.jawabanKonsul',
+                'penjamin.kunjunganPasien.riwayatAlergi',
+                'penjamin.kunjunganPasien.pasienPulang.caraPulang',
+                'penjamin.kunjunganPasien.pasienPulang.keadaanPulang',
+                'penjamin.kunjunganPasien.orderResep.orderResepDetil.namaObat',
+                'penjamin.kunjunganPasien.orderResep.orderResepDetil.caraPakai',
+                'penjamin.kunjunganPasien.orderResep.orderResepDetil.frekuensiObat',
+                'penjamin.kunjunganPasien.jadwalKontrol.ruangan',
+                'penjamin.kunjunganPasien.dokterDPJP',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.ruangan',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.pendaftaranPasien.pasien',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.anamnesisPasien',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.anamnesisPasienDiperoleh',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.keluhanUtama',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.rpp',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.orderResep.orderResepDetil.namaObat',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.riwayatPenyakitKeluarga',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.tandaVital',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.riwayatAlergi',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.rencanaTerapi',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.diagnosaPasien.namaDiagnosa',
+                'penjamin.kunjunganPasien.gabungTagihan.kunjunganPasien.dokterDPJP',
+
+            ]);
+
+            // Handle jika penjamin atau kunjunganPasien kosong/null
+            if (!$pengajuanKlaim->penjamin || !$pengajuanKlaim->penjamin->kunjunganPasien) {
+                return Inertia::render('eklaim/EditData/ResumeMedis', [
+                    'pengajuanKlaim' => $pengajuanKlaim,
+                    'imageBase64' => $imageBase64
+                ])->with('error', 'Tidak ada data resume medis untuk diedit');
+            }
+
+            if (
+                $pengajuanKlaim->penjamin->kunjunganPasien->count() < 1
+            ) {
+                return Inertia::render('eklaim/EditData/ResumeMedis', [
+                    'pengajuanKlaim' => $pengajuanKlaim,
+                    'imageBase64' => $imageBase64
+                ]);
+            }
         }
 
+        // dd($pengajuanKlaim);
         return Inertia::render('eklaim/EditData/ResumeMedis', [
             'pengajuanKlaim' => $pengajuanKlaim,
             'imageBase64' => $imageBase64
-        ])->with('success', 'Berhasil mengambil data resume medis');
+        ]);
     }
 
     public function StoreEditResumeMedis(Request $request)
     {
-        dd($request->all());
-        try {
-            DB::connection('eklaim')->beginTransaction();
-
-            $resumeMedisEdit = ResumeMedisEdit::create([
-                'pengajuan_klaim' => $request->input('resumeMedis')['id_pengajuan_klaim'],
-                'nama_pasien' => $request->input('resumeMedis')['nama_pasien'],
-                'NORM' => $request->input('resumeMedis')['NORM'],
-                'tanggal_lahir' => $request->input('resumeMedis')['tanggal_lahir'],
-                'jenis_kelamin' => $request->input('resumeMedis')['jenis_kelamin'],
-                'ruang_rawat' => $request->input('resumeMedis')['ruang_rawat'],
-                'penjamin' => $request->input('resumeMedis')['penjamin'],
-                'indikasi_rawat_inap' => $request->input('resumeMedis')['indikasi_rawat_inap'],
-                'tanggal_masuk' => $request->input('resumeMedis')['tanggal_masuk'],
-                'tanggal_keluar' => $request->input('resumeMedis')['tanggal_keluar'],
-                'lama_dirawat' => $request->input('resumeMedis')['lama_dirawat'],
-                'riwayat_penyakit_sekarang' => $request->input('resumeMedis')['riwayat_penyakit_sekarang'],
-                'riwayat_penyakit_dulu' => $request->input('resumeMedis')['riwayat_penyakit_lalu'],
-                'pemeriksaan_fisik' => $request->input('resumeMedis')['pemeriksaan_fisik'],
-                'diagnosa_utama' => $request->input('resumeMedis')['diagnosa_utama'],
-                'icd10_utama' => $request->input('resumeMedis')['icd10_utama'],
-                'diagnosa_sekunder' => $request->input('resumeMedis')['diagnosa_sekunder'],
-                'icd10_sekunder' => $request->input('resumeMedis')['icd10_sekunder'],
-                'prosedur_utama' => $request->input('resumeMedis')['tindakan_prosedur'],
-                'icd9_utama' => $request->input('resumeMedis')['icd9_utama'],
-                'prosedur_sekunder' => $request->input('resumeMedis')['tindakan_sekunder'],
-                'icd9_sekunder' => $request->input('resumeMedis')['icd9_sekunder'],
-                'riwayat_alergi' => $request->input('resumeMedis')['riwayat_alergi'],
-                'keadaan_pulang' => $request->input('resumeMedis')['keadaan_pulang'],
-                'cara_pulang' => $request->input('resumeMedis')['cara_pulang'],
-                'intruksi_tindak_lanjut' => $request->input('resumeMedis')['intruksi_tindak_lanjut'],
-                'dokter' => $request->input('resumeMedis')['dokter'],
-                'tanda_tangan_pasien' => $request->input('resumeMedis')['tanda_tangan_pasien']
-            ]);
-
-            if ($request->has('permintaan_konsul')) {
-                foreach ($request->input('resumeMedis')['permintaan_konsul'] as $konsul) {
-                    KonsultasiEdit::create([
-                        'resume_medis' => $resumeMedisEdit->id,
-                        'pertanyaan' => $konsul['perimintaan'],
-                        'jawaban' => $konsul['jawaban']
-                    ]);
-                }
-            }
-
-            if ($request->has('terapi_pulang')) {
-                foreach ($request->input('resumeMedis')['terapi_pulang'] as $terapi) {
-                    TerapiPulangEdit::create([
-                        'resume_medis' => $resumeMedisEdit->id,
-                        'nama_obat' => $terapi['namaObat'],
-                        'jumlah' => $terapi['jumlah'],
-                        'frekuensi' => $terapi['frekuensi'],
-                        'cara_pakai' => $terapi['caraPemberian'],
-                    ]);
-                }
-            }
-
-            if ($request->has('pengkajiaAwal')) {
-                $pengkajian_awal = PengkajianAwalEdit::create([
-                    'resume_medis' => $resumeMedisEdit->id,
-                    'nama_pasien' => $request->input('pengkajiaAwal')['nama_pasien'],
-                    'ruangan' => $request->input('pengkajiaAwal')['ruangan'],
-                    'tanggal_masuk' => $request->input('pengkajiaAwal')['tanggal_masuk'],
-                    'alamat' => $request->input('pengkajiaAwal')['alamat'],
-                    'NORM' => $request->input('pengkajiaAwal')['nomor_rm'],
-                    'tanggal_lahir' => $request->input('pengkajiaAwal')['tanggal_lahir'],
-                    'jenis_kelamin' => $request->input('pengkajiaAwal')['jenis_kelamin'],
-                    'riwayat_alergi' => $request->input('pengkajiaAwal')['riwayat_alergi'],
-                    'resiko_jatuh' => $request->input('pengkajiaAwal')['resiko_jatuh']['resiko'],
-                    'skor_resiko_jatuh' => $request->input('pengkajiaAwal')['resiko_jatuh']['skor'],
-                    'metode_penilaian_resiko_jatuh' => $request->input('pengkajiaAwal')['resiko_jatuh']['metode'],
-                    'resiko_dekubitus' => $request->input('pengkajiaAwal')['resiko_dekubitus']['resiko'],
-                    'skor_resiko_dekubitus' => $request->input('pengkajiaAwal')['resiko_dekubitus']['skor'],
-                    'penurunan_berat_badan' => $request->input('pengkajiaAwal')['resiko_gizi']['penurunan_berat_badan'],
-                    'nafsu_makan' => $request->input('pengkajiaAwal')['resiko_gizi']['penurunan_asupan'],
-                    'diagnosa_khusus' => $request->input('pengkajiaAwal')['resiko_gizi']['diagnosis_khusus'],
-                    'edukasi_pasien' => $request->input('pengkajiaAwal')['edukasi_pasien'],
-                    'skrining_rencana_pulang' => $request->input('pengkajiaAwal')['discharge_planning']['skrining'],
-                    'faktor_risiko_rencana_pulang' => $request->input('pengkajiaAwal')['discharge_planning']['faktor_risiko'],
-                    'tindak_lanjut_rencana_pulang' => $request->input('pengkajiaAwal')['discharge_planning']['tindak_lanjut'],
-                    'rencana_keperawatan' => $request->input('pengkajiaAwal')['rencana_keperawatan'],
-                    'masalah_medis' => $request->input('pengkajiaAwal')['masalah_medis'],
-                    'diagnosa_medis' => $request->input('pengkajiaAwal')['diagnosa_keperawatan'],
-                    'rencana_terapi' => $request->input('pengkajiaAwal')['rencana_terapi'],
-                    'dokter' => $request->input('pengkajiaAwal')['nama_dokter'],
-                    'tanda_tangan_perawat' => $request->input('pengkajiaAwal')['tanda_tangan_perawat'],
+        // dd($request->all());
+        if ($request->input('jenisSave') == 1) {
+            try {
+                DB::connection('eklaim')->beginTransaction();
+                $resumeMedisEdit = ResumeMedisEdit::where('id', $request->input('resumeMedis')['id_resume_medis'])->update([
+                    'pengajuan_klaim' => $request->input('resumeMedis')['id_pengajuan_klaim'] ?? null,
+                    'nama_pasien' => $request->input('resumeMedis')['nama_pasien'] ?? null,
+                    'NORM' => $request->input('resumeMedis')['no_rm'] ?? null,
+                    'tanggal_lahir' => $request->input('resumeMedis')['tanggal_lahir'] ?? null,
+                    'jenis_kelamin' => $request->input('resumeMedis')['jenis_kelamin'] ?? null,
+                    'ruang_rawat' => $request->input('resumeMedis')['ruang_rawat'] ?? null,
+                    'penjamin' => $request->input('resumeMedis')['penjamin'] ?? null,
+                    'indikasi_rawat_inap' => $request->input('resumeMedis')['indikasi_rawat_inap'] ?? null,
+                    'tanggal_masuk' => $request->input('resumeMedis')['tanggal_masuk'] ?? null,
+                    'tanggal_keluar' => $request->input('resumeMedis')['tanggal_keluar'] ?? null,
+                    'lama_dirawat' => $request->input('resumeMedis')['lama_dirawat'] ?? null,
+                    'riwayat_penyakit_sekarang' => $request->input('resumeMedis')['riwayat_penyakit_sekarang'] ?? null,
+                    'riwayat_penyakit_dulu' => $request->input('resumeMedis')['riwayat_penyakit_lalu'] ?? null,
+                    'pemeriksaan_fisik' => $request->input('resumeMedis')['pemeriksaan_fisik'] ?? null,
+                    'diagnosa_utama' => $request->input('resumeMedis')['diagnosa_utama'] ?? null,
+                    'icd10_utama' => $request->input('resumeMedis')['icd10_utama'] ?? null,
+                    'diagnosa_sekunder' => $request->input('resumeMedis')['diagnosa_sekunder'] ?? null,
+                    'icd10_sekunder' => $request->input('resumeMedis')['icd10_sekunder'] ?? null,
+                    'prosedur_utama' => $request->input('resumeMedis')['tindakan_prosedur'] ?? null,
+                    'icd9_utama' => $request->input('resumeMedis')['icd9_utama'] ?? null,
+                    'prosedur_sekunder' => $request->input('resumeMedis')['tindakan_prosedur_sekunder'] ?? null,
+                    'icd9_sekunder' => $request->input('resumeMedis')['icd9_sekunder'] ?? null,
+                    'riwayat_alergi' => $request->input('resumeMedis')['riwayat_alergi'] ?? null,
+                    'keadaan_pulang' => $request->input('resumeMedis')['keadaan_pulang'] ?? null,
+                    'cara_pulang' => $request->input('resumeMedis')['cara_pulang'] ?? null,
+                    'dokter' => $request->input('resumeMedis')['dokter'] ?? null,
+                    'tanda_tangan_pasien' => $request->input('resumeMedis')['tanda_tangan_pasien'] ?? null
                 ]);
 
-                if ($request->has('pengkajiaAwal')['tanda_vital']) {
-                    foreach ($request->input('pengkajiaAwal')['tanda_vital'] as $tandaVital) {
+                if ($request->has('resumeMedis.permintaan_konsul')) {
+                    KonsultasiEdit::where('resume_medis', $request->input('resumeMedis')['id_resume_medis'])->delete();
+                    foreach ($request->input('resumeMedis')['permintaan_konsul'] as $konsul) {
+                        KonsultasiEdit::create([
+                            'resume_medis' => $request->input('resumeMedis')['id_resume_medis'],
+                            'pertanyaan' => $konsul['permintaan'] ?? null,
+                            'jawaban' => $konsul['jawaban'] ?? null
+                        ]);
+                    }
+                }
+
+                if ($request->has('resumeMedis.terapi_pulang')) {
+                    TerapiPulangEdit::where('resume_medis', $request->input('resumeMedis')['id_resume_medis'])->delete();
+                    foreach ($request->input('resumeMedis')['terapi_pulang'] as $terapi) {
+                        TerapiPulangEdit::create([
+                            'resume_medis' => $request->input('resumeMedis')['id_resume_medis'],
+                            'nama_obat' => $terapi['namaObat'] ?? null,
+                            'jumlah' => $terapi['jumlah'] ?? null,
+                            'frekuensi' => $terapi['frekuensi'] ?? null,
+                            'cara_pemakaian' => $terapi['caraPemberian'] ?? null,
+                        ]);
+                    }
+                }
+
+                if ($request->has('resumeMedis.instruksi_tindak_lanjut')) {
+                    IntruksiTindakLanjutEdit::where('resume_medis', $request->input('resumeMedis')['id_resume_medis'])->update([
+                        'poli_tujuan' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['poliTujuan'] ?? null,
+                        'tanggal' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['tanggal'] ?? null,
+                        'jam' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['jam'] ?? null,
+                        'nomor_bpjs' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['nomor_bpjs'] ?? null
+                    ]);
+                }
+
+                if ($request->has('pengkajianAwal')) {
+                    $id_pengkajianAwal = PengkajianAwalEdit::where('resume_medis', $request->input('resumeMedis')['id_resume_medis'])->first();
+                    PengkajianAwalEdit::where('resume_medis', $id_pengkajianAwal->id)->update([
+                        'nomor_kunjungan' => $request->input('pengkajianAwal')['nomor_kunjungan'] ?? null,
+                        'nama_pasien' => $request->input('pengkajianAwal')['nama_pasien'] ?? null,
+                        'ruangan' => $request->input('pengkajianAwal')['ruangan'] ?? null,
+                        'tanggal_masuk' => $request->input('pengkajianAwal')['tanggal_masuk'] ?? null,
+                        'alamat' => $request->input('pengkajianAwal')['alamat'] ?? null,
+                        'NORM' => $request->input('pengkajianAwal')['nomor_rm'] ?? null,
+                        'tanggal_lahir' => $request->input('pengkajianAwal')['tanggal_lahir'] ?? null,
+                        'jenis_kelamin' => $request->input('pengkajianAwal')['jenis_kelamin'] ?? null,
+                        'riwayat_alergi' => $request->input('pengkajianAwal')['riwayat_alergi'] ?? null,
+                        'resiko_jatuh' => $request->input('pengkajianAwal')['resiko_jatuh']['resiko'] ?? null,
+                        'skor_resiko_jatuh' => $request->input('pengkajianAwal')['resiko_jatuh']['skor'] ?? null,
+                        'metode_penilaian_resiko_jatuh' => $request->input('pengkajianAwal')['resiko_jatuh']['metode'] ?? null,
+                        'resiko_dekubitus' => $request->input('pengkajianAwal')['resiko_dekubitas']['resiko'] ?? null,
+                        'skor_resiko_dekubitus' => $request->input('pengkajianAwal')['resiko_dekubitas']['skor'] ?? null,
+                        'penurunan_berat_badan' => $request->input('pengkajianAwal')['resiko_gizi']['penurunan_berat_badan'] ?? null,
+                        'nafsu_makan' => $request->input('pengkajianAwal')['resiko_gizi']['penurunan_asupan'] ?? null,
+                        'diagnosa_khusus' => $request->input('pengkajianAwal')['resiko_gizi']['diagnosis_khusus'] ?? null,
+                        'edukasi_pasien' => $request->input('pengkajianAwal')['edukasi_pasien'] ?? null,
+                        'skrining_rencana_pulang' => $request->input('pengkajianAwal')['discharge_planning']['skrinning'] ?? null,
+                        'faktor_risiko_rencana_pulang' => $request->input('pengkajianAwal')['discharge_planning']['faktor_resiko'] ?? null,
+                        'tindak_lanjut_rencana_pulang' => $request->input('pengkajianAwal')['discharge_planning']['tindak_lanjut'] ?? null,
+                        'rencana_keperawatan' => $request->input('pengkajianAwal')['rencana_keperawatan'] ?? null,
+                        'masalah_medis' => $request->input('pengkajianAwal')['masalah_medis'] ?? null,
+                        'diagnosa_medis' => $request->input('pengkajianAwal')['diagnosa_keperawatan'] ?? null,
+                        'rencana_terapi' => $request->input('pengkajianAwal')['rencana_terapi'] ?? null,
+                        'dokter' => $request->input('pengkajianAwal')['nama_dokter'] ?? null,
+                        'tanda_tangan_perawat' => $request->input('pengkajianAwal')['tanda_tangan_perawat'] ?? null,
+                    ]);
+
+                    if ($request->has('pengkajianAwal.tanda_vital')) {
+                        KeadaanUmumEdit::where('pengkajian_awal', $id_pengkajianAwal->id)->update([
+                            'keadaan_umum' => $request->input('pengkajianAwal')['tanda_vital']['keadaan_umum'] ?? null,
+                            'tingkat_kesadaran' => $request->input('pengkajianAwal')['tanda_vital']['tingkat_kesadaran'] ?? null,
+                            'gcs' => $request->input('pengkajianAwal')['tanda_vital']['gcs'] ?? null,
+                            'eye' => $request->input('pengkajianAwal')['tanda_vital']['eye'] ?? null,
+                            'motorik' => $request->input('pengkajianAwal')['tanda_vital']['motorik'] ?? null,
+                            'verbal' => $request->input('pengkajianAwal')['tanda_vital']['verbal'] ?? null,
+                            'tekanan_darah' => $request->input('pengkajianAwal')['tanda_vital']['tekanan_darah'] ?? null,
+                            'frekuensi_nadi' => $request->input('pengkajianAwal')['tanda_vital']['frekuensi_nadi'] ?? null,
+                            'frekuensi_nafas' => $request->input('pengkajianAwal')['tanda_vital']['frekuensi_nafas'] ?? null,
+                            'suhu' => $request->input('pengkajianAwal')['tanda_vital']['suhu'] ?? null,
+                            'berat_badan' => $request->input('pengkajianAwal')['tanda_vital']['berat_badan'] ?? null,
+                            'saturasi_oksigen' => $request->input('pengkajianAwal')['tanda_vital']['saturasi_o2'] ?? null
+                        ]);
+                    }
+
+                    if ($request->has('pengkajianAwal.pemeriksaan_fisik')) {
+                        PemeriksaanFisikEdit::where('pengkajian_awal', $id_pengkajianAwal->id)->update([
+                            'mata' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['mata'] ?? null,
+                            'ikterus' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['ikterus'] ?? null,
+                            'pupil' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['pupil'] ?? null,
+                            'diameter_mata' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['diameter_mata'] ?? null,
+                            'udem_palpebrae' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['udem_palpebrae'] ?? null,
+                            'kelainan_mata' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['kelainan_mata'] ?? null,
+                            'tht' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['tht'] ?? null,
+                            'tongsil' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['tongsil'] ?? null,
+                            'faring' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['faring'] ?? null,
+                            'lidah' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['lidah'] ?? null,
+                            'bibir' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['bibir'] ?? null,
+                            'leher' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['leher'] ?? null,
+                            'jvp' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['jvp'] ?? null,
+                            'limfe' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['limfe'] ?? null,
+                            'kaku_kuduk' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['kaku_kuduk'] ?? null,
+                            'thoraks' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['thoraks'] ?? null,
+                            'cor' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['cor'] ?? null,
+                            's1s2' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['s1s2'] ?? null,
+                            'mur_mur' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['murmur'] ?? null,
+                            'pulmo' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['pulmo'] ?? null,
+                            'suara_nafas' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['suara_nafas'] ?? null,
+                            'ronchi' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['ronchi'] ?? null,
+                            'wheezing' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['wheezing'] ?? null,
+                            'abdomen' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['abdomen'] ?? null,
+                            'meteorismus' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['meteorismus'] ?? null,
+                            'peristaltik' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['peristaltik'] ?? null,
+                            'asites' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['asites'] ?? null,
+                            'nyeri_tekan' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['nyeri_tekan'] ?? null,
+                            'hepar' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['hepar'] ?? null,
+                            'lien' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['lien'] ?? null,
+                            'extremitas' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['extremitas'] ?? null,
+                            'udem' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['udem'] ?? null,
+                            'defeksesi' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['defeksesi'] ?? null,
+                            'urin' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['urin'] ?? null,
+                            'lain_lain' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['pemeriksaan_lain_lain'] ?? null
+                        ]);
+                    }
+
+                    if ($request->has('pengkajianAwal.status_psikososial')) {
+                        PsikologiEdit::where('pengkajian_awal', $id_pengkajianAwal->id)->update([
+                            'status_psikologi' => $request->input('pengkajianAwal')['status_psikososial']['status_psikologis'] ?? null,
+                            'status_mental' => $request->input('pengkajianAwal')['status_psikososial']['status_mental'] ?? null,
+                            'hubungan_keluarga' => $request->input('pengkajianAwal')['status_psikososial']['hubungan_keluarga'] ?? null,
+                            'tempat_tinggal' => $request->input('pengkajianAwal')['status_psikososial']['tempat_tinggal'] ?? null,
+                            'agama' => $request->input('pengkajianAwal')['status_psikososial']['agama'] ?? null,
+                            'kebiasaan_beribadah' => $request->input('pengkajianAwal')['status_psikososial']['kebiasaan_beribadah'] ?? null,
+                            'pekerjaan' => $request->input('pengkajianAwal')['status_psikososial']['pekerjaan'] ?? null,
+                            'penghasilan' => $request->input('pengkajianAwal')['status_psikososial']['penghasilan'] ?? null
+                        ]);
+                    }
+
+                    if ($request->has('pengkajianAwal.anamnesis')) {
+                        $anamnesis = $request->input('pengkajianAwal.anamnesis');
+                        AnamnesaEdit::where('pengkajian_awal', $id_pengkajianAwal->id)->update([
+                            'anamnesa_diperoleh' => $anamnesis['auto_anamnesis'] == 1 ? 'Auto Anamnesis' : ($anamnesis['allo_anamnesis'] == 1 ? 'Allo Anamnesis' : null),
+                            'anamnesa_diperoleh_dari' => $anamnesis['dari'] ?? null,
+                            'keluhan_utama' => $anamnesis['keluhan_utama'] ?? null,
+                            'riwayat_penyakit_sekarang' => $anamnesis['riwayat_penyakit_sekarang'] ?? null,
+                            'riwayat_penyakit_dulu' => $anamnesis['riwayat_penyakit_lalu'] ?? null,
+                            'riwayat_pengobatan' => $anamnesis['riwayat_pengobatan'] ?? null,
+                            'riwayat_penyakit_keluarga' => $anamnesis['riwayat_penyakit_keluarga'] ?? null
+                        ]);
+                    }
+
+                    if ($request->has('pengkajianAwal.penilaian_nyeri')) {
+                        NyeriEdit::where('pengkajian_awal', $id_pengkajianAwal->id)->update([
+                            'nyeri' => $request->input('pengkajianAwal.penilaian_nyeri.nyeri') ?? null,
+                            'onset' => $request->input('pengkajianAwal.penilaian_nyeri.onset') ?? null,
+                            'pencetus' => $request->input('pengkajianAwal.penilaian_nyeri.pencetus') ?? null,
+                            'lokasi_nyeri' => $request->input('pengkajianAwal.penilaian_nyeri.lokasi') ?? null,
+                            'gambaran_nyeri' => $request->input('pengkajianAwal.penilaian_nyeri.gambaran') ?? null,
+                            'durasi' => $request->input('pengkajianAwal.penilaian_nyeri.durasi') ?? null,
+                            'skala' => $request->input('pengkajianAwal.penilaian_nyeri.skala') ?? null,
+                            'metode' => $request->input('pengkajianAwal.penilaian_nyeri.metode') ?? null
+                        ]);
+                    }
+                }
+
+                DB::connection('eklaim')->commit();
+                return response()->json(['success' => 'Data Resume Medis berhasil disimpan.']);
+            } catch (\Throwable $th) {
+                DB::connection('eklaim')->rollBack();
+                return response()->json(['error' => 'Gagal menyimpan data Resume Medis: ' . $th->getMessage()], 500);
+            }
+        } else {
+            try {
+                DB::connection('eklaim')->beginTransaction();
+                $resumeMedisEdit = ResumeMedisEdit::create([
+                    'pengajuan_klaim' => $request->input('resumeMedis')['id_pengajuan_klaim'] ?? null,
+                    'nama_pasien' => $request->input('resumeMedis')['nama_pasien'] ?? null,
+                    'NORM' => $request->input('resumeMedis')['NORM'] ?? null,
+                    'tanggal_lahir' => $request->input('resumeMedis')['tanggal_lahir'] ?? null,
+                    'jenis_kelamin' => $request->input('resumeMedis')['jenis_kelamin'] ?? null,
+                    'ruang_rawat' => $request->input('resumeMedis')['ruang_rawat'] ?? null,
+                    'penjamin' => $request->input('resumeMedis')['penjamin'] ?? null,
+                    'indikasi_rawat_inap' => $request->input('resumeMedis')['indikasi_rawat_inap'] ?? null,
+                    'tanggal_masuk' => $request->input('resumeMedis')['tanggal_masuk'] ?? null,
+                    'tanggal_keluar' => $request->input('resumeMedis')['tanggal_keluar'] ?? null,
+                    'lama_dirawat' => $request->input('resumeMedis')['lama_dirawat'] ?? null,
+                    'riwayat_penyakit_sekarang' => $request->input('resumeMedis')['riwayat_penyakit_sekarang'] ?? null,
+                    'riwayat_penyakit_dulu' => $request->input('resumeMedis')['riwayat_penyakit_lalu'] ?? null,
+                    'pemeriksaan_fisik' => $request->input('resumeMedis')['pemeriksaan_fisik'] ?? null,
+                    'diagnosa_utama' => $request->input('resumeMedis')['diagnosa_utama'] ?? null,
+                    'icd10_utama' => $request->input('resumeMedis')['icd10_utama'] ?? null,
+                    'diagnosa_sekunder' => $request->input('resumeMedis')['diagnosa_sekunder'] ?? null,
+                    'icd10_sekunder' => $request->input('resumeMedis')['icd10_sekunder'] ?? null,
+                    'prosedur_utama' => $request->input('resumeMedis')['tindakan_prosedur'] ?? null,
+                    'icd9_utama' => $request->input('resumeMedis')['icd9_utama'] ?? null,
+                    'prosedur_sekunder' => $request->input('resumeMedis')['tindakan_prosedur_sekunder'] ?? null,
+                    'icd9_sekunder' => $request->input('resumeMedis')['icd9_sekunder'] ?? null,
+                    'riwayat_alergi' => $request->input('resumeMedis')['riwayat_alergi'] ?? null,
+                    'keadaan_pulang' => $request->input('resumeMedis')['keadaan_pulang'] ?? null,
+                    'cara_pulang' => $request->input('resumeMedis')['cara_pulang'] ?? null,
+                    'dokter' => $request->input('resumeMedis')['dokter'] ?? null,
+                    'tanda_tangan_pasien' => $request->input('resumeMedis')['tanda_tangan_pasien'] ?? null
+                ]);
+
+                if ($request->has('resumeMedis.permintaan_konsul')) {
+                    foreach ($request->input('resumeMedis')['permintaan_konsul'] as $konsul) {
+                        KonsultasiEdit::create([
+                            'resume_medis' => $resumeMedisEdit->id ?? null,
+                            'pertanyaan' => $konsul['permintaan'] ?? null,
+                            'jawaban' => $konsul['jawaban'] ?? null
+                        ]);
+                    }
+                }
+
+                if ($request->has('resumeMedis.terapi_pulang')) {
+                    foreach ($request->input('resumeMedis')['terapi_pulang'] as $terapi) {
+                        TerapiPulangEdit::create([
+                            'resume_medis' => $resumeMedisEdit->id,
+                            'nama_obat' => $terapi['namaObat'] ?? null,
+                            'jumlah' => $terapi['jumlah'] ?? null,
+                            'frekuensi' => $terapi['frekuensi'] ?? null,
+                            'cara_pemakaian' => $terapi['caraPemberian'] ?? null,
+                        ]);
+                    }
+                }
+
+                if ($request->has('resumeMedis.instruksi_tindak_lanjut')) {
+                    IntruksiTindakLanjutEdit::create([
+                        'resume_medis' => $resumeMedisEdit->id,
+                        'poli_tujuan' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['poliTujuan'] ?? null,
+                        'tanggal' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['tanggal'] ?? null,
+                        'jam' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['jam'] ?? null,
+                        'nomor_bpjs' => $request->input('resumeMedis')['instruksi_tindak_lanjut']['nomor_bpjs'] ?? null
+                    ]);
+                }
+
+                if ($request->has('pengkajianAwal')) {
+                    $pengkajian_awal = PengkajianAwalEdit::create([
+                        'resume_medis' => $resumeMedisEdit->id,
+                        'nomor_kunjungan' => $request->input('pengkajianAwal')['nomor_kunjungan'] ?? null,
+                        'nama_pasien' => $request->input('pengkajianAwal')['nama_pasien'] ?? null,
+                        'ruangan' => $request->input('pengkajianAwal')['ruangan'] ?? null,
+                        'tanggal_masuk' => $request->input('pengkajianAwal')['tanggal_masuk'] ?? null,
+                        'alamat' => $request->input('pengkajianAwal')['alamat'] ?? null,
+                        'NORM' => $request->input('pengkajianAwal')['nomor_rm'] ?? null,
+                        'tanggal_lahir' => $request->input('pengkajianAwal')['tanggal_lahir'] ?? null,
+                        'jenis_kelamin' => $request->input('pengkajianAwal')['jenis_kelamin'] ?? null,
+                        'riwayat_alergi' => $request->input('pengkajianAwal')['riwayat_alergi'] ?? null,
+                        'resiko_jatuh' => $request->input('pengkajianAwal')['resiko_jatuh']['resiko'] ?? null,
+                        'skor_resiko_jatuh' => $request->input('pengkajianAwal')['resiko_jatuh']['skor'] ?? null,
+                        'metode_penilaian_resiko_jatuh' => $request->input('pengkajianAwal')['resiko_jatuh']['metode'] ?? null,
+                        'resiko_dekubitus' => $request->input('pengkajianAwal')['resiko_dekubitas']['resiko'] ?? null,
+                        'skor_resiko_dekubitus' => $request->input('pengkajianAwal')['resiko_dekubitas']['skor'] ?? null,
+                        'penurunan_berat_badan' => $request->input('pengkajianAwal')['resiko_gizi']['penurunan_berat_badan'] ?? null,
+                        'nafsu_makan' => $request->input('pengkajianAwal')['resiko_gizi']['penurunan_asupan'] ?? null,
+                        'diagnosa_khusus' => $request->input('pengkajianAwal')['resiko_gizi']['diagnosis_khusus'] ?? null,
+                        'edukasi_pasien' => $request->input('pengkajianAwal')['edukasi_pasien'] ?? null,
+                        'skrining_rencana_pulang' => $request->input('pengkajianAwal')['discharge_planning']['skrinning'] ?? null,
+                        'faktor_risiko_rencana_pulang' => $request->input('pengkajianAwal')['discharge_planning']['faktor_resiko'] ?? null,
+                        'tindak_lanjut_rencana_pulang' => $request->input('pengkajianAwal')['discharge_planning']['tindak_lanjut'] ?? null,
+                        'rencana_keperawatan' => $request->input('pengkajianAwal')['rencana_keperawatan'] ?? null,
+                        'masalah_medis' => $request->input('pengkajianAwal')['masalah_medis'] ?? null,
+                        'diagnosa_medis' => $request->input('pengkajianAwal')['diagnosa_keperawatan'] ?? null,
+                        'rencana_terapi' => $request->input('pengkajianAwal')['rencana_terapi'] ?? null,
+                        'dokter' => $request->input('pengkajianAwal')['nama_dokter'] ?? null,
+                        'tanda_tangan_perawat' => $request->input('pengkajianAwal')['tanda_tangan_perawat'] ?? null,
+                    ]);
+
+                    if ($request->has('pengkajianAwal.tanda_vital')) {
                         KeadaanUmumEdit::create([
                             'pengkajian_awal' => $pengkajian_awal->id,
-                            'gcs' => $tandaVital['gcs'],
-                            'eye' => $tandaVital['eye'],
-                            'motorik' => $tandaVital['motorik'],
-                            'verbal' => $tandaVital['verbal'],
-                            'tekanan_darah' => $tandaVital['tekanan_darah'],
-                            'frekuensi_nadi' => $tandaVital['frekuensi_nadi'],
-                            'frekuensi_nafas' => $tandaVital['frekuensi_nafas'],
-                            'suhu' => $tandaVital['suhu'],
-                            'berat_badan' => $tandaVital['berat_badan'],
-                            'saturasi_oksigen' => $tandaVital['saturasi_oksigen']
+                            'keadaan_umum' => $request->input('pengkajianAwal')['tanda_vital']['keadaan_umum'] ?? null,
+                            'tingkat_kesadaran' => $request->input('pengkajianAwal')['tanda_vital']['tingkat_kesadaran'] ?? null,
+                            'gcs' => $request->input('pengkajianAwal')['tanda_vital']['gcs'] ?? null,
+                            'eye' => $request->input('pengkajianAwal')['tanda_vital']['eye'] ?? null,
+                            'motorik' => $request->input('pengkajianAwal')['tanda_vital']['motorik'] ?? null,
+                            'verbal' => $request->input('pengkajianAwal')['tanda_vital']['verbal'] ?? null,
+                            'tekanan_darah' => $request->input('pengkajianAwal')['tanda_vital']['tekanan_darah'] ?? null,
+                            'frekuensi_nadi' => $request->input('pengkajianAwal')['tanda_vital']['frekuensi_nadi'] ?? null,
+                            'frekuensi_nafas' => $request->input('pengkajianAwal')['tanda_vital']['frekuensi_nafas'] ?? null,
+                            'suhu' => $request->input('pengkajianAwal')['tanda_vital']['suhu'] ?? null,
+                            'berat_badan' => $request->input('pengkajianAwal')['tanda_vital']['berat_badan'] ?? null,
+                            'saturasi_oksigen' => $request->input('pengkajianAwal')['tanda_vital']['saturasi_o2'] ?? null
                         ]);
                     }
-                }
 
-                if ($request->has('pengkajiaAwal')['pemeriksaan_fisik']) {
-                    foreach ($request->input('pengkajiaAwal')['pemeriksaan_fisik'] as $tandaVital) {
+                    if ($request->has('pengkajianAwal.pemeriksaan_fisik')) {
                         PemeriksaanFisikEdit::create([
                             'pengkajian_awal' => $pengkajian_awal->id,
-                            'mata' => $tandaVital['mata'],
-                            'ikterus' => $tandaVital['ikterus'],
-                            'pupil' => $tandaVital['pupil'],
-                            'diameter_mata' => $tandaVital['diameter_mata'],
-                            'udem_palpebrae' => $tandaVital['udem_palpebrae'],
-                            'kelainan_mata' => $tandaVital['kelainan_mata'],
-                            'tht' => $tandaVital['tht'],
-                            'tongsil' => $tandaVital['tongsil'],
-                            'faring' => $tandaVital['faring'],
-                            'lidah' => $tandaVital['lidah'],
-                            'bibir' => $tandaVital['bibir'],
-                            'leher' => $tandaVital['leher'],
-                            'jvp' => $tandaVital['jvp'],
-                            'limfe' => $tandaVital['limfe'],
-                            'kaku_kuduk' => $tandaVital['kaku_kuduk'],
-                            'thoraks' => $tandaVital['thoraks'],
-                            'cor' => $tandaVital['cor'],
-                            's1' => $tandaVital['s1'],
-                            'mur_mur' => $tandaVital['mur_mur'],
-                            'pulmo' => $tandaVital['pulmo'],
-                            'suara_nafas' => $tandaVital['suara_nafas'],
-                            'ronchi' => $tandaVital['ronchi'],
-                            'wheezing' => $tandaVital['wheezing'],
-                            'abdomen' => $tandaVital['abdomen'],
-                            'meteorismus' => $tandaVital['meteorismus'],
-                            'peristaltik' => $tandaVital['peristaltik'],
-                            'asites' => $tandaVital['asites'],
-                            'nyeri_tekan' => $tandaVital['nyeri_tekan'],
-                            'hepar' => $tandaVital['hepar'],
-                            'lien' => $tandaVital['lien'],
-                            'extremitas' => $tandaVital['extremitas'],
-                            'udem' => $tandaVital['udem'],
-                            'defeksesi' => $tandaVital['defeksesi'],
-                            'urin' => $tandaVital['urin'],
-                            'lain_lain' => $tandaVital['lain_lain']
+                            'mata' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['mata'] ?? null,
+                            'ikterus' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['ikterus'] ?? null,
+                            'pupil' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['pupil'] ?? null,
+                            'diameter_mata' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['diameter_mata'] ?? null,
+                            'udem_palpebrae' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['udem_palpebrae'] ?? null,
+                            'kelainan_mata' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['kelainan_mata'] ?? null,
+                            'tht' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['tht'] ?? null,
+                            'tongsil' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['tongsil'] ?? null,
+                            'faring' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['faring'] ?? null,
+                            'lidah' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['lidah'] ?? null,
+                            'bibir' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['bibir'] ?? null,
+                            'leher' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['leher'] ?? null,
+                            'jvp' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['jvp'] ?? null,
+                            'limfe' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['limfe'] ?? null,
+                            'kaku_kuduk' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['kaku_kuduk'] ?? null,
+                            'thoraks' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['thoraks'] ?? null,
+                            'cor' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['cor'] ?? null,
+                            's1s2' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['s1s2'] ?? null,
+                            'mur_mur' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['murmur'] ?? null,
+                            'pulmo' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['pulmo'] ?? null,
+                            'suara_nafas' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['suara_nafas'] ?? null,
+                            'ronchi' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['ronchi'] ?? null,
+                            'wheezing' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['wheezing'] ?? null,
+                            'abdomen' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['abdomen'] ?? null,
+                            'meteorismus' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['meteorismus'] ?? null,
+                            'peristaltik' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['peristaltik'] ?? null,
+                            'asites' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['asites'] ?? null,
+                            'nyeri_tekan' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['nyeri_tekan'] ?? null,
+                            'hepar' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['hepar'] ?? null,
+                            'lien' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['lien'] ?? null,
+                            'extremitas' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['extremitas'] ?? null,
+                            'udem' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['udem'] ?? null,
+                            'defeksesi' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['defeksesi'] ?? null,
+                            'urin' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['urin'] ?? null,
+                            'lain_lain' => $request->input('pengkajianAwal')['pemeriksaan_fisik']['pemeriksaan_lain_lain'] ?? null
                         ]);
                     }
-                }
 
-                if ($request->has('pengkajiaAwal')['status_psikososial']) {
-                    foreach ($request->input('pengkajiaAwal')['status_psikososial'] as $psikologi) {
+                    if ($request->has('pengkajianAwal.status_psikososial')) {
                         PsikologiEdit::create([
                             'pengkajian_awal' => $pengkajian_awal->id,
-                            'status_psikologi' => $psikologi['status_psikologi'],
-                            'status_mental' => $psikologi['status_mental'],
-                            'hubungan_keluarga' => $psikologi['hubungan_keluarga'],
-                            'tempat_tinggal' => $psikologi['tempat_tinggal'],
-                            'agama' => $psikologi['agama'],
-                            'kebiasaan_beribadah' => $psikologi['kebiasaan_beribadah'],
-                            'pekerjaan' => $psikologi['pekerjaan'],
-                            'penghasilan' => $psikologi['penghasilan']
+                            'status_psikologi' => $request->input('pengkajianAwal')['status_psikososial']['status_psikologis'] ?? null,
+                            'status_mental' => $request->input('pengkajianAwal')['status_psikososial']['status_mental'] ?? null,
+                            'hubungan_keluarga' => $request->input('pengkajianAwal')['status_psikososial']['hubungan_keluarga'] ?? null,
+                            'tempat_tinggal' => $request->input('pengkajianAwal')['status_psikososial']['tempat_tinggal'] ?? null,
+                            'agama' => $request->input('pengkajianAwal')['status_psikososial']['agama'] ?? null,
+                            'kebiasaan_beribadah' => $request->input('pengkajianAwal')['status_psikososial']['kebiasaan_beribadah'] ?? null,
+                            'pekerjaan' => $request->input('pengkajianAwal')['status_psikososial']['pekerjaan'] ?? null,
+                            'penghasilan' => $request->input('pengkajianAwal')['status_psikososial']['penghasilan'] ?? null
                         ]);
                     }
-                }
 
-                if ($request->has('pengkajiaAwal')['penilaian_nyeri']) {
-                    foreach ($request->input('pengkajiaAwal')['penilaian_nyeri'] as $penilaianNyeri) {
+                    if ($request->has('pengkajianAwal.anamnesis')) {
+                        $anamnesis = $request->input('pengkajianAwal.anamnesis');
+                        AnamnesaEdit::create([
+                            'pengkajian_awal' => $pengkajian_awal->id,
+                            'anamnesa_diperoleh' => $anamnesis['auto_anamnesis'] == 1 ? 'Auto Anamnesis' : ($anamnesis['allo_anamnesis'] == 1 ? 'Allo Anamnesis' : null),
+                            'anamnesa_diperoleh_dari' => $anamnesis['dari'] ?? null,
+                            'keluhan_utama' => $anamnesis['keluhan_utama'] ?? null,
+                            'riwayat_penyakit_sekarang' => $anamnesis['riwayat_penyakit_sekarang'] ?? null,
+                            'riwayat_penyakit_dulu' => $anamnesis['riwayat_penyakit_lalu'] ?? null,
+                            'riwayat_pengobatan' => $anamnesis['riwayat_pengobatan'] ?? null,
+                            'riwayat_penyakit_keluarga' => $anamnesis['riwayat_penyakit_keluarga'] ?? null
+                        ]);
+                    }
+
+                    if ($request->has('pengkajianAwal.penilaian_nyeri')) {
                         NyeriEdit::create([
                             'pengkajian_awal' => $pengkajian_awal->id,
-                            'nyeri' => $penilaianNyeri['nyeri'],
-                            'onset' => $penilaianNyeri['onset'],
-                            'pencetus' => $penilaianNyeri['pencetus'],
-                            'lokasi_nyeri' => $penilaianNyeri['lokasi'],
-                            'gambaran_nyeri' => $penilaianNyeri['gambaran'],
-                            'durasi' => $penilaianNyeri['durasi'],
-                            'skala' => $penilaianNyeri['skala'],
-                            'metode' => $penilaianNyeri['metode']
+                            'nyeri' => $request->input('pengkajianAwal.penilaian_nyeri.nyeri') ?? null,
+                            'onset' => $request->input('pengkajianAwal.penilaian_nyeri.onset') ?? null,
+                            'pencetus' => $request->input('pengkajianAwal.penilaian_nyeri.pencetus') ?? null,
+                            'lokasi_nyeri' => $request->input('pengkajianAwal.penilaian_nyeri.lokasi') ?? null,
+                            'gambaran_nyeri' => $request->input('pengkajianAwal.penilaian_nyeri.gambaran') ?? null,
+                            'durasi' => $request->input('pengkajianAwal.penilaian_nyeri.durasi') ?? null,
+                            'skala' => $request->input('pengkajianAwal.penilaian_nyeri.skala') ?? null,
+                            'metode' => $request->input('pengkajianAwal.penilaian_nyeri.metode') ?? null
                         ]);
                     }
                 }
+
+                PengajuanKlaim::where('id', $request->input('resumeMedis')['id_pengajuan_klaim'])
+                    ->update(['edit' => 1]);
+
+                DB::connection('eklaim')->commit();
+                return response()->json(['success' => 'Data Resume Medis berhasil disimpan.']);
+            } catch (\Throwable $th) {
+                DB::connection('eklaim')->rollBack();
+                return response()->json(['error' => 'Gagal menyimpan data Resume Medis: ' . $th->getMessage()], 500);
             }
-
-            return redirect()->back()->with('success', 'Data Resume Medis berhasil disimpan.');
-        } catch (\Throwable $th) {
-
-            return redirect()->back()->with('error', 'Gagal menyimpan data Resume Medis: ' . $th->getMessage());
         }
     }
 
@@ -359,5 +614,19 @@ class EditDataController extends Controller
         return response()->json([
             'kunjungan' => $nomorKunjungan
         ]);
+    }
+
+    public function switchEditResumeMedis(PengajuanKlaim $pengajuanKlaim)
+    {
+        try {
+            $pengajuanKlaim->edit = $pengajuanKlaim->edit == 1 ? 0 : 1;
+            $pengajuanKlaim->save();
+
+            return redirect()->back();
+        } catch (\Throwable $th) {
+            return redirect()->back()->with([
+                'error' => 'Gagal mengubah status edit Resume Medis: ' . $th->getMessage(),
+            ]);
+        }
     }
 }
