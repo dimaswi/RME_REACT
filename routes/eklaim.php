@@ -49,4 +49,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('load/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'loadDataPengkajianAwalRIRD'])->name('eklaim.loadDataPengkajianAwalRIRD');
     Route::get('/eklaim/switch-edit/{pengajuanKlaim}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'switchEditResumeMedis'])->name('eklaim.klaim.switchEdit');
+
+    Route::get('eklaim/get/pengkajian-awal/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataPengkajianAwal'])->name('eklaim.getDataPengkajianAwal');
+    Route::get('eklaim/get/triage/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataTriage'])->name('eklaim.getDataTriage');
+    Route::get('eklaim/get/cppt/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataCPPT'])->name('eklaim.getDataCPPT');
 });

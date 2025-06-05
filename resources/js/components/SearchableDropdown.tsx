@@ -61,9 +61,10 @@ export default function SearchableDropdown({
     const handleSearchChange = (e) => {
         const keyword = e.target.value;
         setSearch(keyword);
-        setValue("");
 
-        // Panggil fungsi onSearch jika tersedia
+        // Jangan setValue("") di sini!
+        // setValue("");
+
         if (onSearch) {
             onSearch(keyword);
         }
@@ -83,13 +84,19 @@ export default function SearchableDropdown({
                     className="flex-1 outline-none bg-transparent py-1 px-0 text-sm text-gray-700 placeholder-gray-400"
                     placeholder={placeholder}
                     value={
-                        value
-                            ? getOptionLabel(
-                                data.find((item) =>
-                                    getOptionValue(item).toString() === value
-                                )
+                        open
+                            ? search
+                            : (
+                                value
+                                    ? (
+                                        getOptionLabel(
+                                            data.find((item) =>
+                                                getOptionValue(item).toString() === value
+                                            )
+                                        ) || ""
+                                    )
+                                    : ""
                             )
-                            : search
                     }
                     onFocus={() => !disabled && setOpen(true)}
                     onChange={handleSearchChange}

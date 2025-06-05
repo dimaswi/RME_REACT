@@ -9,16 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::connection('eklaim')->create('pemeriksaan_fisik_edit', function (Blueprint $table) {
+        Schema::connection('eklaim')->create('pemeriksaan_fisik', function (Blueprint $table) {
             $table->id();
-            $table->string('pengkajian_awal');
+            $table->foreignId('pengkajian_awal_id')->constrained('pengkajian_awal');
             $table->string('mata')->nullable();
             $table->string('ikterus')->nullable();
             $table->string('pupil')->nullable();
             $table->string('diameter_mata')->nullable();
-            $table->string('udem_palpebrae')->nullable();
+            $table->string('udema_palpebrae')->nullable();
             $table->string('kelainan_mata')->nullable();
             $table->string('tht')->nullable();
             $table->string('tongsil')->nullable();
@@ -31,8 +31,8 @@ return new class extends Migration
             $table->string('kaku_kuduk')->nullable();
             $table->string('thoraks')->nullable();
             $table->string('cor')->nullable();
-            $table->string('s1/s2')->nullable();
-            $table->string('mur_mur')->nullable();
+            $table->string('s1s2')->nullable();
+            $table->string('murmur')->nullable();
             $table->string('pulmo')->nullable();
             $table->string('suara_nafas')->nullable();
             $table->string('ronchi')->nullable();
@@ -48,16 +48,13 @@ return new class extends Migration
             $table->string('udem')->nullable();
             $table->string('defeksesi')->nullable();
             $table->string('urin')->nullable();
-            $table->string('lain_lain')->nullable();
+            $table->string('pemeriksaan_lain_lain')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::connection('eklaim')->dropIfExists('pemeriksaan_fisik_edit');
+        Schema::connection('eklaim')->dropIfExists('pemeriksaan_fisik');
     }
 };

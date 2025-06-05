@@ -4,19 +4,19 @@ namespace App\Models\Eklaim;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PemeriksaanFisikEdit extends Model
+class PemeriksaanFisik extends Model
 {
     protected $connection = 'eklaim';
 
-    protected $table = 'pemeriksaan_fisik_edit';
+    protected $table = 'pemeriksaan_fisik';
 
     protected $fillable = [
-        'pengkajian_awal',
+        'pengkajian_awal_id',
         'mata',
         'ikterus',
         'pupil',
         'diameter_mata',
-        'udem_palpebrae',
+        'udema_palpebrae',
         'kelainan_mata',
         'tht',
         'tongsil',
@@ -30,7 +30,7 @@ class PemeriksaanFisikEdit extends Model
         'thoraks',
         'cor',
         's1s2',
-        'mur_mur',
+        'murmur',
         'pulmo',
         'suara_nafas',
         'ronchi',
@@ -46,6 +46,6 @@ class PemeriksaanFisikEdit extends Model
         'udem',
         'defeksesi',
         'urin',
-        'lain_lain'
+        'pemeriksaan_lain_lain'
     ];
 }

@@ -9,14 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::connection('eklaim')->create('keadaan_umum_edit', function (Blueprint $table) {
+        Schema::connection('eklaim')->create('tanda_vital', function (Blueprint $table) {
             $table->id();
-            $table->string('pengkajian_awal');
-            $table->string('keadaan_umum')->nullable();
+            $table->foreignId('pengkajian_awal_id')->constrained('pengkajian_awal');
             $table->string('tingkat_kesadaran')->nullable();
-            $table->string('GCS')->nullable();
+            $table->string('keadaan_umum')->nullable();
+            $table->string('gcs')->nullable();
             $table->string('eye')->nullable();
             $table->string('motorik')->nullable();
             $table->string('verbal')->nullable();
@@ -25,16 +25,13 @@ return new class extends Migration
             $table->string('frekuensi_nafas')->nullable();
             $table->string('suhu')->nullable();
             $table->string('berat_badan')->nullable();
-            $table->string('saturasi_oksigen')->nullable();
+            $table->string('saturasi_o2')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::connection('eklaim')->dropIfExists('keadaan_umum_edit');
+        Schema::connection('eklaim')->dropIfExists('tanda_vital');
     }
 };

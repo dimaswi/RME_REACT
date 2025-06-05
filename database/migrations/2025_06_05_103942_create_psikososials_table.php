@@ -9,12 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::connection('eklaim')->create('psikologi_edit', function (Blueprint $table) {
+        Schema::connection('eklaim')->create('status_psikososial', function (Blueprint $table) {
             $table->id();
-            $table->string('pengkajian_awal');
-            $table->string('status_psikologi')->nullable();
+            $table->foreignId('pengkajian_awal_id')->constrained('pengkajian_awal');
+            $table->string('status_psikologis')->nullable();
             $table->string('status_mental')->nullable();
             $table->string('hubungan_keluarga')->nullable();
             $table->string('tempat_tinggal')->nullable();
@@ -26,11 +26,8 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::connection('eklaim')->dropIfExists('psikologi_edit');
+        Schema::connection('eklaim')->dropIfExists('status_psikososial');
     }
 };

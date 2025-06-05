@@ -4,16 +4,16 @@ namespace App\Models\Eklaim;
 
 use Illuminate\Database\Eloquent\Model;
 
-class KeadaanUmumEdit extends Model
+class TandaVital extends Model
 {
     protected $connection = 'eklaim';
 
-    protected $table = 'keadaan_umum_edit';
+    protected $table = 'tanda_vital';
 
     protected $fillable = [
-        'pengkajian_awal',
-        'keadaan_umum',
+        'pengkajian_awal_id',
         'tingkat_kesadaran',
+        'keadaan_umum',
         'gcs',
         'eye',
         'motorik',
@@ -23,6 +23,6 @@ class KeadaanUmumEdit extends Model
         'frekuensi_nafas',
         'suhu',
         'berat_badan',
-        'saturasi_oksigen'
+        'saturasi_o2'
     ];
 }

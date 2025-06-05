@@ -2,6 +2,7 @@
 
 namespace App\Models\Aplikasi;
 
+use App\Models\Master\Pegawai;
 use Illuminate\Database\Eloquent\Model;
 
 class Pengguna extends Model
@@ -27,4 +28,9 @@ class Pengguna extends Model
         'TERAKHIR_UBAH_PASSWORD',
         'STATUS'
     ];
+
+    public function pegawai()
+    {
+        return $this->hasOne(Pegawai::class, 'NIP', 'NIP');
+    }
 }

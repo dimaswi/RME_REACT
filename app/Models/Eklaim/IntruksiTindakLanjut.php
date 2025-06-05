@@ -4,17 +4,17 @@ namespace App\Models\Eklaim;
 
 use Illuminate\Database\Eloquent\Model;
 
-class IntruksiTindakLanjutEdit extends Model
+class IntruksiTindakLanjut extends Model
 {
     protected $connection = 'eklaim';
 
-    protected $table = 'intruksi_tindak_lanjut_edit';
+    protected $table = 'instruksi_tindak_lanjut';
 
     protected $fillable = [
-        'resume_medis',
+        'resume_medis_id',
         'poli_tujuan',
         'tanggal',
         'jam',
-        'nomor_bpjs',
+        'nomor_bpjs'
     ];
 }

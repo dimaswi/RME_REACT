@@ -15,4 +15,9 @@ class Pegawai extends Model
     public $incrementing = true;
 
     public $timestamps = false;
+
+    public function profesi()
+    {
+        return $this->hasOne(Referensi::class, 'ID', 'PROFESI')->where('JENIS', 36);
+    }
 }

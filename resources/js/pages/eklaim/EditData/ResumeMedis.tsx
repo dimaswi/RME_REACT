@@ -15,6 +15,9 @@ import PengkajianAwal from "./PengkajianAwal";
 import axios from "axios";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import Triage from "./Triage";
+import CPPT from "./CPPT";
 
 
 export default function EditResumeMedis() {
@@ -251,7 +254,6 @@ export default function EditResumeMedis() {
     const [gelarDepanDokter, setGelarDepanDokter] = useState<string | null>(null);
     const [gelarBelakangDokter, setGelarBelakangDokter] = useState<string | null>(null);
     const [namaDokter, setNamaDokter] = useState<string | null>(null);
-    const [gabungTagihan, setGabungTagihan] = useState<[]>(false);
     const [nomorKunjungan, setNomorKunjungan] = useState<string | null>(null);
     const [terapiPulang, setTerapiPulang] = useState<{ namaObat: string; jumlah: string; frekuensi: string; caraPemberian: string }[]>([]);
 
@@ -283,7 +285,6 @@ export default function EditResumeMedis() {
         keadaan_pulang: keadaanPulang || null,
         cara_pulang: caraPulang || null,
         dokter: gelarDepanDokter + " " + namaDokter + " " + gelarBelakangDokter || null,
-        // tanda_tangan_pasien: signatureData || null,
         permintaan_konsul: permintaanKonsul || null,
         terapi_pulang: terapiPulang || null,
         instruksi_tindak_lanjut: {
@@ -378,143 +379,34 @@ export default function EditResumeMedis() {
         setTerapiPulang(updatedTerapi);
     };
 
-    const [showSignaturePad, setShowSignaturePad] = useState(false); // State untuk menampilkan pad tanda tangan
-    const [signatureData, setSignatureData] = useState<string | null>(null); // State untuk menyimpan tanda tangan
+    //State untuk dokumen lainnya
+    const [dokumenPengkajianAwal, setDokumenPengkajianAwal] = useState<any>(false);
+    const [dokumenTriage, setDokumenTriage] = useState<any>(false);
+    const [dokumenCPPT, setDokumenCPPT] = useState<any>(false);
 
-    const handleClearSignature = (sigCanvas: SignatureCanvas) => {
-        sigCanvas.clear();
-        setSignatureData(null);
+    const handleTriageChange = (data: any) => {
+        setDokumenTriage(data);
     };
 
-    const handleSaveSignature = (sigCanvas: SignatureCanvas) => {
-        const dataURL = sigCanvas.toDataURL(); // Simpan tanda tangan sebagai data URL
-        setSignatureData(dataURL);
-        setShowSignaturePad(false); // Sembunyikan pad tanda tangan setelah disimpan
-        toast.success("Tanda tangan berhasil disimpan.");
+    const handlePengkajianAwalChange = (data: any) => {
+        setDokumenPengkajianAwal(data);
     };
 
-    const handleLoadAll = () => {
-        // Ambil data asli dari penjamin.kunjungan_pasien
-        let kunjunganPasienArr = [];
-        if (Array.isArray(dataKlaim.penjamin?.kunjungan_pasien)) {
-            kunjunganPasienArr = dataKlaim.penjamin.kunjungan_pasien;
-        } else if (dataKlaim.penjamin?.kunjungan_pasien) {
-            kunjunganPasienArr = [dataKlaim.penjamin.kunjungan_pasien];
-        }
-
-        console.log("Kunjungan Pasien Array:", dataKlaim);
-
-        // Cari kunjungan dengan JENIS_KUNJUNGAN 1, 3, atau 17
-        const k = kunjunganPasienArr.find(
-            (item: any) =>
-                item?.ruangan &&
-                [1, 3, 17].includes(Number(item.ruangan.JENIS_KUNJUNGAN))
-        );
-
-        if (!k) {
-            toast.error("Data kunjungan tidak ditemukan.");
-            return;
-        }
-
-        setNamaPasien(k.pendaftaran_pasien?.pasien?.NAMA ?? "");
-        setNoRM(k.pendaftaran_pasien?.pasien?.NORM ?? "");
-        setTanggalLahir(k.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? "");
-        setJenisKelamin(k.pendaftaran_pasien?.pasien?.JENIS_KELAMIN ?? null);
-        setRuangRawat(k.ruangan?.DESKRIPSI ?? "");
-        setIndikasiRawatInap(k.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? "");
-        setPenjamin(k.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? "");
-        setTanggalMasuk(k.pendaftaran_pasien?.TANGGAL ?? "");
-        setTanggalKeluar(k.KELUAR ?? "");
-        setLamaDirawat(handleLamaDirawat(k.pendaftaran_pasien?.TANGGAL, k.KELUAR));
-        setRiwayatPenyakitSekarang(k.anamnesis_pasien?.DESKRIPSI ?? "");
-        setRiwayatPenyakitLalu(k.rpp?.DESKRIPSI ?? "");
-        setPemeriksaanFisik(k.pemeriksaan_fisik?.DESKRIPSI ?? "");
-        setDiagnosaUtama(
-            Array.isArray(k.diagnosa_pasien)
-                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 1).map((d: any) => d.DIAGNOSA).join(", ")
-                : ""
-        );
-        setIcd10(
-            Array.isArray(k.diagnosa_pasien)
-                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 1).map((d: any) => d.KODE).join(", ")
-                : ""
-        );
-        setDiagnosaSekunder(
-            Array.isArray(k.diagnosa_pasien)
-                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 2).map((d: any) => d.DIAGNOSA).join(", ")
-                : ""
-        );
-        setIcd10Sekunder(
-            Array.isArray(k.diagnosa_pasien)
-                ? k.diagnosa_pasien.filter((d: any) => d.UTAMA === 2).map((d: any) => d.KODE).join(", ")
-                : ""
-        );
-        setTindakanProsedur(
-            Array.isArray(k.prosedur_pasien)
-                ? k.prosedur_pasien.map((p: any) => p.TINDAKAN).join(", ")
-                : ""
-        );
-        setIcd9(
-            Array.isArray(k.prosedur_pasien)
-                ? k.prosedur_pasien.map((p: any) => p.KODE).join(", ")
-                : ""
-        );
-        setTindakanProsedurSekunder(
-            Array.isArray(k.prosedur_pasien)
-                ? k.prosedur_pasien.filter((p: any) => p.UTAMA === 2).map((p: any) => p.TINDAKAN).join(", ")
-                : ""
-        );
-        setIcd9Sekunder(
-            Array.isArray(k.prosedur_pasien)
-                ? k.prosedur_pasien.filter((p: any) => p.UTAMA === 2).map((p: any) => p.KODE).join(", ")
-                : ""
-        );
-        setRiwayatAlergi(
-            Array.isArray(k.riwayat_alergi)
-                ? k.riwayat_alergi.map((a: any) => a.DESKRIPSI).join(", ")
-                : ""
-        );
-        setKeadaanPulang(k.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? "");
-        setCaraPulang(k.pasien_pulang?.cara_pulang?.DESKRIPSI ?? "");
-        setPoliTujuan(k.jadwal_kontrol?.ruangan?.DESKRIPSI ?? "");
-        setTanggalKontrol(k.jadwal_kontrol?.TANGGAL ?? "");
-        setJamKontrol(k.jadwal_kontrol?.JAM ?? "");
-        setNoSuratBPJS(k.jadwal_kontrol?.NOMOR_REFERENSI ?? "");
-        setPermintaanKonsul(
-            Array.isArray(k.permintaan_konsul)
-                ? k.permintaan_konsul.map((item: any) => ({
-                    permintaan: item.PERMINTAAN_TINDAKAN || "",
-                    jawaban: item.jawaban_konsul?.JAWABAN || "",
-                }))
-                : []
-        );
-        setTerapiPulang(
-            Array.isArray(k.order_resep)
-                ? k.order_resep
-                    .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
-                    .flatMap((resep: any) =>
-                        Array.isArray(resep.order_resep_detil)
-                            ? resep.order_resep_detil.map((detil: any) => ({
-                                namaObat: detil.nama_obat?.NAMA || "",
-                                jumlah: detil.JUMLAH || "",
-                                frekuensi: detil.frekuensi_obat?.FREKUENSI || "",
-                                caraPemberian: detil.cara_pakai?.DESKRIPSI || "",
-                            }))
-                            : []
-                    )
-                : []
-        );
-        setGelarDepanDokter(k.dokter_d_p_j_p?.GELAR_DEPAN + "." || "");
-        setGelarBelakangDokter(k.dokter_d_p_j_p?.GELAR_BELAKANG || "");
-        setNamaDokter(k.dokter_d_p_j_p?.NAMA || "");
-
-        toast.success("Data kunjungan pasien berhasil dimuat dari sumber asli.");
-    };
-
+    const handleCPPTChange = (data: any) => {
+        setDokumenCPPT(data);
+    }
 
     const handleSave = async () => {
         try {
-            const response = await axios.post(route("eklaim.editData.storeResumeMedis"), { jenisSave: dataKlaim.edit, resumeMedis: dataResumeMedis }, { headers: { 'Content-Type': 'application/json' } });
+            const response = await axios.post(route("eklaim.editData.storeResumeMedis"),
+                {
+                    jenisSave: dataKlaim.edit,
+                    resumeMedis: dataResumeMedis,
+                    pengkajianAwal: dokumenPengkajianAwal,
+                    triage: dokumenTriage,
+                    cppt: dokumenCPPT,
+
+                }, { headers: { 'Content-Type': 'application/json' } });
             if (response.data.success) {
                 toast.success(response.data.success);
                 window.location.reload(); // Reload halaman setelah sukses
@@ -533,11 +425,12 @@ export default function EditResumeMedis() {
         }
     };
 
+    console.log(dataResumeMedis);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Resume Medis" />
             <div className="p-4">
-                {/* Konten lainnya */}
                 <div>
                     {filteredKunjungan.length === 0 ? (
                         <div className="text-gray-500">Tidak ada data kunjungan dengan JENIS_KUNJUNGAN 1, 3, atau 17.</div>
@@ -669,6 +562,8 @@ export default function EditResumeMedis() {
                                                             : jenisKelamin}
                                                 </td>
                                             </tr>
+
+                                            {/* Administrasi Pasien */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -807,6 +702,7 @@ export default function EditResumeMedis() {
                                                     {ruangRawat || "Tidak ada Ruang Rawat"}
                                                 </td>
                                             </tr>
+
                                             <tr>
                                                 <td
                                                     colSpan={4}
@@ -837,6 +733,8 @@ export default function EditResumeMedis() {
                                                     {indikasiRawatInap || "Tidak ada Indikasi Rawat Inap"}
                                                 </td>
                                             </tr>
+
+                                            {/* Riwayat Penyakit */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -879,6 +777,8 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Pemeriksaan Fisik */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -912,6 +812,8 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Konsultasi */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -989,6 +891,8 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Diagnosa */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -1254,6 +1158,8 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Riwayat Alergi */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -1288,6 +1194,8 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Pasien Pulang */}
                                             <tr>
                                                 <td
                                                     colSpan={2}
@@ -1356,6 +1264,8 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Terapi Pulang */}
                                             <tr>
                                                 <td
                                                     colSpan={8}
@@ -1553,6 +1463,8 @@ export default function EditResumeMedis() {
                                                     </td>
                                                 </tr>
                                             ))}
+
+                                            {/* Intruksi Tidak Lanjut */}
                                             <tr>
                                                 <td colSpan={2}
                                                     style={{
@@ -1587,47 +1499,183 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Tambahan Dokumen Lainnya */}
+                                            <tr
+                                                style={{
+                                                    verticalAlign: "middle",
+                                                    height: 70,
+                                                    width: "20%",
+                                                    border: "1px solid #000",
+                                                    paddingLeft: 5,
+                                                    paddingRight: 5,
+                                                }}>
+                                                <td
+                                                    colSpan={8}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        textAlign: "center",
+                                                        height: 70,
+                                                        width: "20%",
+                                                        border: "1px solid #000",
+                                                        paddingLeft: 5,
+                                                        paddingRight: 5,
+                                                    }}
+                                                >
+                                                    <strong>Tambahan Dokumen Lainnya</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td
+                                                    colSpan={6}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: 70,
+                                                        border: "1px solid #000",
+                                                    }}
+                                                >
+                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                        Pengkajian Awal
+                                                    </div>
+                                                </td>
+                                                <td
+                                                    colSpan={2}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: 70,
+                                                        border: "1px solid #000",
+                                                    }}
+                                                >
+                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                        <Checkbox
+                                                            className="h-8 w-8"
+                                                            checked={dokumenPengkajianAwal}
+                                                            onCheckedChange={(checked) => setDokumenPengkajianAwal(checked)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td
+                                                    colSpan={6}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: 70,
+                                                        border: "1px solid #000",
+                                                    }}
+                                                >
+                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                        Triage
+                                                    </div>
+                                                </td>
+                                                <td
+                                                    colSpan={2}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: 70,
+                                                        border: "1px solid #000",
+                                                    }}
+                                                >
+                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                        <Checkbox
+                                                            className="h-8 w-8"
+                                                            checked={dokumenTriage}
+                                                            onCheckedChange={(checked) => setDokumenTriage(checked)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td
+                                                    colSpan={6}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: 70,
+                                                        border: "1px solid #000",
+                                                    }}
+                                                >
+                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                        CPPT
+                                                    </div>
+                                                </td>
+                                                <td
+                                                    colSpan={2}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: 70,
+                                                        border: "1px solid #000",
+                                                    }}
+                                                >
+                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                        <Checkbox
+                                                            className="h-8 w-8"
+                                                            checked={dokumenCPPT}
+                                                            onCheckedChange={(checked) => setDokumenCPPT(checked)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+
                                         </tbody>
                                     </table>
 
-                                    <div className="mt-[-1px] flex justify-center items-center h-full border border-black p-4">
-                                        <div className="text-center mx-4 flex-1">
-                                            <br />
-                                            <strong>Keluarga Pasien</strong>
-                                            <br />
-                                            {/* Tampilkan tanda tangan jika ada */}
-                                            {signatureData && (
-                                                <div className="">
-                                                    <img src={signatureData} alt="Tanda Tangan" className="" />
-                                                </div>
-                                            )}
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowSignaturePad(true)} // Tampilkan pad tanda tangan
-                                                className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                            >
-                                                Tanda Tangan
-                                            </Button>
-
-                                        </div>
-                                        <div className="ml-100 flex-1">
-                                            <strong>Bojonegoro, </strong> {formatTanggalIndo(tanggalKeluar)}
-                                            <br />
-                                            <strong>DPJP Pelayanan</strong>
-                                            <div className="m-4">
-                                                <QRCodeSVG
-                                                    value={(gelarDepanDokter ? gelarDepanDokter + "." : "") + namaDokter + (gelarBelakangDokter ? " " + gelarBelakangDokter : "")}
-                                                    size={128}
-                                                    bgColor={"#ffffff"}
-                                                    fgColor={"#000000"}
-                                                    level={"L"}
+                                    {
+                                        dokumenPengkajianAwal && (
+                                            <div>
+                                                <PengkajianAwal
+                                                    imageBase64={imageBase64}
+                                                    onChange={handlePengkajianAwalChange}
+                                                    nomorKunjungan={nomorKunjungan}
                                                 />
                                             </div>
-                                            <strong>{(gelarDepanDokter ? gelarDepanDokter + "." : "") + namaDokter + (gelarBelakangDokter ? " " + gelarBelakangDokter : "")}</strong>
+                                        )
+                                    }
+
+                                    {
+                                        dokumenTriage && (
+                                            <div>
+                                                <Triage
+                                                    imageBase64={imageBase64}
+                                                    onChange={handleTriageChange}
+                                                    nomorKunjungan={nomorKunjungan}
+                                                // nomorKunjungan={nomorKunjungan}
+                                                // dataResumeMedis={dataResumeMedis}
+                                                />
+                                            </div>
+                                        )
+                                    }
+
+                                    {
+                                        dokumenCPPT && (
+                                            <div>
+                                                <CPPT
+                                                    imageBase64={imageBase64}
+                                                    onChange={handleCPPTChange}
+                                                    nomorKunjungan={k.NOMOR}
+                                                // nomorKunjungan={nomorKunjungan}
+                                                // dataResumeMedis={dataResumeMedis}
+                                                />
+                                            </div>
+                                        )
+                                    }
+
+                                    <div>
+                                        <div className="flex justify-end mt-4">
+                                            <Button
+                                                type="submit"
+                                                variant="outline"
+                                                onClick={handleSave}
+                                                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                                            >
+                                                Simpan
+                                            </Button>
                                         </div>
                                     </div>
 
-                                    {
+
+                                    {/* {
                                         gabungTagihan != null ? (
                                             <PengkajianAwal
                                                 imageBase64={imageBase64}
@@ -1648,47 +1696,14 @@ export default function EditResumeMedis() {
                                                 </div>
                                             </div>
                                         )
-                                    }
+                                    } */}
                                 </>
                             ))}
                         </ul>
 
                     )}
                 </div >
-
             </div>
-
-            {showSignaturePad && (
-                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-4 rounded-md shadow-md">
-                        <SignatureCanvas
-                            penColor="black"
-                            canvasProps={{
-                                width: 500,
-                                height: 200,
-                                className: "border border-gray-300 rounded-md",
-                            }}
-                            ref={(ref) => (window.sigCanvas = ref)}
-                        />
-                        <div className="flex justify-between mt-4">
-                            <Button
-                                variant="outline"
-                                onClick={() => handleClearSignature(window.sigCanvas)}
-                                className="border border-gray-300 rounded-md p-2 bg-red-500 text-white hover:bg-red-600"
-                            >
-                                Clear
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => handleSaveSignature(window.sigCanvas)}
-                                className="border border-gray-300 rounded-md p-2 bg-green-500 text-white hover:bg-green-600"
-                            >
-                                Save
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </AppLayout >
     )
 }
