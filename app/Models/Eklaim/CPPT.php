@@ -11,6 +11,7 @@ class CPPT extends Model
     protected $table = 'cppt';
 
     protected $fillable = [
+        'resume_medis_id',
         'nomor_kunjungan',
         'tanggal_jam',
         'profesi',

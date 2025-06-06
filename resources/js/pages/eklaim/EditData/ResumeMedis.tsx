@@ -23,14 +23,20 @@ import CPPT from "./CPPT";
 export default function EditResumeMedis() {
     const imageBase64 = usePage().props.imageBase64;
 
+    // Hapus editMode dan resume_medis_edit, gunakan hanya data asli
+
     const [dataKlaim, setDataKlaim] = useState(usePage().props.pengajuanKlaim);
-    const [editMode, setEditMode] = useState(dataKlaim.edit);
 
     // Ambil kunjungan_pasien dari penjamin, handle jika array/object/undefined
     const filteredKunjungan = (() => {
-        if (editMode === 1 && dataKlaim.resume_medis_edit) {
-            return [dataKlaim.resume_medis_edit];
-        } else if (editMode === 0 && dataKlaim.penjamin) {
+        // Jika mode edit, ambil dari data edit
+        if (dataKlaim.edit === 1 && dataKlaim.resume_medis) {
+            return Array.isArray(dataKlaim.resume_medis)
+                ? dataKlaim.resume_medis
+                : [dataKlaim.resume_medis];
+        }
+        // Jika bukan edit, ambil dari data asli
+        if (dataKlaim.penjamin) {
             const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
                 ? dataKlaim.penjamin.kunjungan_pasien
                 : dataKlaim.penjamin.kunjungan_pasien
@@ -46,150 +52,154 @@ export default function EditResumeMedis() {
     })();
 
     useEffect(() => {
-        // filteredKunjungan selalu hasil dari dataKlaim, tidak pernah berubah akibat setState di bawah
-        const k = (() => {
-            if (editMode === 1 && dataKlaim.resume_medis_edit) {
-                return dataKlaim.resume_medis_edit;
-            } else if (editMode === 0 && dataKlaim.penjamin) {
-                const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
-                    ? dataKlaim.penjamin.kunjungan_pasien
-                    : dataKlaim.penjamin.kunjungan_pasien
-                        ? [dataKlaim.penjamin.kunjungan_pasien]
-                        : [];
-                return kunjunganPasienArr.find(
-                    (k: any) =>
-                        k?.ruangan &&
-                        [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
-                );
-            }
-            return null;
-        })();
+        let sumberData: any = null;
 
-        if (!k) return;
-
-        if (editMode === 1 && dataKlaim.resume_medis_edit) {
-            const d = filteredKunjungan[0];
-            // console.log("Data Resume Medis Edit:", d);
-            setNamaPasien(d.nama_pasien ?? "");
-            setNomorKunjungan(d.pengkajian_awal_edit?.nomor_kunjungan ?? "");
-            setNoRM(d.NORM ?? "");
-            setTanggalLahir(d.tanggal_lahir ?? "");
-            setJenisKelamin(d.jenis_kelamin ?? "");
-            setRuangRawat(d.ruang_rawat ?? "");
-            setIndikasiRawatInap(d.indikasi_rawat_inap ?? "");
-            setPenjamin(d.penjamin ?? "");
-            setTanggalMasuk(d.tanggal_masuk ?? "");
-            setTanggalKeluar(d.tanggal_keluar ?? "");
-            setLamaDirawat(handleLamaDirawat(d.tanggal_masuk, d.tanggal_keluar));
-            setRiwayatPenyakitSekarang(d.riwayat_penyakit_sekarang ?? "");
-            setRiwayatPenyakitLalu(d.riwayat_penyakit_dulu ?? "");
-            setPemeriksaanFisik(d.pemeriksaan_fisik ?? "");
-            setPermintaanKonsul(
-                Array.isArray(d.konsultasi_edit)
-                    ? d.konsultasi_edit.map((item: any) => ({
-                        permintaan: item.pertanyaan || "",
-                        jawaban: item.jawaban || "",
-                    }))
-                    : []
+        if (dataKlaim.edit === 1 && dataKlaim.resume_medis) {
+            // Jika array, ambil elemen pertama; jika object, langsung pakai
+            sumberData = Array.isArray(dataKlaim.resume_medis)
+                ? dataKlaim.resume_medis[0]
+                : dataKlaim.resume_medis;
+        } else if (dataKlaim.penjamin) {
+            const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
+                ? dataKlaim.penjamin.kunjungan_pasien
+                : dataKlaim.penjamin.kunjungan_pasien
+                    ? [dataKlaim.penjamin.kunjungan_pasien]
+                    : [];
+            sumberData = kunjunganPasienArr.find(
+                (k: any) =>
+                    k?.ruangan &&
+                    [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
             );
-            setTerapiPulang(
-                Array.isArray(d.terapi_pulang_edit)
-                    ? d.terapi_pulang_edit.map((item: any) => ({
-                        namaObat: item.nama_obat || "",
-                        jumlah: item.jumlah || "",
-                        frekuensi: item.frekuensi || "",
-                        caraPemberian: item.cara_pemakaian || "",
-                    }))
-                    : []
-            );
-            setDiagnosaUtama(d.diagnosa_utama ?? "");
-            setIcd10(d.icd10_utama ?? "");
-            setTindakanProsedur(d.prosedur_utama ?? "");
-            setIcd9(d.icd9_utama ?? "");
-            setDiagnosaSekunder(d.diagnosa_sekunder ?? "");
-            setIcd10Sekunder(d.icd10_sekunder ?? "");
-            setTindakanProsedurSekunder(d.prosedur_sekunder ?? "");
-            setIcd9Sekunder(d.icd9_sekunder ?? "");
-            setRiwayatAlergi(d.riwayat_alergi ?? "");
-            setKeadaanPulang(d.keadaan_pulang ?? "");
-            setCaraPulang(d.cara_pulang ?? "");
-            setPoliTujuan(d.intruksi_tindak_lanjut_edit.poli_tujuan ?? "");
-            setTanggalKontrol(d.intruksi_tindak_lanjut_edit.tanggal ?? "");
-            setJamKontrol(d.intruksi_tindak_lanjut_edit.jam ?? "");
-            setNoSuratBPJS(d.intruksi_tindak_lanjut_edit.nomor_bpjs ?? "");
-            setNamaDokter(d.dokter ?? "");
-            setIdResumeMedis(d.id ?? null);
         }
-        // Jika dari kunjungan pasien
-        else if (
-            editMode === 0 &&
-            dataKlaim.penjamin &&
-            (Array.isArray(dataKlaim.penjamin.kunjungan_pasien) || dataKlaim.penjamin.kunjungan_pasien)
-        ) {
-            const k = filteredKunjungan[0];
-            setIdResumeMedis(null);
-            setNamaPasien(k.pendaftaran_pasien?.pasien?.NAMA ?? "");
-            setNomorKunjungan(dataKlaim.penjamin.kunjungan_pasien?.[0]
-                ?.gabung_tagihan?.kunjungan_pasien
-                ?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2)
-                ?.NOMOR);
-            setNoRM(k.pendaftaran_pasien?.pasien?.NORM ?? "");
-            setTanggalLahir(k.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? "");
-            setJenisKelamin(k.pendaftaran_pasien?.pasien?.JENIS_KELAMIN ?? null);
-            setRuangRawat(k.ruangan?.DESKRIPSI ?? "");
-            setIndikasiRawatInap(k.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? "");
-            setPenjamin(k.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? "");
-            setTanggalMasuk(k.pendaftaran_pasien?.TANGGAL ?? "");
-            setTanggalKeluar(k.KELUAR ?? "");
-            setLamaDirawat(handleLamaDirawat(k.pendaftaran_pasien?.TANGGAL, k.KELUAR));
-            setRiwayatPenyakitSekarang(k.anamnesis_pasien?.DESKRIPSI ?? "");
-            setRiwayatPenyakitLalu(k.rpp?.DESKRIPSI ?? "");
-            setPemeriksaanFisik(k.pemeriksaan_fisik?.DESKRIPSI ?? "");
-            setDiagnosaUtama(k.diagnosa_pasien?.find((d: any) => d.UTAMA === 1)?.DIAGNOSA ?? "");
-            setIcd10(k.diagnosa_pasien?.find((d: any) => d.UTAMA === 1)?.KODE ?? "");
-            setTindakanProsedur(k.prosedur_pasien?.map((p: any) => p.TINDAKAN).join(", ") ?? "");
-            setIcd9(k.prosedur_pasien?.map((p: any) => p.KODE).join(", ") ?? "");
-            setDiagnosaSekunder(k.diagnosa_pasien?.filter((d: any) => d.UTAMA === 2).map((d: any) => d.DIAGNOSA).join(", ") ?? "");
-            setIcd10Sekunder(k.diagnosa_pasien?.filter((d: any) => d.UTAMA === 2).map((d: any) => d.KODE).join(", ") ?? "");
-            setTindakanProsedurSekunder(k.prosedur_pasien?.filter((p: any) => p.UTAMA === 2).map((p: any) => p.TINDAKAN).join(", ") ?? "");
-            setIcd9Sekunder(k.prosedur_pasien?.filter((p: any) => p.UTAMA === 2).map((p: any) => p.KODE).join(", ") ?? "");
-            setRiwayatAlergi(k.riwayat_alergi?.map((a: any) => a.DESKRIPSI).join(", ") ?? "");
-            setKeadaanPulang(k.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? "");
-            setCaraPulang(k.pasien_pulang?.cara_pulang?.DESKRIPSI ?? "");
-            setPoliTujuan(k.jadwal_kontrol?.ruangan.DESKRIPSI ?? "");
-            setTanggalKontrol(k.jadwal_kontrol?.TANGGAL ?? "");
-            setJamKontrol(k.jadwal_kontrol?.JAM ?? "");
-            setNoSuratBPJS(k.jadwal_kontrol?.NOMOR_REFERENSI ?? "");
-            setPermintaanKonsul(
-                Array.isArray(k.permintaan_konsul)
-                    ? k.permintaan_konsul.map((item: any) => ({
-                        permintaan: item.PERMINTAAN_TINDAKAN || "",
-                        jawaban: item.jawaban_konsul?.JAWABAN || "",
-                    }))
-                    : []
-            );
-            setTerapiPulang(
-                Array.isArray(k.order_resep)
-                    ? k.order_resep
+
+        if (dataKlaim.edit === 1) {
+            setNomorKunjungan(sumberData.pengkajian_awal.nomor_kunjungan)
+            setNomorKunjunganPendaftaran(sumberData.nomor_kunjungan);
+        } else {
+            // Jika bukan mode edit, ambil nomor_kunjungan dari sumberData
+            setNomorKunjunganPendaftaran(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).NOMOR);
+            setNomorKunjungan(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).gabung_tagihan.kunjungan_pasien.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2 ).NOMOR);
+        }
+
+        if (!sumberData) return;
+        setIdResumeMedis(sumberData.id_resume_medis ?? null);
+        setNamaPasien(sumberData.nama_pasien ?? sumberData.pendaftaran_pasien?.pasien?.NAMA ?? "");
+        setNoRM(sumberData.no_rm ?? sumberData.pendaftaran_pasien?.pasien?.NORM ?? "");
+        setTanggalLahir(sumberData.tanggal_lahir ?? sumberData.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? "");
+        setJenisKelamin(sumberData.jenis_kelamin ?? sumberData.pendaftaran_pasien?.pasien?.JENIS_KELAMIN ?? null);
+        setRuangRawat(sumberData.ruang_rawat ?? sumberData.ruangan?.DESKRIPSI ?? "");
+        setIndikasiRawatInap(sumberData.indikasi_rawat_inap ?? sumberData.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? "");
+        setPenjamin(sumberData.penjamin ?? sumberData.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? "");
+        setTanggalMasuk(sumberData.tanggal_masuk ?? sumberData.pendaftaran_pasien?.TANGGAL ?? "");
+        setTanggalKeluar(sumberData.tanggal_keluar ?? sumberData.KELUAR ?? "");
+        setLamaDirawat(
+            sumberData.lama_dirawat ??
+            handleLamaDirawat(
+                sumberData.tanggal_masuk ?? sumberData.pendaftaran_pasien?.TANGGAL,
+                sumberData.tanggal_keluar ?? sumberData.KELUAR
+            )
+        );
+        setRiwayatPenyakitSekarang(sumberData.riwayat_penyakit_sekarang ?? sumberData.anamnesis_pasien?.DESKRIPSI ?? "");
+        setRiwayatPenyakitLalu(sumberData.riwayat_penyakit_lalu ?? sumberData.rpp?.DESKRIPSI ?? "");
+        setPemeriksaanFisik(sumberData.pemeriksaan_fisik.DESKRIPSI ?? sumberData.pemeriksaan_fisik ?? "");
+        setDiagnosaUtama(
+            sumberData.diagnosa_utama ??
+            sumberData.diagnosa_pasien?.find?.((d: any) => d.UTAMA === 1)?.DIAGNOSA ??
+            ""
+        );
+        setIcd10(
+            sumberData.icd10_utama ??
+            sumberData.diagnosa_pasien?.find?.((d: any) => d.UTAMA === 1)?.KODE ??
+            ""
+        );
+        setTindakanProsedur(
+            sumberData.tindakan_prosedur ??
+            sumberData.prosedur_pasien?.map?.((p: any) => p.TINDAKAN).join(", ") ??
+            ""
+        );
+        setIcd9(
+            sumberData.icd9_utama ??
+            sumberData.prosedur_pasien?.map?.((p: any) => p.KODE).join(", ") ??
+            ""
+        );
+        setDiagnosaSekunder(
+            sumberData.diagnosa_sekunder ??
+            sumberData.diagnosa_pasien?.filter?.((d: any) => d.UTAMA === 2).map((d: any) => d.DIAGNOSA).join(", ") ??
+            ""
+        );
+        setIcd10Sekunder(
+            sumberData.icd10_sekunder ??
+            sumberData.diagnosa_pasien?.filter?.((d: any) => d.UTAMA === 2).map((d: any) => d.KODE).join(", ") ??
+            ""
+        );
+        setTindakanProsedurSekunder(
+            sumberData.tindakan_prosedur_sekunder ??
+            sumberData.prosedur_pasien?.filter?.((p: any) => p.UTAMA === 2).map((p: any) => p.TINDAKAN).join(", ") ??
+            ""
+        );
+        setIcd9Sekunder(
+            sumberData.icd9_sekunder ??
+            sumberData.prosedur_pasien?.filter?.((p: any) => p.UTAMA === 2).map((p: any) => p.KODE).join(", ") ??
+            ""
+        );
+        setRiwayatAlergi(
+            sumberData.riwayat_alergi?.map?.((a: any) => a.DESKRIPSI).join(", ") ??
+            sumberData.riwayat_alergi ??
+            ""
+        );
+        setKeadaanPulang(sumberData.keadaan_pulang ?? sumberData.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? "");
+        setCaraPulang(sumberData.cara_pulang ?? sumberData.pasien_pulang?.cara_pulang?.DESKRIPSI ?? "");
+        setPoliTujuan(sumberData.intruksi_tindak_lanjut?.poli_tujuan ?? sumberData.jadwal_kontrol?.ruangan?.DESKRIPSI ?? "");
+        setTanggalKontrol(sumberData.intruksi_tindak_lanjut?.tanggal ?? sumberData.jadwal_kontrol?.TANGGAL ?? "");
+        setJamKontrol(sumberData.intruksi_tindak_lanjut?.jam ?? sumberData.jadwal_kontrol?.JAM ?? "");
+        setNoSuratBPJS(sumberData.intruksi_tindak_lanjut?.nomor_bpjs ?? sumberData.jadwal_kontrol?.NOMOR_REFERENSI ?? "");
+
+        setPermintaanKonsul(
+            Array.isArray(sumberData.permintaan_konsul)
+                ? sumberData.permintaan_konsul.map((item: any) => ({
+                    permintaan: item.PERMINTAAN_TINDAKAN || item.pertanyaan || "",
+                    jawaban: item.jawaban_konsul?.JAWABAN || item.jawaban || "",
+                }))
+                : []
+        );
+        setTerapiPulang(
+            Array.isArray(sumberData.terapi_pulang)
+                ? sumberData.terapi_pulang.map((detil: any) => ({
+                    namaObat: detil.nama_obat || "",
+                    jumlah: detil.jumlah || "",
+                    frekuensi: detil.frekuensi || "",
+                    caraPemberian: detil.cara_pemberian || "",
+                }))
+                : Array.isArray(sumberData.order_resep)
+                    ? sumberData.order_resep
                         .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
                         .flatMap((resep: any) =>
                             Array.isArray(resep.order_resep_detil)
                                 ? resep.order_resep_detil.map((detil: any) => ({
-                                    namaObat: detil.nama_obat?.NAMA || "",
-                                    jumlah: detil.JUMLAH || "",
-                                    frekuensi: detil.frekuensi_obat?.FREKUENSI || "",
-                                    caraPemberian: detil.cara_pakai?.DESKRIPSI || "",
+                                    namaObat: detil.namaObat || detil.nama_obat?.NAMA || detil.NAMA || "",
+                                    jumlah: detil.jumlah || detil.JUMLAH || "",
+                                    frekuensi: detil.frekuensi || detil.frekuensi_obat?.FREKUENSI || "",
+                                    caraPemberian: detil.caraPemberian || detil.cara_pakai?.DESKRIPSI || "",
                                 }))
                                 : []
                         )
                     : []
-            );
-            setGelarDepanDokter(k.dokter_d_p_j_p?.GELAR_DEPAN + "." || "");
-            setGelarBelakangDokter(k.dokter_d_p_j_p?.GELAR_BELAKANG || "");
-            setNamaDokter(k.dokter_d_p_j_p?.NAMA || "");
+        );
+        if (sumberData.dokter) {
+            // Data edit: nama_dokter sudah satu string
+            setNamaDokter(sumberData.dokter);
+            setGelarDepanDokter(""); // Kosongkan agar tidak double
+            setGelarBelakangDokter("");
+        } else {
+            // Data asli: field terpisah
+            setNamaDokter(sumberData.dokter_d_p_j_p?.NAMA || "");
+            setGelarDepanDokter(sumberData.dokter_d_p_j_p?.GELAR_DEPAN ? sumberData.dokter_d_p_j_p.GELAR_DEPAN + "." : "");
+            setGelarBelakangDokter(sumberData.dokter_d_p_j_p?.GELAR_BELAKANG || "");
         }
-
-    }, [editMode, dataKlaim]);
+        setDokumenPengkajianAwalLoaded(dataKlaim.pengkajian_awal || false);
+        setDokumenTriageLoaded(dataKlaim.triage || false);
+        setDokumenCPPTLoaded(dataKlaim.cppt || false);
+    }, [dataKlaim]);
 
     function formatTanggalIndo(tgl: string) {
         if (!tgl) return "-";
@@ -254,10 +264,15 @@ export default function EditResumeMedis() {
     const [gelarDepanDokter, setGelarDepanDokter] = useState<string | null>(null);
     const [gelarBelakangDokter, setGelarBelakangDokter] = useState<string | null>(null);
     const [namaDokter, setNamaDokter] = useState<string | null>(null);
+    const [nomorKunjunganPendaftaran, setNomorKunjunganPendaftaran] = useState<string | null>(null);
     const [nomorKunjungan, setNomorKunjungan] = useState<string | null>(null);
     const [terapiPulang, setTerapiPulang] = useState<{ namaObat: string; jumlah: string; frekuensi: string; caraPemberian: string }[]>([]);
+    const [dokumenPengkajianAwalLoaded, setDokumenPengkajianAwalLoaded] = useState<any>(false);
+    const [dokumenTriageLoaded, setDokumenTriageLoaded] = useState<any>(false);
+    const [dokumenCPPTLoaded, setDokumenCPPTLoaded] = useState<any>(false);
 
     const dataResumeMedis = {
+        nomor_kunjungan: nomorKunjunganPendaftaran || null,
         id_resume_medis: idResumeMedis || null,
         id_pengajuan_klaim: dataKlaim.id,
         nama_pasien: namaPasien || null,
@@ -292,7 +307,10 @@ export default function EditResumeMedis() {
             tanggal: tanggalKontrol || null,
             jam: jamKontrol || null,
             nomor_bpjs: noSuratBPJS || null,
-        }
+        },
+        lembar_pengkajian_awal: dokumenPengkajianAwalLoaded,
+        lembar_triage: dokumenTriageLoaded,
+        lembar_cppt: dokumenCPPTLoaded,
     };
 
     function handleLamaDirawat(tanggalMasuk: string | null | undefined, tanggalKeluar: string | null | undefined): string {
@@ -385,16 +403,16 @@ export default function EditResumeMedis() {
     const [dokumenCPPT, setDokumenCPPT] = useState<any>(false);
 
     const handleTriageChange = (data: any) => {
-        setDokumenTriage(data);
+        setDokumenTriage(data === false ? false : data);
     };
 
     const handlePengkajianAwalChange = (data: any) => {
-        setDokumenPengkajianAwal(data);
+        setDokumenPengkajianAwal(data === false ? false : data);
     };
 
     const handleCPPTChange = (data: any) => {
-        setDokumenCPPT(data);
-    }
+        setDokumenCPPT(data === false ? false : data);
+    };
 
     const handleSave = async () => {
         try {
@@ -424,8 +442,6 @@ export default function EditResumeMedis() {
             console.error("Error saving data:", error);
         }
     };
-
-    console.log(dataResumeMedis);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -469,13 +485,17 @@ export default function EditResumeMedis() {
                                                         </Label>
                                                         <Switch
                                                             id="mode-switch"
-                                                            checked={editMode === 1}
+                                                            checked={dataKlaim.edit === 1}
                                                             onCheckedChange={async (checked) => {
                                                                 try {
-                                                                    router.get(route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }), {}, {
-                                                                        preserveScroll: true,
-                                                                        preserveState: false,
-                                                                    });
+                                                                    await router.get(
+                                                                        route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }),
+                                                                        {},
+                                                                        {
+                                                                            preserveScroll: true,
+                                                                            preserveState: false,
+                                                                        }
+                                                                    );
                                                                 } catch (error) {
                                                                     toast.error("Gagal switch mode data.");
                                                                     console.error("Error switching mode:", error);
@@ -1549,9 +1569,11 @@ export default function EditResumeMedis() {
                                                     <div className="px-2 py-4 gap-2 text-center">
                                                         <Checkbox
                                                             className="h-8 w-8"
-                                                            checked={dokumenPengkajianAwal}
-                                                            onCheckedChange={(checked) => setDokumenPengkajianAwal(checked)}
-                                                        />
+                                                            checked={dokumenPengkajianAwalLoaded}
+                                                            onCheckedChange={(checked) => {
+                                                                setDokumenPengkajianAwalLoaded(checked);
+                                                                if (!checked) setDokumenPengkajianAwal(false);
+                                                            }} />
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1580,8 +1602,11 @@ export default function EditResumeMedis() {
                                                     <div className="px-2 py-4 gap-2 text-center">
                                                         <Checkbox
                                                             className="h-8 w-8"
-                                                            checked={dokumenTriage}
-                                                            onCheckedChange={(checked) => setDokumenTriage(checked)}
+                                                            checked={dokumenTriageLoaded}
+                                                            onCheckedChange={(checked) => {
+                                                                setDokumenTriageLoaded(checked);
+                                                                if (!checked) setDokumenTriage(false);
+                                                            }}
                                                         />
                                                     </div>
                                                 </td>
@@ -1611,8 +1636,11 @@ export default function EditResumeMedis() {
                                                     <div className="px-2 py-4 gap-2 text-center">
                                                         <Checkbox
                                                             className="h-8 w-8"
-                                                            checked={dokumenCPPT}
-                                                            onCheckedChange={(checked) => setDokumenCPPT(checked)}
+                                                            checked={dokumenCPPTLoaded}
+                                                            onCheckedChange={(checked) => {
+                                                                setDokumenCPPTLoaded(checked);
+                                                                if (!checked) setDokumenCPPT(false);
+                                                            }}
                                                         />
                                                     </div>
                                                 </td>
@@ -1622,40 +1650,39 @@ export default function EditResumeMedis() {
                                     </table>
 
                                     {
-                                        dokumenPengkajianAwal && (
+                                        dokumenPengkajianAwalLoaded && (
                                             <div>
                                                 <PengkajianAwal
                                                     imageBase64={imageBase64}
                                                     onChange={handlePengkajianAwalChange}
                                                     nomorKunjungan={nomorKunjungan}
+                                                    mode={dataKlaim.edit}
                                                 />
                                             </div>
                                         )
                                     }
 
                                     {
-                                        dokumenTriage && (
+                                        dokumenTriageLoaded && (
                                             <div>
                                                 <Triage
                                                     imageBase64={imageBase64}
                                                     onChange={handleTriageChange}
                                                     nomorKunjungan={nomorKunjungan}
-                                                // nomorKunjungan={nomorKunjungan}
-                                                // dataResumeMedis={dataResumeMedis}
+                                                    mode={dataKlaim.edit}
                                                 />
                                             </div>
                                         )
                                     }
 
                                     {
-                                        dokumenCPPT && (
+                                        dokumenCPPTLoaded && (
                                             <div>
                                                 <CPPT
                                                     imageBase64={imageBase64}
                                                     onChange={handleCPPTChange}
-                                                    nomorKunjungan={k.NOMOR}
-                                                // nomorKunjungan={nomorKunjungan}
-                                                // dataResumeMedis={dataResumeMedis}
+                                                    nomorKunjungan={nomorKunjunganPendaftaran}
+                                                    mode={dataKlaim.edit}
                                                 />
                                             </div>
                                         )

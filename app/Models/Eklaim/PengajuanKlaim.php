@@ -24,6 +24,9 @@ class PengajuanKlaim extends Model
         'request',
         'tanggal_pengajuan',
         'edit',
+        'pengkajian_awal',
+        'triage',
+        'cppt',
     ];
 
     public function penjamin()
@@ -31,8 +34,8 @@ class PengajuanKlaim extends Model
         return $this->hasOne(Penjamin::class, 'NOMOR', 'nomor_SEP');
     }
 
-    public function resumeMedisEdit()
+    public function resumeMedis()
     {
-        return $this->hasOne(ResumeMedisEdit::class, 'pengajuan_klaim', 'id');
+        return $this->hasOne(ResumeMedis::class, 'id_pengajuan_klaim', 'id');
     }
 }

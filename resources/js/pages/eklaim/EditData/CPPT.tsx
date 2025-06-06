@@ -8,12 +8,14 @@ interface CPPTProps {
     imageBase64: string;
     onChange?: (value: any) => void;
     nomorKunjungan?: string;
+    mode?: number; // Tambahkan tipe data yang sesuai jika ada
 }
 
 interface CPPTRow {
-    tanggalJam: string;
+    nomor_kunjungan?: string;
+    tanggal_jam: string;
     profesi: string;
-    namaPetugas: string;
+    nama_petugas: string;
     subyektif: string;
     obyektif: string;
     assesment: string;
@@ -21,13 +23,14 @@ interface CPPTRow {
     instruksi: string;
 }
 
-export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProps) {
+export default function CPPT({ imageBase64, onChange, nomorKunjungan, mode }: CPPTProps) {
     const [rows, setRows] = useState<CPPTRow[]>(
         [
             {
-                tanggalJam: "",
+                nomor_kunjungan: nomorKunjungan || "",
+                tanggal_jam: "",
                 profesi: "",
-                namaPetugas: "",
+                nama_petugas: "",
                 subyektif: "",
                 obyektif: "",
                 assesment: "",
@@ -36,7 +39,6 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
             },
         ]
     );
-
     function stripHtml(html: string) {
         // Hilangkan tag HTML
         let text = html.replace(/<[^>]*>?/gm, "");
@@ -46,32 +48,66 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
         return textarea.value;
     }
 
+    console.log("mode cppt:", mode);
+
     const handleLoadData = async () => {
         try {
-            const response = await axios.get(route('eklaim.getDataCPPT', { nomorKunjungan }));
-            const data = Array.isArray(response.data) && response.data.length > 0
-                ? response.data.map(item => ({
-                    tanggalJam: item.TANGGAL || "",
-                    profesi: item.petugas.pegawai.profesi.DESKRIPSI || "",
-                    namaPetugas: item.petugas.pegawai.NAMA || "",
-                    subyektif: stripHtml(item.SUBYEKTIF || ""),
-                    obyektif: stripHtml(item.OBYEKTIF || ""),
-                    assesment: stripHtml(item.ASSESMENT || ""),
-                    planning: stripHtml(item.PLANNING || ""),
-                    instruksi: stripHtml(item.INSTRUKSI || ""),
-                }))
-                : [{
-                    tanggalJam: "",
-                    profesi: "",
-                    namaPetugas: "",
-                    subyektif: "",
-                    obyektif: "",
-                    assesment: "",
-                    planning: "",
-                    instruksi: "",
-                }];
-            setRows(data);
-            if (onChange) onChange(data);
+
+            if (mode === 1) {
+                const response = await axios.get(route('eklaim.getDataCPPTEdit', { nomorKunjungan }));
+                const data = Array.isArray(response.data) && response.data.length > 0
+                    ? response.data.map(item => ({
+                        nomor_kunjungan: nomorKunjungan || "",
+                        tanggal_jam: item.tanggal_jam || "",
+                        profesi: item.profesi || "",
+                        nama_petugas: item.nama_petugas || "",
+                        subyektif: item.subyektif || "",
+                        obyektif: item.obyektif || "",
+                        assesment: item.assesment || "",
+                        planning: item.planning || "",
+                        instruksi: item.instruksi || "",
+                    }))
+                    : [{
+                        nomor_kunjungan: "",
+                        tanggal_jam: "",
+                        profesi: "",
+                        nama_petugas: "",
+                        subyektif: "",
+                        obyektif: "",
+                        assesment: "",
+                        planning: "",
+                        instruksi: "",
+                    }];
+                setRows(data);
+                if (onChange) onChange(data);
+            } else if (mode === 0) {
+                const response = await axios.get(route('eklaim.getDataCPPT', { nomorKunjungan }));
+                const data = Array.isArray(response.data) && response.data.length > 0
+                    ? response.data.map(item => ({
+                        nomor_kunjungan: nomorKunjungan || "",
+                        tanggal_jam: item.TANGGAL || "",
+                        profesi: item.petugas.pegawai.profesi.DESKRIPSI || "",
+                        nama_petugas: item.petugas.pegawai.NAMA || "",
+                        subyektif: stripHtml(item.SUBYEKTIF || ""),
+                        obyektif: stripHtml(item.OBYEKTIF || ""),
+                        assesment: stripHtml(item.ASSESMENT || ""),
+                        planning: stripHtml(item.PLANNING || ""),
+                        instruksi: stripHtml(item.INSTRUKSI || ""),
+                    }))
+                    : [{
+                        nomor_kunjungan: "",
+                        tanggal_jam: "",
+                        profesi: "",
+                        nama_petugas: "",
+                        subyektif: "",
+                        obyektif: "",
+                        assesment: "",
+                        planning: "",
+                        instruksi: "",
+                    }];
+                setRows(data);
+                if (onChange) onChange(data);
+            }
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -81,15 +117,27 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
     const handleChange = (idx: number, field: keyof CPPTRow, value: string) => {
         const newRows = [...rows];
         newRows[idx][field] = value;
+        // Pastikan nomor_kunjungan tetap terisi
+        newRows[idx].nomor_kunjungan = nomorKunjungan || "";
         setRows(newRows);
-        if (onChange) onChange(newRows); // <-- kirim array terbaru ke parent
+        if (onChange) onChange(newRows);
     };
 
     // Saat tambah/hapus baris
     const handleAddRow = () => {
         const newRows = [
             ...rows,
-            { tanggalJam: "", profesi: "", namaPetugas: "", subyektif: "", obyektif: "", assesment: "", planning: "", instruksi: "" },
+            {
+                nomor_kunjungan: nomorKunjungan || "",
+                tanggal_jam: "",
+                profesi: "",
+                nama_petugas: "",
+                subyektif: "",
+                obyektif: "",
+                assesment: "",
+                planning: "",
+                instruksi: "",
+            },
         ];
         setRows(newRows);
         if (onChange) onChange(newRows);
@@ -180,8 +228,8 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
                             <td colSpan={2} className="text-center border border-black p-2" style={{ width: "10%" }}>
                                 <Input
                                     type="datetime-local"
-                                    value={row.tanggalJam}
-                                    onChange={e => handleChange(idx, "tanggalJam", e.target.value)}
+                                    value={row.tanggal_jam}
+                                    onChange={e => handleChange(idx, "tanggal_jam", e.target.value)}
                                     placeholder="DD/MM/YYYY HH:MM"
                                     className="w-full"
                                 />
@@ -196,8 +244,8 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
                                 />
                                 <Input
                                     type="text"
-                                    value={row.namaPetugas}
-                                    onChange={e => handleChange(idx, "namaPetugas", e.target.value)}
+                                    value={row.nama_petugas}
+                                    onChange={e => handleChange(idx, "nama_petugas", e.target.value)}
                                     placeholder="Nama Petugas"
                                     className="w-full mt-1"
                                 />

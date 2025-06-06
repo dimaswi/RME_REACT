@@ -11,6 +11,7 @@ class Triage extends Model
     protected $table = 'triage';
 
     protected $fillable = [
+        'resume_medis_id',
         'nama_pasien',
         'tanggal_lahir',
         'no_rm',

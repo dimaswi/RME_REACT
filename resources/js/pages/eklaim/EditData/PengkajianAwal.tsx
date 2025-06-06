@@ -14,10 +14,11 @@ interface PengkajianAwalProps {
     imageBase64: string | null;
     nomorKunjungan: string | null;
     onChange?: (value: any) => void;
+    mode?: number;
 
 }
 
-export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }: PengkajianAwalProps) {
+export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, mode }: PengkajianAwalProps) {
 
     const { success, error } = usePage().props;
 
@@ -27,173 +28,281 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
     }, [success, error]);
 
     const handleLoadData = async () => {
+        console.log("mode pengkajian awal", mode);
         try {
-            const response = await axios.get(route('eklaim.getDataPengkajianAwal', { nomorKunjungan }));
-            const data = response.data;
-            const riwayatOrderObatPasien = data.order_resep?.map((item: any) => item.order_resep_detil)
-            const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
-                item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
-            ).join(", ") || "";
-            const diagnosaPasien = data.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
-            const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
+            if (mode == 0) {
+                const response = await axios.get(route('eklaim.getDataPengkajianAwal', { nomorKunjungan }));
+                const data = response.data;
+                const riwayatOrderObatPasien = data.order_resep?.map((item: any) => item.order_resep_detil)
+                const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
+                    item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
+                ).join(", ") || "";
+                const diagnosaPasien = data.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
+                const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
 
-            setNamaPasien(data.pendaftaran_pasien?.pasien.NAMA ?? "");
-            setAlamat(data.pendaftaran_pasien?.pasien.ALAMAT ?? "");
-            setTanggalMasuk(data?.MASUK ?? "");
-            setRuangan(data.ruangan.DESKRIPSI ?? "");
-            setNomorRM(data.pendaftaran_pasien?.pasien.NORM ?? "");
-            setTanggalLahir(data.pendaftaran_pasien?.pasien.TANGGAL_LAHIR ?? "");
-            setJenisKelamin(data.pendaftaran_pasien?.pasien.JENIS_KELAMIN == 1 ? "Laki-laki" : "Perempuan");
-            if (data.anamnesis_pasien_diperoleh?.AUTOANAMNESIS == 1) {
-                setAutoAnamnesis(true);
-                setAlloAnamnesis(false);
-            } else if (data.anamnesis_pasien_diperoleh?.ALLOANAMNESIS == 1) {
-                setAutoAnamnesis(false);
-                setAlloAnamnesis(true);
-            }
-            setDari(data.anamnesis_pasien_diperoleh?.DARI ?? "");
-            setKeluhanUtama(data.keluhan_utama?.DESKRIPSI ?? "");
-            setRiwayatPenyakit(data.anamnesis_pasien?.DESKRIPSI ?? "");
-            setFaktorResiko(data.rpp?.DESKRIPSI ?? "");
-            setRiwayatPengobatan(getNamaRiwayatObat);
-            setRiwayatPenyakitKeluarga(data.riwayat_penyakit_keluarga?.DESKRIPSI ?? "");
-            setKeadaanUmum(data.tanda_vital?.KEADAAN_UMUM ?? "");
-            setTingkatKesadaran(data.tanda_vital?.KESADARAN ?? "");
-            setGCS(data.tanda_vital?.GCS ?? "");
-            setEye(data.tanda_vital?.EYE ?? "");
-            setMotorik(data.tanda_vital?.MOTORIK ?? "");
-            setVerbal(data.tanda_vital?.VERBAL ?? "");
-            setTekananDarah(data.tanda_vital ? `${Math.ceil(data.tanda_vital.SISTOLIK)}/${Math.ceil(data.tanda_vital.DISTOLIK)}` : "");
-            setFrekuensiNadi(data.tanda_vital?.FREKUENSI_NADI ?? "");
-            setFrekuensiNafas(data.tanda_vital?.FREKUENSI_NAFAS ?? "");
-            setSuhu(data.tanda_vital?.SUHU ?? "");
-            setBeratBadan(data.tanda_vital?.BERAT_BADAN ?? "");
-            setSaturasiO2(data.tanda_vital?.SATURASI_O2 ?? "");
-            setRiwayatAlergi(riwayatAlergiPasien);
-            setMasalahMedis(data.anamnesis_pasien?.DESKRIPSI ?? "");
-            setDiagnosaKeperawatan(diagnosaPasien);
-            setRencanaTerapi(data.rencana_terapi?.DESKRIPSI ?? "");
-            setNamaDokter((data.dokter_d_p_j_p?.GELAR_DEPAN ? data.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + data.dokter_d_p_j_p?.NAMA + (data.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + data.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
-            setTanggalTandaTangan(formatTanggalIndo(data.MASUK) ?? "");
-            if (onChange) onChange([
-                {
-                    nomor_kunjungan: nomorKunjungan,
-                    ruangan,
-                    tanggal_masuk: tanggalMasuk,
-                    nama_pasien: namaPasien,
-                    alamat,
-                    nomor_rm: nomorRM,
-                    tanggal_lahir: tanggalLahir,
-                    anamnesis: {
-                        auto_anamnesis: autoAnamnesis,
-                        allo_anamnesis: alloAnamnesis,
-                        dari: dari,
-                        keluhan_utama: keluhanUtama,
-                        riwayat_penyakit_sekarang: riwayatPenyakit,
-                        riwayat_penyakit_lalu: faktorResiko,
-                        riwayat_pengobatan: riwayatPengobatan,
-                        riwayat_penyakit_keluarga: riwayatPenyakitKeluarga,
-                    },
-                    tanda_vital: {
-                        tingkat_kesadaran: tingkatKesadaran,
-                        keadaan_umum: keadaanUmum,
-                        gcs,
-                        eye,
-                        motorik,
-                        verbal,
-                        tekanan_darah: tekananDarah,
-                        frekuensi_nadi: frekuensiNadi,
-                        frekuensi_nafas: frekuensiNafas,
-                        suhu,
-                        berat_badan: beratBadan,
-                        saturasi_o2: saturasiO2,
-                    },
-                    pemeriksaan_fisik: {
-                        mata,
-                        ikterus,
-                        pupil,
-                        diameter_mata: diameterMata,
-                        udem_palpebrae: udemaPalpebrae,
-                        kelainan_mata: kelainanMata,
-                        tht,
-                        tongsil,
-                        faring,
-                        lidah,
-                        bibir,
-                        leher,
-                        jvp,
-                        limfe,
-                        kaku_kuduk: kakuKuduk,
-                        thoraks,
-                        cor,
-                        s1s2: s1S2,
-                        murmur: murMur,
-                        pulmo,
-                        suara_nafas: suaraNafas,
-                        ronchi,
-                        wheezing,
-                        abdomen,
-                        meteorismus,
-                        peristaltik,
-                        asites,
-                        nyeri_tekan: nyeriTekan,
-                        hepar,
-                        lien,
-                        extremitas,
-                        udem,
-                        defeksesi,
-                        urin,
-                        pemeriksaan_lain_lain: pemeriksaanLainLain,
-                    },
-                    status_psikososial: {
-                        status_psikologis: statusPsikologis,
-                        status_mental: statusMental,
-                        hubungan_keluarga: hubunganKeluarga,
-                        tempat_tinggal: tempatTinggal,
-                        agama,
-                        kebiasaan_beribadah: kebiasaanBeribadah,
-                        pekerjaan,
-                        penghasilan,
-                    },
-                    riwayat_alergi: riwayatAlergi,
-                    penilaian_nyeri: {
-                        nyeri,
-                        onset: onsetNyeri,
-                        pencetus: pencetusNyeri,
-                        lokasi: lokasiNyeri,
-                        gambaran: gambaranNyeri,
-                        durasi: durasiNyeri,
-                        skala: skalaNyeri,
-                        metode: metodeNyeri,
-                    },
-                    resiko_jatuh: {
-                        resiko: resikoJatuh,
-                        skor: skorResikoJatuh,
-                        metode: metodeResikoJatuh,
-                    },
-                    resiko_dekubitas: {
-                        resiko: resikoDekubitas,
-                        skor: skorResikoDekubitas,
-                    },
-                    resiko_gizi: {
-                        penurunan_berat_badan: penurunanBeratBadan,
-                        penurunan_asupan: penurunanAsupan,
-                        diagnosis_khusus: diagnosisKhusus,
-                    },
-                    edukasi_pasien: edukasiPasien,
-                    discharge_planning: {
-                        skrinning: skrinningDischargePlanning,
-                        faktor_resiko: faktorResikoDischargePlanning,
-                        tindak_lanjut: tindakLanjutDischargePlanning,
-                    },
-                    rencana_keperawatan: rencanaKeperawatan,
-                    diagnosa_keperawatan: diagnosaKeperawatan,
-                    masalah_medis: masalahMedis,
-                    rencana_terapi: rencanaTerapi,
-                    nama_dokter: namaDokter,
-                    tanggal_tanda_tangan: tanggalTandaTangan,
+                setNamaPasien(data.pendaftaran_pasien?.pasien.NAMA ?? "");
+                setAlamat(data.pendaftaran_pasien?.pasien.ALAMAT ?? "");
+                setTanggalMasuk(data?.MASUK ?? "");
+                setRuangan(data.ruangan.DESKRIPSI ?? "");
+                setNomorRM(data.pendaftaran_pasien?.pasien.NORM ?? "");
+                setTanggalLahir(data.pendaftaran_pasien?.pasien.TANGGAL_LAHIR ?? "");
+                setJenisKelamin(data.pendaftaran_pasien?.pasien.JENIS_KELAMIN == 1 ? "Laki-laki" : "Perempuan");
+                if (data.anamnesis_pasien_diperoleh?.AUTOANAMNESIS == 1) {
+                    setAutoAnamnesis(true);
+                    setAlloAnamnesis(false);
+                } else if (data.anamnesis_pasien_diperoleh?.ALLOANAMNESIS == 1) {
+                    setAutoAnamnesis(false);
+                    setAlloAnamnesis(true);
                 }
-            ]);
+                setDari(data.anamnesis_pasien_diperoleh?.DARI ?? "");
+                setKeluhanUtama(data.keluhan_utama?.DESKRIPSI ?? "");
+                setRiwayatPenyakit(data.anamnesis_pasien?.DESKRIPSI ?? "");
+                setFaktorResiko(data.rpp?.DESKRIPSI ?? "");
+                setRiwayatPengobatan(getNamaRiwayatObat);
+                setRiwayatPenyakitKeluarga(data.riwayat_penyakit_keluarga?.DESKRIPSI ?? "");
+                setKeadaanUmum(data.tanda_vital?.KEADAAN_UMUM ?? "");
+                setTingkatKesadaran(data.tanda_vital?.KESADARAN ?? "");
+                setGCS(data.tanda_vital?.GCS ?? "");
+                setEye(data.tanda_vital?.EYE ?? "");
+                setMotorik(data.tanda_vital?.MOTORIK ?? "");
+                setVerbal(data.tanda_vital?.VERBAL ?? "");
+                setTekananDarah(data.tanda_vital ? `${Math.ceil(data.tanda_vital.SISTOLIK)}/${Math.ceil(data.tanda_vital.DISTOLIK)}` : "");
+                setFrekuensiNadi(data.tanda_vital?.FREKUENSI_NADI ?? "");
+                setFrekuensiNafas(data.tanda_vital?.FREKUENSI_NAFAS ?? "");
+                setSuhu(data.tanda_vital?.SUHU ?? "");
+                setBeratBadan(data.tanda_vital?.BERAT_BADAN ?? "");
+                setSaturasiO2(data.tanda_vital?.SATURASI_O2 ?? "");
+                setRiwayatAlergi(riwayatAlergiPasien);
+                setMasalahMedis(data.anamnesis_pasien?.DESKRIPSI ?? "");
+                setDiagnosaKeperawatan(diagnosaPasien);
+                setRencanaTerapi(data.rencana_terapi?.DESKRIPSI ?? "");
+                setNamaDokter((data.dokter_d_p_j_p?.GELAR_DEPAN ? data.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + data.dokter_d_p_j_p?.NAMA + (data.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + data.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
+                setTanggalTandaTangan(formatTanggalIndo(data.MASUK) ?? "");
+                if (onChange) onChange([
+                    {
+                        nomor_kunjungan: nomorKunjungan,
+                        ruangan,
+                        tanggal_masuk: tanggalMasuk,
+                        nama_pasien: namaPasien,
+                        alamat,
+                        nomor_rm: nomorRM,
+                        tanggal_lahir: tanggalLahir,
+                        anamnesis: {
+                            auto_anamnesis: autoAnamnesis,
+                            allo_anamnesis: alloAnamnesis,
+                            dari: dari,
+                            keluhan_utama: keluhanUtama,
+                            riwayat_penyakit_sekarang: riwayatPenyakit,
+                            riwayat_penyakit_lalu: faktorResiko,
+                            riwayat_pengobatan: riwayatPengobatan,
+                            riwayat_penyakit_keluarga: riwayatPenyakitKeluarga,
+                        },
+                        tanda_vital: {
+                            tingkat_kesadaran: tingkatKesadaran,
+                            keadaan_umum: keadaanUmum,
+                            gcs,
+                            eye,
+                            motorik,
+                            verbal,
+                            tekanan_darah: tekananDarah,
+                            frekuensi_nadi: frekuensiNadi,
+                            frekuensi_nafas: frekuensiNafas,
+                            suhu,
+                            berat_badan: beratBadan,
+                            saturasi_o2: saturasiO2,
+                        },
+                        pemeriksaan_fisik: {
+                            mata,
+                            ikterus,
+                            pupil,
+                            diameter_mata: diameterMata,
+                            udem_palpebrae: udemaPalpebrae,
+                            kelainan_mata: kelainanMata,
+                            tht,
+                            tongsil,
+                            faring,
+                            lidah,
+                            bibir,
+                            leher,
+                            jvp,
+                            limfe,
+                            kaku_kuduk: kakuKuduk,
+                            thoraks,
+                            cor,
+                            s1s2: s1S2,
+                            murmur: murMur,
+                            pulmo,
+                            suara_nafas: suaraNafas,
+                            ronchi,
+                            wheezing,
+                            abdomen,
+                            meteorismus,
+                            peristaltik,
+                            asites,
+                            nyeri_tekan: nyeriTekan,
+                            hepar,
+                            lien,
+                            extremitas,
+                            udem,
+                            defeksesi,
+                            urin,
+                            pemeriksaan_lain_lain: pemeriksaanLainLain,
+                        },
+                        status_psikososial: {
+                            status_psikologis: statusPsikologis,
+                            status_mental: statusMental,
+                            hubungan_keluarga: hubunganKeluarga,
+                            tempat_tinggal: tempatTinggal,
+                            agama,
+                            kebiasaan_beribadah: kebiasaanBeribadah,
+                            pekerjaan,
+                            penghasilan,
+                        },
+                        riwayat_alergi: riwayatAlergi,
+                        penilaian_nyeri: {
+                            nyeri,
+                            onset: onsetNyeri,
+                            pencetus: pencetusNyeri,
+                            lokasi: lokasiNyeri,
+                            gambaran: gambaranNyeri,
+                            durasi: durasiNyeri,
+                            skala: skalaNyeri,
+                            metode: metodeNyeri,
+                        },
+                        resiko_jatuh: {
+                            resiko: resikoJatuh,
+                            skor: skorResikoJatuh,
+                            metode: metodeResikoJatuh,
+                        },
+                        resiko_dekubitas: {
+                            resiko: resikoDekubitas,
+                            skor: skorResikoDekubitas,
+                        },
+                        resiko_gizi: {
+                            penurunan_berat_badan: penurunanBeratBadan,
+                            penurunan_asupan: penurunanAsupan,
+                            diagnosis_khusus: diagnosisKhusus,
+                        },
+                        edukasi_pasien: edukasiPasien,
+                        discharge_planning: {
+                            skrinning: skrinningDischargePlanning,
+                            faktor_resiko: faktorResikoDischargePlanning,
+                            tindak_lanjut: tindakLanjutDischargePlanning,
+                        },
+                        rencana_keperawatan: rencanaKeperawatan,
+                        diagnosa_keperawatan: diagnosaKeperawatan,
+                        masalah_medis: masalahMedis,
+                        rencana_terapi: rencanaTerapi,
+                        nama_dokter: namaDokter,
+                        tanggal_tanda_tangan: tanggalTandaTangan,
+                    }
+                ]);
+            } else if (mode == 1) {
+                const response = await axios.get(route('eklaim.getDataPengkajianAwalEdit', { nomorKunjungan }));
+                const data = response.data;
+                setNamaPasien(data.nama_pasien ?? "");
+                setAlamat(data.alamat ?? "");
+                setTanggalMasuk(data?.tanggal_masuk ?? "");
+                setRuangan(data.ruangan ?? "");
+                setNomorRM(data.nomor_rm ?? "");
+                setTanggalLahir(data.tanggal_lahir ?? "");
+                setJenisKelamin(data.jenis_kelamin ?? "");
+                if (data.anamnesis.allo_anamnesis === "Ya") {
+                    setAutoAnamnesis(false);
+                    setAlloAnamnesis(true);
+                } else if (data.anamnesis.auto_anamnesis === "Ya") {
+                    setAutoAnamnesis(true);
+                    setAlloAnamnesis(false);
+                }
+                setDari(data.anamnesis?.dari ?? "");
+                setKeluhanUtama(data.anamnesis.keluhan_utama ?? "");
+                setRiwayatPenyakit(data.anamnesis.riwayat_penyakit_sekarang ?? "");
+                setFaktorResiko(data.anamnesis.riwayat_penyakit_lalu ?? "");
+                setRiwayatPengobatan(data.anamnesis.riwayat_pengobatan ?? "");
+                setRiwayatPenyakitKeluarga(data.anamnesis.riwayat_penyakit_keluarga?? "");
+                setKeadaanUmum(data.tanda_vital?.keadaan_umum ?? "");
+                setTingkatKesadaran(data.tanda_vital?.tingkat_kesadaran ?? "");
+                setGCS(data.tanda_vital?.gcs ?? "");
+                setEye(data.tanda_vital?.eye ?? "");
+                setMotorik(data.tanda_vital?.motorik ?? "");
+                setVerbal(data.tanda_vital?.verbal ?? "");
+                setTekananDarah(data.tanda_vital?.tekanan_darah ?? "");
+                setFrekuensiNadi(data.tanda_vital?.frekuensi_nadi ?? "");
+                setFrekuensiNafas(data.tanda_vital?.frekuensi_nafas ?? "");
+                setSuhu(data.tanda_vital?.suhu ?? "");
+                setBeratBadan(data.tanda_vital?.berat_badan ?? "");
+                setSaturasiO2(data.tanda_vital?.saturasi_o2 ?? "");
+                setRiwayatAlergi(data.riwayat_alergi ?? "");
+                setMasalahMedis(data.masalah_medis ?? "");
+                setDiagnosaKeperawatan(data.diagnosa_keperawatan ?? "");
+                setRencanaTerapi(data.rencana_terapi ?? "");
+                setMata(data.pemeriksaan_fisik?.mata ?? "");
+                setIkterus(data.pemeriksaan_fisik?.ikterus ?? "");
+                setPupil(data.pemeriksaan_fisik?.pupil ?? "");
+                setDiameterMata(data.pemeriksaan_fisik?.diameter_mata ?? "");
+                setUdemapalpebrae(data.pemeriksaan_fisik?.udem_palpebrae ?? "");
+                setKelainanMata(data.pemeriksaan_fisik?.kelainan_mata ?? "");
+                setTHT(data.pemeriksaan_fisik?.tht ?? "");
+                setTongsil(data.pemeriksaan_fisik?.tongsil ?? "");
+                setFaring(data.pemeriksaan_fisik?.faring ?? "");
+                setLidah(data.pemeriksaan_fisik?.lidah ?? "");
+                setBibir(data.pemeriksaan_fisik?.bibir ?? "");
+                setLeher(data.pemeriksaan_fisik?.leher ?? "");
+                setJVP(data.pemeriksaan_fisik?.jvp ?? "");
+                setLimfe(data.pemeriksaan_fisik?.limfe ?? "");
+                setKakuKuduk(data.pemeriksaan_fisik?.kaku_kuduk ?? "");
+                setThoraks(data.pemeriksaan_fisik?.thoraks ?? "");
+                setCor(data.pemeriksaan_fisik?.cor ?? "");
+                setS1S2(data.pemeriksaan_fisik?.s1s2 ?? "");
+                setMurMur(data.pemeriksaan_fisik?.murmur ?? "");
+                setPulmo(data.pemeriksaan_fisik?.pulmo ?? "");
+                setSuaraNafas(data.pemeriksaan_fisik?.suara_nafas ?? "");
+                setRonchi(data.pemeriksaan_fisik?.ronchi ?? "");
+                setWheezing(data.pemeriksaan_fisik?.wheezing ?? "");
+                setAbdomen(data.pemeriksaan_fisik?.abdomen ?? "");
+                setMeteorismus(data.pemeriksaan_fisik?.meteorismus ?? "");
+                setPeristaltik(data.pemeriksaan_fisik?.peristaltik ?? "");
+                setAsites(data.pemeriksaan_fisik?.asites ?? "");
+                setNyeriTekan(data.pemeriksaan_fisik?.nyeri_tekan ?? "");
+                setHepar(data.pemeriksaan_fisik?.hepar ?? "");
+                setLien(data.pemeriksaan_fisik?.lien ?? "");
+                setExtremitas(data.pemeriksaan_fisik?.extremitas ?? "");
+                setUdem(data.pemeriksaan_fisik?.udem ?? "");
+                setDefeksesi(data.pemeriksaan_fisik?.defeksesi ?? "");
+                setUrin(data.pemeriksaan_fisik?.urin ?? "");
+                setRiwayatAlergi(data.riwayat_alergi ?? "");
+                setStatusPsikologis(data.psikososial?.status_psikologis ?? "");
+                setStatusMental(data.psikososial?.status_mental ?? "");
+                setHubunganKeluarga(data.psikososial?.hubungan_keluarga ?? "");
+                setTempatTinggal(data.psikososial?.tempat_tinggal ?? "");
+                setAgama(data.psikososial?.agama ?? "");
+                setKebiasaanBeribadah(data.psikososial?.kebiasaan_beribadah ?? "");
+                setPekerjaan(data.psikososial?.pekerjaan ?? "");
+                setPenghasilan(data.psikososial?.penghasilan ?? "");
+                setNyeri(data.penilaian_nyeri?.nyeri ?? "");
+                setOnsetNyeri(data.penilaian_nyeri?.onset ?? "");
+                setPencetusNyeri(data.penilaian_nyeri?.pencetus ?? "");
+                setLokasiNyeri(data.penilaian_nyeri?.lokasi ?? "");
+                setGambaranNyeri(data.penilaian_nyeri?.gambaran ?? "");
+                setDurasiNyeri(data.penilaian_nyeri?.durasi ?? "");
+                setSkalaNyeri(data.penilaian_nyeri?.skala ?? "");
+                setMetodeNyeri(data.penilaian_nyeri?.metode ?? "");
+                setResikoJatuh(data.resiko_jatuh?.resiko ?? "");
+                setSkorResikoJatuh(data.resiko_jatuh?.skor ?? "");
+                setMetodeResikoJatuh(data.resiko_jatuh?.metode ?? "");
+                setPenurunanBeratBadan(data.resiko_gizi?.penurunan_berat_badan ?? "");
+                setPenurunanAsupan(data.resiko_gizi?.penurunan_asupan ?? "");
+                setDiagnosisKhusus(data.resiko_gizi?.diagnosis_khusus ?? "");
+                setEdukasiPasien(data.edukasi_pasien ?? "");
+                setSkrinningDischargePlanning(data.discharge_planning?.skrinning ?? "");
+                setFaktorResikoDischargePlanning(data.discharge_planning?.faktor_resiko ?? "");
+                setTindakLanjutDischargePlanning(data.discharge_planning?.tindak_lanjut ?? "");
+                setRencanaKeperawatan(data.rencana_keperawatan ?? "");
+                setDiagnosaKeperawatan(data.diagnosa_keperawatan ?? "");
+                setMasalahMedis(data.masalah_medis ?? "");
+                // setNamaDokter((data.dokter_d_p_j_p?.GELAR_DEPAN ? data.dokter_d_p_j_p?.GELAR_DEPAN + "." : "") + data.dokter_d_p_j_p?.NAMA + (data.dokter_d_p_j_p?.GELAR_BELAKANG ? " " + data.dokter_d_p_j_p?.GELAR_BELAKANG : ""));
+                // setTanggalTandaTangan(formatTanggalIndo(data.MASUK) ?? "");
+            }
         } catch (error) {
             console.error("Error fetching data:", error);
         }

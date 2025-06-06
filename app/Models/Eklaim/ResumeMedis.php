@@ -11,6 +11,7 @@ class ResumeMedis extends Model
     protected $table = 'resume_medis';
 
     protected $fillable = [
+        'nomor_kunjungan',
         'id_pengajuan_klaim',
         'nama_pasien',
         'no_rm',
@@ -38,4 +39,24 @@ class ResumeMedis extends Model
         'cara_pulang',
         'dokter'
     ];
+
+    public function pengkajianAwal()
+    {
+        return $this->hasOne(PengkajianAwal::class, 'resume_medis_id', 'id');
+    }
+
+    public function intruksiTindakLanjut()
+    {
+        return $this->hasOne(IntruksiTindakLanjut::class, 'resume_medis_id', 'id');
+    }
+
+    public function permintaanKonsul()
+    {
+        return $this->hasMany(PermintaanKonsul::class, 'resume_medis_id', 'id');
+    }
+
+    public function terapiPulang()
+    {
+        return $this->hasMany(TerapiPulang::class, 'resume_medis_id', 'id');
+    }
 }

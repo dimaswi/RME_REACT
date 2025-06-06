@@ -3,12 +3,21 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Models\Eklaim\Anamnesis;
 use App\Models\Eklaim\CPPT as EklaimCPPT;
+use App\Models\Eklaim\DischargePlanning;
 use App\Models\Eklaim\IntruksiTindakLanjut;
+use App\Models\Eklaim\PemeriksaanFisik;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Eklaim\PengkajianAwal;
+use App\Models\Eklaim\PenilaianNyeri;
 use App\Models\Eklaim\PermintaanKonsul;
+use App\Models\Eklaim\Psikososial;
+use App\Models\Eklaim\ResikoDekubitus;
+use App\Models\Eklaim\ResikoGizi;
+use App\Models\Eklaim\ResikoJatuh;
 use App\Models\Eklaim\ResumeMedis;
+use App\Models\Eklaim\TandaVital;
 use App\Models\Eklaim\TerapiPulang;
 use App\Models\Eklaim\Triage as EklaimTriage;
 use App\Models\Pembayaran\TagihanPendaftaran;
@@ -33,14 +42,10 @@ class EditDataController extends Controller
 
         if ($pengajuanKlaim->edit == 1) {
             $pengajuanKlaim->load([
-                'resumeMedisEdit.pengkajianAwalEdit.pemeriksaanFisikEdit',
-                'resumeMedisEdit.pengkajianAwalEdit.anamnesaEdit',
-                'resumeMedisEdit.pengkajianAwalEdit.psikologiEdit',
-                'resumeMedisEdit.pengkajianAwalEdit.nyeriEdit',
-                'resumeMedisEdit.pengkajianAwalEdit.keadaanUmumEdit',
-                'resumeMedisEdit.intruksiTindakLanjutEdit',
-                'resumeMedisEdit.terapiPulangEdit',
-                'resumeMedisEdit.konsultasiEdit',
+                'resumeMedis.pengkajianAwal',
+                'resumeMedis.intruksiTindakLanjut',
+                'resumeMedis.permintaanKonsul',
+                'resumeMedis.terapiPulang',
             ]);
         }
 
@@ -120,6 +125,8 @@ class EditDataController extends Controller
 
             $resumeData = $request->input('resumeMedis');
 
+            PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['edit' => 1]);
+
             // Pastikan id_pengajuan_klaim integer atau null
             if (isset($resumeData['id_pengajuan_klaim']) && $resumeData['id_pengajuan_klaim'] !== null && $resumeData['id_pengajuan_klaim'] !== '') {
                 // Jika UUID, simpan sebagai string (ubah tipe kolom jika perlu)
@@ -132,6 +139,7 @@ class EditDataController extends Controller
             $resume = ResumeMedis::updateOrCreate(
                 ['id_pengajuan_klaim' => $resumeData['id_pengajuan_klaim'] ?? null],
                 [
+                    'nomor_kunjungan'        => $resumeData['nomor_kunjungan'] ?? null,
                     'id_pengajuan_klaim'      => $resumeData['id_pengajuan_klaim'] ?? null,
                     'nama_pasien'             => $resumeData['nama_pasien'] ?? null,
                     'no_rm'                   => $resumeData['no_rm'] ?? null,
@@ -162,6 +170,8 @@ class EditDataController extends Controller
             );
 
             if (!empty($resumeData['permintaan_konsul']) && is_array($resumeData['permintaan_konsul'])) {
+                // Delete existing konsul records for this resume
+                PermintaanKonsul::where('resume_medis_id', $resume->id)->delete();
                 foreach ($resumeData['permintaan_konsul'] as $konsul) {
                     $konsul['resume_medis_id'] = $resume->id;
                     PermintaanKonsul::updateOrCreate(
@@ -175,86 +185,269 @@ class EditDataController extends Controller
                 }
             }
 
-            if ($request->filled('terapi_pulang')) {
-                $terapiArr = $request->input('terapi_pulang');
-                if (is_array($terapiArr)) {
-                    foreach ($terapiArr as $terapi) {
-                        $terapi['resume_medis_id'] = $resume->id;
-                        TerapiPulang::updateOrCreate(
-                            [
-                                'resume_medis_id' => $resume->id,
-                                'nama_obat' => $terapi['nama_obat'] ?? null,
-                            ],
-                            $terapi
-                        );
-                    }
+            if (!empty($resumeData['terapi_pulang']) && is_array($resumeData['terapi_pulang'])) {
+                // Delete existing terapi records for this resume
+                TerapiPulang::where('resume_medis_id', $resume->id)->delete();
+                foreach ($resumeData['terapi_pulang'] as $terapi) {
+                    $terapi['resume_medis_id'] = $resume->id;
+                    TerapiPulang::updateOrCreate(
+                        [
+                            'resume_medis_id' => $resume->id,
+                            'nama_obat' => $terapi['namaObat'] ?? null,
+                            'jumlah' => $terapi['jumlah'] ?? null,
+                            'frekuensi' => $terapi['frekuensi'] ?? null,
+                            'cara_pemberian' => $terapi['caraPemberian'] ?? null,
+                        ],
+                        $terapi
+                    );
                 }
             }
 
-            if ($request->filled('instruksi_tindak_lanjut')) {
-                $instruksiArr = $request->input('instruksi_tindak_lanjut');
-                if (is_array($instruksiArr)) {
-                    foreach ($instruksiArr as $instruksi) {
-                        $instruksi['resume_medis_id'] = $resume->id;
-                        IntruksiTindakLanjut::updateOrCreate(
-                            [
-                                'resume_medis_id' => $resume->id,
-                                'instruksi' => $instruksi['instruksi'] ?? null,
-                            ],
-                            $instruksi
-                        );
-                    }
-                }
+
+            if ($resumeData['instruksi_tindak_lanjut']) {
+                IntruksiTindakLanjut::updateOrCreate(
+                    [
+                        'resume_medis_id' => $resume->id,
+                        'poli_tujuan' => $resumeData['instruksi_tindak_lanjut']['poliTujuan'] ?? null,
+                        'jam' => $resumeData['instruksi_tindak_lanjut']['jam'] ?? null,
+                        'tanggal' => $resumeData['instruksi_tindak_lanjut']['tanggal'] ?? null,
+                        'nomor_bpjs' => $resumeData['instruksi_tindak_lanjut']['nomor_bpjs'] ?? null,
+                    ],
+                    $resumeData['instruksi_tindak_lanjut']
+                );
             }
 
             // 2. Simpan Pengkajian Awal (jika ada)
+            $pengkajianData = $request->input('pengkajianAwal');
 
-            if ($request->input('pengkajianAwal') === true) {
-                if ($request->filled('pengkajianAwal')) {
-                    $pengkajian = $request->input('pengkajianAwal');
-                    if (is_array($pengkajian) && isset($pengkajian[0])) {
-                        $pengkajian = $pengkajian[0];
-                    }
-                    $pengkajian['resume_medis_id'] = $resume->id;
-                    $pengkajianAwal = PengkajianAwal::updateOrCreate(
-                        ['nomor_kunjungan' => $pengkajian['nomor_kunjungan']],
-                        $pengkajian
+            // Jika pengkajianAwal kosong/false, hapus data beserta relasinya
+            if (!is_array($pengkajianData) || self::isAllNullOrEmpty($pengkajianData)) {
+                // Cari data pengkajian awal yang terkait
+                $pengkajianAwal = PengkajianAwal::where('resume_medis_id', $resume->id)->first();
+                if ($pengkajianAwal) {
+                    // Hapus semua relasi yang terkait
+                    DischargePlanning::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    ResikoJatuh::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    PemeriksaanFisik::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    Anamnesis::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    PenilaianNyeri::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    ResikoDekubitus::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    ResikoGizi::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    Psikososial::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    TandaVital::where('pengkajian_awal_id', $pengkajianAwal->id)->delete();
+                    PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['pengkajian_awal' => 0]);
+                    // Hapus data utama pengkajian_awal
+                    $pengkajianAwal->delete();
+                }
+            } else {
+                // ...lanjutkan proses simpan seperti biasa (is_array($pengkajianData))
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['pengkajian_awal' => 1]);
+                $pengkajianData['resume_medis_id'] = $resume->id;
+                $PengkajianAwal = PengkajianAwal::updateOrCreate(
+                    ['resume_medis_id' => $resume->id],
+                    [
+                        'resume_medis_id' => $pengkajianData['resume_medis_id'] ?? null,
+                        'nomor_kunjungan' => $pengkajianData['nomor_kunjungan'] ?? null,
+                        'ruangan' => $pengkajianData['ruangan'] ?? null,
+                        'tanggal_masuk' => $pengkajianData['tanggal_masuk'] ?? null,
+                        'nama_pasien' => $pengkajianData['nama_pasien'] ?? null,
+                        'alamat' => $pengkajianData['alamat'] ?? null,
+                        'nomor_rm' => $pengkajianData['nomor_rm'] ?? null,
+                        'tanggal_lahir' => $pengkajianData['tanggal_lahir'] ?? null,
+                        'jenis_kelamin' => $pengkajianData['jenis_kelamin'] ?? null,
+                        'riwayat_alergi' => $pengkajianData['riwayat_alergi'] ?? null,
+                        'edukasi_pasien' => $pengkajianData['edukasi_pasien'] ?? null,
+                        'rencana_keperawatan' => $pengkajianData['rencana_keperawatan'] ?? null,
+                        'diagnosa_keperawatan' => $pengkajianData['diagnosa_keperawatan'] ?? null,
+                        'masalah_medis' => $pengkajianData['masalah_medis'] ?? null,
+                        'rencana_terapi' => $pengkajianData['rencana_terapi'] ?? null,
+                        'nama_dokter' => $pengkajianData['nama_dokter'] ?? null,
+                        'tanggal_tanda_tangan' => $pengkajianData['tanggal_tanda_tangan'] ?? null,
+                        'tanggal_keluar' => $pengkajianData['tanggal_keluar'] ?? null,
+                    ]
+                );
+
+                // Discharge Planning
+                if (
+                    isset($pengkajianData['discharge_planning']) &&
+                    is_array($pengkajianData['discharge_planning']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['discharge_planning'])
+                ) {
+                    DischargePlanning::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['discharge_planning'])
+                    );
+                }
+
+                // Resiko Jatuh
+                if (
+                    isset($pengkajianData['resiko_jatuh']) &&
+                    is_array($pengkajianData['resiko_jatuh']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['resiko_jatuh'])
+                ) {
+                    ResikoJatuh::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['resiko_jatuh'])
+                    );
+                }
+
+                // Pemeriksaan Fisik
+                if (
+                    isset($pengkajianData['pemeriksaan_fisik']) &&
+                    is_array($pengkajianData['pemeriksaan_fisik']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['pemeriksaan_fisik'])
+                ) {
+                    PemeriksaanFisik::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['pemeriksaan_fisik'])
+                    );
+                }
+
+                // Anamnesis
+                if (
+                    isset($pengkajianData['anamnesis']) &&
+                    is_array($pengkajianData['anamnesis']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['anamnesis'])
+                ) {
+                    Anamnesis::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['anamnesis'])
+                    );
+                }
+
+                // Penilaian Nyeri
+                if (
+                    isset($pengkajianData['penilaian_nyeri']) &&
+                    is_array($pengkajianData['penilaian_nyeri']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['penilaian_nyeri'])
+                ) {
+                    PenilaianNyeri::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['penilaian_nyeri'])
+                    );
+                }
+
+                // Resiko Dekubitus
+                if (
+                    isset($pengkajianData['resiko_dekubitas']) &&
+                    is_array($pengkajianData['resiko_dekubitas']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['resiko_dekubitas'])
+                ) {
+                    ResikoDekubitus::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['resiko_dekubitas'])
+                    );
+                }
+
+                // Resiko Gizi
+                if (
+                    isset($pengkajianData['resiko_gizi']) &&
+                    is_array($pengkajianData['resiko_gizi']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['resiko_gizi'])
+                ) {
+                    ResikoGizi::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['resiko_gizi'])
+                    );
+                }
+
+                // Status Psikososial
+                if (
+                    isset($pengkajianData['status_psikososial']) &&
+                    is_array($pengkajianData['status_psikososial']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['status_psikososial'])
+                ) {
+                    Psikososial::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['status_psikososial'])
+                    );
+                }
+
+                // Tanda Vital
+                if (
+                    isset($pengkajianData['tanda_vital']) &&
+                    is_array($pengkajianData['tanda_vital']) &&
+                    !self::isAllNullOrEmpty($pengkajianData['tanda_vital'])
+                ) {
+                    TandaVital::updateOrCreate(
+                        ['pengkajian_awal_id' => $PengkajianAwal->id],
+                        array_merge(['pengkajian_awal_id' => $PengkajianAwal->id], $pengkajianData['tanda_vital'])
                     );
                 }
             }
 
-            // 3. Simpan Triage (jika ada)
-            if ($request->input('triage') === true) {
-                if ($request->filled('triage')) {
-                    $triage = $request->input('triage');
-                    if (is_array($triage) && isset($triage[0])) {
-                        $triage = $triage[0];
-                    }
-                    $triage['resume_medis_id'] = $resume->id;
-                    EklaimTriage::updateOrCreate(
-                        ['nomor_kunjungan' => $triage['nomor_kunjungan']],
-                        $triage
-                    );
-                }
+            // 3. Simpan data triage
+            $triageData = $request->input('triage');
+
+            if ($triageData == false) {
+                // Jika triageData tidak ada, set triage_id menjadi null
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['triage' => 0]);
+                $triage = EklaimTriage::where('resume_medis_id', $resume->id)->delete();
             }
 
-            // 4. Simpan CPPT (jika ada)
-            if ($request->input('cppt') === true) {
-                if ($request->filled('cppt')) {
-                    $cpptRows = $request->input('cppt');
-                    if (is_array($cpptRows)) {
-                        foreach ($cpptRows as $row) {
-                            $row['resume_medis_id'] = $resume->id;
-                            EklaimCPPT::updateOrCreate(
+            if (!is_array($triageData) || self::isAllNullOrEmpty($triageData)) {
+                // Jika triageData kosong, hapus data beserta relasinya
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['triage' => 0]);
+                $triage = EklaimTriage::where('resume_medis_id', $resume->id)->first();
+                if ($triage) {
+                    $triage->delete();
+                }
+            } else {
+                // Simpan atau update data triage
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['triage' => 1]);
+                EklaimTriage::updateOrCreate(
+                    ['resume_medis_id' => $resume->id],
+                    array_merge(['resume_medis_id' => $resume->id], $triageData)
+                );
+            }
+
+            // 4. Simpan data CPPT
+            $cpptData = $request->input('cppt');
+
+            if ($cpptData == false) {
+                // Jika cpptData tidak ada, set cppt_id menjadi null
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['cppt' => 0]);
+                EklaimCPPT::where('resume_medis_id', $resume->id)->delete();
+            }
+
+            if (!is_array($cpptData) || self::isAllNullOrEmpty($cpptData)) {
+                // Jika cpptData kosong, hapus data beserta relasinya
+                EklaimCPPT::where('resume_medis_id', $resume->id)->delete();
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['cppt' => 0]);
+            } else {
+                // Ambil semua id lama
+                $existingIds = EklaimCPPT::where('resume_medis_id', $resume->id)->pluck('id')->toArray();
+                $newIds = [];
+                PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->update(['cppt' => 1]);
+                foreach ($cpptData as $key => $value) {
+                    // Pastikan $value adalah array dan tidak kosong
+                    if (is_array($value) && !self::isAllNullOrEmpty($value)) {
+                        // Jika CPPT dari frontend sudah ada id, gunakan id tersebut
+                        $cpptId = $value['id'] ?? $key;
+
+                        $model = EklaimCPPT::updateOrCreate(
+                            ['resume_medis_id' => $resume->id, 'id' => $cpptId],
+                            array_merge(
                                 [
                                     'resume_medis_id' => $resume->id,
-                                    'tanggal_jam' => $row['tanggal_jam'] ?? null,
-                                    'nama_petugas' => $row['nama_petugas'] ?? null
+                                    'id' => $cpptId,
+                                    'nomor_kunjungan' => $cpptData['nomor_kunjungan'] ?? null // <-- tambahkan ini
                                 ],
-                                $row
-                            );
-                        }
+                                $value
+                            )
+                        );
+                        $newIds[] = $model->id;
                     }
+                }
+
+                // Hapus data CPPT lama yang tidak ada di input baru
+                if (!empty($newIds)) {
+                    EklaimCPPT::where('resume_medis_id', $resume->id)
+                        ->whereNotIn('id', $newIds)
+                        ->delete();
+                } else {
+                    // Jika tidak ada data baru, hapus semua
+                    EklaimCPPT::where('resume_medis_id', $resume->id)->delete();
                 }
             }
 
@@ -264,6 +457,33 @@ class EditDataController extends Controller
             DB::connection('eklaim')->rollBack();
             return response()->json(['error' => 'Gagal menyimpan data: ' . $e->getMessage()], 500);
         }
+    }
+
+    private static function isAllNullOrEmpty($arr)
+    {
+        // Jika bukan array, langsung cek nilainya
+        if (!is_array($arr)) {
+            return is_null($arr) || $arr === '';
+        }
+
+        // Jika array kosong, anggap kosong
+        if (empty($arr)) {
+            return true;
+        }
+
+        foreach ($arr as $value) {
+            // Jika value adalah array, cek rekursif
+            if (is_array($value)) {
+                if (!self::isAllNullOrEmpty($value)) {
+                    return false;
+                }
+            } else {
+                if (!is_null($value) && $value !== '') {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public function EditTagihan(PengajuanKlaim $pengajuanKlaim)
@@ -422,6 +642,53 @@ class EditDataController extends Controller
                 'tandaVital',
                 'rpp',
                 'ruangan',
+            ])
+            ->first();
+
+        if ($data) {
+            return response()->json($data);
+        } else {
+            return response()->json(['error' => 'Data Pengkajian Awal tidak ditemukan.'], 404);
+        }
+    }
+
+    public function getDataTriageEdit($nomorKunjungan)
+    {
+        $data = EklaimTriage::where('nomor_kunjungan', $nomorKunjungan)
+            ->first();
+
+        if ($data) {
+            return response()->json($data);
+        } else {
+            return response()->json(['error' => 'Data Triage tidak ditemukan.'], 404);
+        }
+    }
+
+    public function getDataCPPTEdit($nomorKunjungan)
+    {
+        $data = EklaimCPPT::where('nomor_kunjungan', $nomorKunjungan)
+            ->get();
+
+        if ($data) {
+            return response()->json($data);
+        } else {
+            return response()->json(['error' => 'Data CPPT tidak ditemukan.'], 404);
+        }
+    }
+
+    public function getDataPengkajianAwalEdit($nomorKunjungan)
+    {
+        $data = PengkajianAwal::where('nomor_kunjungan', $nomorKunjungan)
+            ->with([
+                'anamnesis',
+                'pemeriksaanFisik',
+                'tandaVital',
+                'penilaianNyeri',
+                'resikoJatuh',
+                'resikoDekubitus',
+                'resikoGizi',
+                'psikososial',
+                'dischargePlanning',
             ])
             ->first();
 

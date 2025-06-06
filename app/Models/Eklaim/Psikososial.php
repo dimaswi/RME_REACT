@@ -8,7 +8,7 @@ class Psikososial extends Model
 {
     protected $connection = 'eklaim';
 
-    protected $table = 'psikososial';
+    protected $table = 'status_psikososial';
 
     protected $fillable = [
         'pengkajian_awal_id',
