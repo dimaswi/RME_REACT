@@ -4,7 +4,7 @@ import { toast } from "sonner";
 // Fungsi untuk menampilkan modal loading
 function showLoadingModal() {
     const modal = document.createElement("div");
-    modal.id = "resume-loading-modal";
+    modal.id = "triage-loading-modal";
     modal.style.position = "fixed";
     modal.style.top = "0";
     modal.style.left = "0";
@@ -17,7 +17,7 @@ function showLoadingModal() {
     modal.style.zIndex = "9999";
     modal.innerHTML = `
         <div style="background: white; padding: 24px 32px; border-radius: 8px; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.2)">
-            Memuat dokumen Resume Medis...
+            Memuat dokumen Triage...
         </div>
     `;
     document.body.appendChild(modal);
@@ -25,7 +25,7 @@ function showLoadingModal() {
 
 // Fungsi untuk menghilangkan modal loading
 function hideLoadingModal() {
-    const modal = document.getElementById("resume-loading-modal");
+    const modal = document.getElementById("triage-loading-modal");
     if (modal) {
         document.body.removeChild(modal);
     }
@@ -34,48 +34,43 @@ function hideLoadingModal() {
 // Fungsi untuk menampilkan PDF di modal
 function showPDFModal(pdfUrl: string) {
     const modal = document.createElement("div");
-    modal.id = "resume-pdf-modal";
+    modal.id = "triage-pdf-modal";
     modal.style.position = "fixed";
     modal.style.top = "0";
     modal.style.left = "0";
     modal.style.width = "100vw";
     modal.style.height = "100vh";
-    modal.style.background = "rgba(0,0,0,0.95)";
+    modal.style.background = "rgba(0,0,0,0.7)";
     modal.style.display = "flex";
     modal.style.alignItems = "center";
     modal.style.justifyContent = "center";
     modal.style.zIndex = "10000";
     modal.innerHTML = `
-        <div id="resume-pdf-content" style="background: white; border-radius: 0; position: relative; width: 85vw; height: 85vh; max-width: 85vw; max-height: 85vh; padding: 0; display: flex; flex-direction: column; box-shadow: 0 0 24px #0008;">
-            <div style="width: 100%; height: 5vh; background: #f5f5f5; border-bottom: 1px solid #ddd;"></div>
-            <iframe src="${pdfUrl}" style="width: 100%; height: 95vh; border: none; display: block;"></iframe>
+        <div style="background: white; border-radius: 8px; padding: 8px; position: relative; max-width: 90vw; max-height: 90vh;">
+            <button id="close-triage-pdf-modal" style="position: absolute; top: 8px; right: 8px; font-size: 18px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">&times;</button>
+            <iframe src="${pdfUrl}" style="width: 70vw; height: 80vh; border: none;"></iframe>
         </div>
     `;
     document.body.appendChild(modal);
-
-    // Tutup modal jika klik di luar konten PDF
-    modal.addEventListener("mousedown", (e) => {
-        const content = document.getElementById("resume-pdf-content");
-        if (content && !content.contains(e.target as Node)) {
-            hidePDFModal();
-        }
+    document.getElementById("close-triage-pdf-modal")?.addEventListener("click", () => {
+        hidePDFModal();
     });
 }
 
 function hidePDFModal() {
-    const modal = document.getElementById("resume-pdf-modal");
+    const modal = document.getElementById("triage-pdf-modal");
     if (modal) {
         document.body.removeChild(modal);
     }
 }
 
-export const cetakResumeMedis = async (
+export const cetakTriage = async (
     pendaftaranNomor: string,
     jenis: string,
 ) => {
     try {
         showLoadingModal();
-        const response = await axios.get(route("previewResumeMedis", {
+        const response = await axios.get(route("previewTriage", {
             pendaftaran: pendaftaranNomor,
         }), {
             responseType: "blob",

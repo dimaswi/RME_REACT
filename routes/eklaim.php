@@ -28,6 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::get('downloadRadiologi/{pendaftaran}', [BridgeDataController::class, 'downloadRadiologi'])->name('downloadRadiologi');
     Route::get('previewSEP/{pendaftaran}', [BridgeDataController::class, 'previewSEP'])->name('previewSEP');
     Route::get('previewResumeMedis/{pendaftaran}', [BridgeDataController::class, 'previewResumeMedis'])->name('previewResumeMedis');
+    Route::get('previewPengkajianAwal/{pendaftaran}', [BridgeDataController::class, 'previewPengkajianAwal'])->name('previewPengkajianAwal');
+    Route::get('previewTriage/{pendaftaran}', [BridgeDataController::class, 'previewTriage'])->name('previewTriage');
     Route::get('previewTagihan/{pendaftaran}', [BridgeDataController::class, 'previewTagihan'])->name('previewTagihan');
     Route::get('previewBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'previewBerkasKlaim'])->name('previewBerkasKlaim');
     Route::get('previewLaboratorium/{pendaftaran}', [BridgeDataController::class, 'previewLaboratorium'])->name('previewLaboratorium');
@@ -37,19 +39,14 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('eklaim/edit-data/{pengajuanKlaim}/resume-medis', [\App\Http\Controllers\Eklaim\EditDataController::class, 'EditResumeMedis'])->name('eklaim.editData.resumeMedis');
     Route::post('eklaim/edit-data/resume-medis', [\App\Http\Controllers\Eklaim\EditDataController::class, 'StoreEditResumeMedis'])->name('eklaim.editData.storeResumeMedis');
-
     Route::get('eklaim/edit-data/{pengajuanKlaim}/tagihan', [\App\Http\Controllers\Eklaim\EditDataController::class, 'EditTagihan'])->name('eklaim.editData.tagihan');
     Route::post('eklaim/edit-data/tagihan', [\App\Http\Controllers\Eklaim\EditDataController::class, 'StoreEditTagihan'])->name('eklaim.editData.storeTagihan');
-
     Route::get('eklaim/edit-data/{pengajuanKlaim}/laboratorium', [\App\Http\Controllers\Eklaim\EditDataController::class, 'EditLaboratorium'])->name('eklaim.editData.laboratorium');
     Route::post('eklaim/edit-data/laboratorium', [\App\Http\Controllers\Eklaim\EditDataController::class, 'StoreEditLaboratorium'])->name('eklaim.editData.storeLaboratorium');
-
     Route::get('eklaim/edit-data/{pengajuanKlaim}/radiologi', [\App\Http\Controllers\Eklaim\EditDataController::class, 'EditRadiologi'])->name('eklaim.editData.radiologi');
     Route::post('eklaim/edit-data/radiologi', [\App\Http\Controllers\Eklaim\EditDataController::class, 'StoreEditRadiologi'])->name('eklaim.editData.storeRadiologi');
-
     Route::get('load/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'loadDataPengkajianAwalRIRD'])->name('eklaim.loadDataPengkajianAwalRIRD');
     Route::get('/eklaim/switch-edit/{pengajuanKlaim}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'switchEditResumeMedis'])->name('eklaim.klaim.switchEdit');
-
     Route::get('eklaim/get/pengkajian-awal/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataPengkajianAwal'])->name('eklaim.getDataPengkajianAwal');
     Route::get('eklaim/get/triage/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataTriage'])->name('eklaim.getDataTriage');
     Route::get('eklaim/get/cppt/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataCPPT'])->name('eklaim.getDataCPPT');

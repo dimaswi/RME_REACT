@@ -48,8 +48,6 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan, mode }: CP
         return textarea.value;
     }
 
-    console.log("mode cppt:", mode);
-
     const handleLoadData = async () => {
         try {
 

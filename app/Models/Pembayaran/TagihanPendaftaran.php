@@ -33,6 +33,11 @@ class TagihanPendaftaran extends Model
         return $this->belongsTo(Tagihan::class, 'TAGIHAN', 'ID');
     }
 
+    public function gabungTagihan()
+    {
+        return $this->hasOne(GabungTagihan::class, 'KE', 'TAGIHAN');
+    }
+
     public function pembayaranTagihan()
     {
         return $this->hasOne(PembayaranTagihan::class, 'TAGIHAN', 'TAGIHAN');

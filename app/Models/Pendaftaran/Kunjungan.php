@@ -7,6 +7,7 @@ use App\Models\Layanan\PasienPulang;
 use App\Models\Master\Pegawai;
 use App\Models\Master\Ruangan;
 use App\Models\Pembayaran\GabungTagihan;
+use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\RM\Alergi;
 use App\Models\RM\Anamnesis;
 use App\Models\RM\AnamnesisDiperoleh;
@@ -17,6 +18,7 @@ use App\Models\RM\PemeriksaanFisik;
 use App\Models\RM\Prosedur;
 use App\Models\RM\RiwayatPenyakitKeluarga;
 use App\Models\RM\RPP;
+use App\Models\RM\Triage;
 use App\Models\RM\TTV;
 use Illuminate\Database\Eloquent\Model;
 
@@ -112,14 +114,19 @@ class Kunjungan extends Model
         return $this->hasMany(OrderResep::class, 'KUNJUNGAN', 'NOMOR');
     }
 
+        public function orderResepPulang()
+    {
+        return $this->hasMany(OrderResep::class, 'KUNJUNGAN', 'NOMOR')->where('RESEP_PASIEN_PULANG', 1);
+    }
+
     public function dokterDPJP()
     {
         return $this->hasOne(Pegawai::class, 'ID', 'DPJP');
     }
 
-    public function gabungTagihan()
+    public function tagihanPendaftaran()
     {
-        return $this->hasOne(GabungTagihan::class, 'KE', 'NOPEN');
+        return $this->hasOne(TagihanPendaftaran::class, 'PENDAFTARAN', 'NOPEN');
     }
 
     public function riwayatPenyakitKeluarga()
@@ -130,5 +137,10 @@ class Kunjungan extends Model
     public function rencanaTerapi()
     {
         return $this->hasOne(\App\Models\RM\RencanaTerapi::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function triage()
+    {
+        return $this->hasOne(Triage::class, 'KUNJUNGAN', 'NOMOR');
     }
 }

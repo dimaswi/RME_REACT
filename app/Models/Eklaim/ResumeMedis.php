@@ -11,7 +11,8 @@ class ResumeMedis extends Model
     protected $table = 'resume_medis';
 
     protected $fillable = [
-        'nomor_kunjungan',
+        'nomor_kunjungan_rawat_inap',
+        'nomor_kunjungan_igd',
         'id_pengajuan_klaim',
         'nama_pasien',
         'no_rm',

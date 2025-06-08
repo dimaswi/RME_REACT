@@ -18,7 +18,6 @@ interface TriageProps {
 
 export default function Triage({ imageBase64, onChange, nomorKunjungan, mode }: TriageProps) {
     const handleLoadData = async () => {
-        console.log("mode triage", mode);
         if (mode === 1) {
             const response = await axios.get(route('eklaim.getDataTriageEdit', { nomorKunjungan: nomorKunjungan }))
                 .then(response => {

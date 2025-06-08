@@ -4,13 +4,9 @@ import { Textarea } from "@/components/ui/textarea";
 import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import { Head, router, usePage } from "@inertiajs/react";
-import { set } from "date-fns";
-import { id, tr } from "date-fns/locale";
 import { Home } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react"; // Tambahkan impor pustaka QR Code
-import SignatureCanvas from "react-signature-canvas"; // Tambahkan impor pustaka Signature Canvas
 import PengkajianAwal from "./PengkajianAwal";
 import axios from "axios";
 import { Label } from "@/components/ui/label";
@@ -70,15 +66,16 @@ export default function EditResumeMedis() {
                     k?.ruangan &&
                     [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
             );
+
         }
 
         if (dataKlaim.edit === 1) {
-            setNomorKunjungan(sumberData.pengkajian_awal.nomor_kunjungan)
-            setNomorKunjunganPendaftaran(sumberData.nomor_kunjungan);
+            setNomorKunjunganIGD(sumberData.nomor_kunjungan_igd)
+            setNomorKunjunganRawatInap(sumberData.nomor_kunjungan_rawat_inap);
         } else {
             // Jika bukan mode edit, ambil nomor_kunjungan dari sumberData
-            setNomorKunjunganPendaftaran(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).NOMOR);
-            setNomorKunjungan(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).gabung_tagihan.kunjungan_pasien.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2 ).NOMOR);
+            setNomorKunjunganRawatInap(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).NOMOR);
+            setNomorKunjunganIGD(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).tagihan_pendaftaran.gabung_tagihan.kunjungan_pasien.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2).NOMOR);
         }
 
         if (!sumberData) return;
@@ -264,15 +261,16 @@ export default function EditResumeMedis() {
     const [gelarDepanDokter, setGelarDepanDokter] = useState<string | null>(null);
     const [gelarBelakangDokter, setGelarBelakangDokter] = useState<string | null>(null);
     const [namaDokter, setNamaDokter] = useState<string | null>(null);
-    const [nomorKunjunganPendaftaran, setNomorKunjunganPendaftaran] = useState<string | null>(null);
-    const [nomorKunjungan, setNomorKunjungan] = useState<string | null>(null);
+    const [nomorKunjunganRawatInap, setNomorKunjunganRawatInap] = useState<string | null>(null);
+    const [nomorKunjunganIGD, setNomorKunjunganIGD] = useState<string | null>(null);
     const [terapiPulang, setTerapiPulang] = useState<{ namaObat: string; jumlah: string; frekuensi: string; caraPemberian: string }[]>([]);
     const [dokumenPengkajianAwalLoaded, setDokumenPengkajianAwalLoaded] = useState<any>(false);
     const [dokumenTriageLoaded, setDokumenTriageLoaded] = useState<any>(false);
     const [dokumenCPPTLoaded, setDokumenCPPTLoaded] = useState<any>(false);
 
     const dataResumeMedis = {
-        nomor_kunjungan: nomorKunjunganPendaftaran || null,
+        nomor_kunjungan_rawat_inap: nomorKunjunganRawatInap || null,
+        nomor_kunjungan_igd: nomorKunjunganIGD || null,
         id_resume_medis: idResumeMedis || null,
         id_pengajuan_klaim: dataKlaim.id,
         nama_pasien: namaPasien || null,
@@ -478,36 +476,40 @@ export default function EditResumeMedis() {
                                                         </p>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <div className="flex items-center gap-4 mb-4">
-                                                        <Label htmlFor="mode-switch" className=" text-base">
-                                                            Asli
-                                                        </Label>
-                                                        <Switch
-                                                            id="mode-switch"
-                                                            checked={dataKlaim.edit === 1}
-                                                            onCheckedChange={async (checked) => {
-                                                                try {
-                                                                    await router.get(
-                                                                        route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }),
-                                                                        {},
-                                                                        {
-                                                                            preserveScroll: true,
-                                                                            preserveState: false,
+                                                {
+                                                    dataKlaim.resume_medis && (
+                                                        <td>
+                                                            <div className="flex items-center gap-4 mb-4">
+                                                                <Label htmlFor="mode-switch" className=" text-base">
+                                                                    Asli
+                                                                </Label>
+                                                                <Switch
+                                                                    id="mode-switch"
+                                                                    checked={dataKlaim.edit === 1}
+                                                                    onCheckedChange={async (checked) => {
+                                                                        try {
+                                                                            await router.get(
+                                                                                route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }),
+                                                                                {},
+                                                                                {
+                                                                                    preserveScroll: true,
+                                                                                    preserveState: false,
+                                                                                }
+                                                                            );
+                                                                        } catch (error) {
+                                                                            toast.error("Gagal switch mode data.");
+                                                                            console.error("Error switching mode:", error);
                                                                         }
-                                                                    );
-                                                                } catch (error) {
-                                                                    toast.error("Gagal switch mode data.");
-                                                                    console.error("Error switching mode:", error);
-                                                                }
-                                                            }}
-                                                            className="scale-150" // Membesarkan switch
-                                                        />
-                                                        <span className="ml-2 text-lg">
-                                                            Edit
-                                                        </span>
-                                                    </div>
-                                                </td>
+                                                                    }}
+                                                                    className="scale-150" // Membesarkan switch
+                                                                />
+                                                                <span className="ml-2 text-lg">
+                                                                    Edit
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    )
+                                                }
                                             </tr>
                                             <tr style={{ background: "black", color: "white", textAlign: "center" }}>
                                                 <td colSpan={8}>
@@ -1655,7 +1657,7 @@ export default function EditResumeMedis() {
                                                 <PengkajianAwal
                                                     imageBase64={imageBase64}
                                                     onChange={handlePengkajianAwalChange}
-                                                    nomorKunjungan={nomorKunjungan}
+                                                    nomorKunjungan={nomorKunjunganIGD}
                                                     mode={dataKlaim.edit}
                                                 />
                                             </div>
@@ -1668,7 +1670,7 @@ export default function EditResumeMedis() {
                                                 <Triage
                                                     imageBase64={imageBase64}
                                                     onChange={handleTriageChange}
-                                                    nomorKunjungan={nomorKunjungan}
+                                                    nomorKunjungan={nomorKunjunganIGD}
                                                     mode={dataKlaim.edit}
                                                 />
                                             </div>
@@ -1681,7 +1683,7 @@ export default function EditResumeMedis() {
                                                 <CPPT
                                                     imageBase64={imageBase64}
                                                     onChange={handleCPPTChange}
-                                                    nomorKunjungan={nomorKunjunganPendaftaran}
+                                                    nomorKunjungan={nomorKunjunganRawatInap}
                                                     mode={dataKlaim.edit}
                                                 />
                                             </div>

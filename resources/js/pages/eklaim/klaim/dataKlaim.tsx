@@ -688,11 +688,9 @@ export default function DataKlaim() {
                                                     setPreviewResumeMedis(true);
                                                     setTimeout(async () => {
                                                         try {
-                                                            await cetakResumeMedis(dataPendaftaran.NOMOR, 'preview', setPreviewSEPData, setPreviewPDF);
-                                                            toast.success("Data Resume Medis berhasil diambil");
+                                                            await cetakResumeMedis(dataPendaftaran.NOMOR, 'preview');
                                                         } catch (error) {
                                                             console.error(error);
-                                                            toast.error("Gagal mengambil data Resume Medis");
                                                         } finally {
                                                             setPreviewResumeMedis(false);
                                                         }

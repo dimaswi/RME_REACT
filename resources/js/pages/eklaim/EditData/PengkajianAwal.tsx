@@ -28,7 +28,6 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
     }, [success, error]);
 
     const handleLoadData = async () => {
-        console.log("mode pengkajian awal", mode);
         try {
             if (mode == 0) {
                 const response = await axios.get(route('eklaim.getDataPengkajianAwal', { nomorKunjungan }));

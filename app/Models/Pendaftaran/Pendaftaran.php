@@ -5,6 +5,7 @@ namespace App\Models\Pendaftaran;
 use App\Models\BPJS\Kunjungan;
 use App\Models\Layanan\PasienPulang;
 use App\Models\Master\Pasien;
+use App\Models\Pembayaran\GabungTagihan;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Kunjungan as PendaftaranKunjungan;
 use App\Models\RM\Anamnesis;
@@ -27,6 +28,11 @@ class Pendaftaran extends Model
         return $this->hasMany(PendaftaranKunjungan::class, 'NOPEN', 'NOMOR')->orderBy('MASUK', 'ASC');
     }
 
+    public function kunjunganPasien()
+    {
+        return $this->hasMany(PendaftaranKunjungan::class, 'NOPEN', 'NOMOR')->orderBy('MASUK', 'ASC');
+    }
+
     public function penjamin()
     {
         return $this->hasOne(Penjamin::class, 'NOPEN', 'NOMOR');
@@ -44,7 +50,7 @@ class Pendaftaran extends Model
 
     public function pendaftaranTagihan()
     {
-        return $this->hasOne(TagihanPendaftaran::class, 'PENDAFTARAN', 'NOMOR');
+        return $this->hasOne(TagihanPendaftaran::class, 'PENDAFTARAN', 'NOMOR')->where('STATUS', 1);
     }
 
     public function resumeMedis()
