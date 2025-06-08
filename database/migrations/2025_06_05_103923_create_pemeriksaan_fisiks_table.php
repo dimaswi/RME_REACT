@@ -51,6 +51,7 @@ return new class extends Migration
             $table->string('pemeriksaan_lain_lain')->nullable();
             $table->timestamps();
         });
+
     }
 
     public function down()

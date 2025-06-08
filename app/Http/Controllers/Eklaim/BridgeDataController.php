@@ -299,7 +299,7 @@ class BridgeDataController extends Controller
                 ? 'Perempuan'
                 : 'Tidak ada data jenis kelamin');
 
-        $nama_perawat = ($kunjunganUGD->triage->petugas->GELAR_DEPAN ? $kunjunganUGD->triage->petugas->GELAR_DEPAN . '.' : '') . $kunjunganUGD->triage->petugas->NAMA. ($kunjunganUGD->triage->petugas->GELAR_BELAKANG ? ',' . $kunjunganUGD->triage->petugas->GELAR_BELAKANG : '') ?? 'Tidak ada data petugas';
+        $nama_perawat = ($kunjunganUGD->triage->petugas->GELAR_DEPAN ? $kunjunganUGD->triage->petugas->GELAR_DEPAN . '.' : '') . $kunjunganUGD->triage->petugas->NAMA . ($kunjunganUGD->triage->petugas->GELAR_BELAKANG ? ',' . $kunjunganUGD->triage->petugas->GELAR_BELAKANG : '') ?? 'Tidak ada data petugas';
         $nip_perawat = $kunjunganUGD->triage->petugas->NIP ?? 'Tidak ada data NIP petugas';
         // dd(json_decode($kunjunganUGD->triage->KEDATANGAN, true));
         $triage = [
@@ -312,7 +312,7 @@ class BridgeDataController extends Controller
             'macam_kasus' => json_decode($kunjunganUGD->triage->KASUS, true) ?? 'Tidak ada data macam kasus',
             'anamnesa' => json_decode($kunjunganUGD->triage->ANAMNESE, true) ?? 'Tidak ada data anamnesa',
             'tanda_vital' => json_decode($kunjunganUGD->triage->TANDA_VITAL, true) ?? 'Tidak ada data tanda vital',
-            'petugas' =>($kunjunganUGD->triage->petugas->GELAR_DEPAN ? $kunjunganUGD->triage->petugas->GELAR_DEPAN . '.' : '') . $kunjunganUGD->triage->petugas->NAMA. ($kunjunganUGD->triage->petugas->GELAR_BELAKANG ? ',' . $kunjunganUGD->triage->petugas->GELAR_BELAKANG : '') ?? 'Tidak ada data petugas',
+            'petugas' => ($kunjunganUGD->triage->petugas->GELAR_DEPAN ? $kunjunganUGD->triage->petugas->GELAR_DEPAN . '.' : '') . $kunjunganUGD->triage->petugas->NAMA . ($kunjunganUGD->triage->petugas->GELAR_BELAKANG ? ',' . $kunjunganUGD->triage->petugas->GELAR_BELAKANG : '') ?? 'Tidak ada data petugas',
             'kebutuhan_khusus' => json_decode($kunjunganUGD->triage->KEBUTUHAN_KHUSUS, true) ?? 'Tidak ada data kebutuhan khusus',
             'resusitasi' => json_decode($kunjunganUGD->triage->RESUSITASI, true) ?? 0,
             'emergency' => json_decode($kunjunganUGD->triage->EMERGENCY, true) ?? 0,
@@ -322,7 +322,7 @@ class BridgeDataController extends Controller
             'death' => json_decode($kunjunganUGD->triage->DOA, true) ?? 0,
             'nama_dokter' => 'dr.MUSATAFID ALWI',
             'nip_dokter' => '202301169',
-            'tanda_tangan_dokter' =>'data:image/png;base64,' . base64_encode(QrCode::format('png')->size(150)->generate("dr.MUSATAFID ALWI")),
+            'tanda_tangan_dokter' => 'data:image/png;base64,' . base64_encode(QrCode::format('png')->size(150)->generate("dr.MUSATAFID ALWI")),
             'nama_perawat' => $nama_perawat,
             'nip_perawat' => $nip_perawat,
             'tanda_tangan_perawat' => 'data:image/png;base64,' . base64_encode(QrCode::format('png')->size(150)->generate($nama_perawat)),
@@ -363,6 +363,15 @@ class BridgeDataController extends Controller
     {
         $pendaftaran->load([
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.ruangan',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.pendaftaranPasien.pasien',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.anamnesisPasienDiperoleh',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.anamnesisPasien',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.rpp',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.keluhanUtama',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.orderResep.orderResepDetil.namaObat',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.riwayatPenyakitKeluarga',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.tandaVital.tingkatKesadaran',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.pemeriksaanFisik',
         ]);
         $kunjunganUGD = null;
         $tagihanUGD = $pendaftaran->pendaftaranTagihan;
@@ -384,6 +393,66 @@ class BridgeDataController extends Controller
             ]);
         }
 
+        $getRiwayatPengobatan = $kunjunganUGD->orderResep
+            ? $kunjunganUGD->orderResep->flatMap(function ($order) {
+                return $order->orderResepDetil
+                    ? $order->orderResepDetil->map(function ($detil) {
+                        return $detil->namaObat->NAMA ?? null;
+                    })->filter()
+                    : collect();
+            })->values()->implode(', ')
+            : '';
+
+        $riwayatKeluarga = [];
+        if ($kunjunganUGD->riwayatPenyakitKeluarga) {
+            if ($kunjunganUGD->riwayatPenyakitKeluarga->HIPERTENSI == 1) {
+                $riwayatKeluarga[] = 'HIPERTENSI';
+            }
+            if ($kunjunganUGD->riwayatPenyakitKeluarga->DIABETES_MELITUS == 1) {
+                $riwayatKeluarga[] = 'DIABETES MELITUS';
+            }
+            if ($kunjunganUGD->riwayatPenyakitKeluarga->PENYAKIT_JANTUNG == 1) {
+                $riwayatKeluarga[] = 'PENYAKIT JANTUNG';
+            }
+            if ($kunjunganUGD->riwayatPenyakitKeluarga->ASMA == 1) {
+                $riwayatKeluarga[] = 'ASMA';
+            }
+            if (!empty($kunjunganUGD->riwayatPenyakitKeluarga->LAINNYA)) {
+                $riwayatKeluarga[] = $kunjunganUGD->riwayatPenyakitKeluarga->LAINNYA;
+            }
+        }
+        $riwayat_penyakit_keluarga = count($riwayatKeluarga) > 0 ? implode(', ', $riwayatKeluarga) : 'Tidak ada data';
+
+
+        $pengkajianAwal = [
+            'nama_pasien' => $kunjunganUGD->pendaftaranPasien->pasien->NAMA ?? 'Tidak ada data nama pasien',
+            'no_rm' => $kunjunganUGD->pendaftaranPasien->pasien->NORM ?? 'Tidak ada data nomor rekam medis',
+            'tanggal_lahir' => $kunjunganUGD->pendaftaranPasien->pasien->TANGGAL_LAHIR ?? 'Tidak ada data tanggal lahir',
+            'jenis_kelamin' => $kunjunganUGD->pendaftaranPasien->pasien->JENIS_KELAMIN === 1 ? 'Laki-laki' : ($kunjunganUGD->pendaftaranPasien->pasien->JENIS_KELAMIN === 2 ? 'Perempuan' : 'Tidak ada data jenis kelamin'),
+            'tanggal_masuk' => $kunjunganUGD->MASUK ?? 'Tidak ada data tanggal masuk',
+            'ruangan' => $kunjunganUGD->ruangan->DESKRIPSI ?? 'Tidak ada data ruang rawat',
+            'alamat_pasien' => $kunjunganUGD->pendaftaranPasien->pasien->ALAMAT ?? 'Tidak ada data alamat pasien',
+            'auto_anamnesis' => $kunjunganUGD->anamnesisPasienDiperoleh->AUTOANAMNESIS ?? 0,
+            'allo_anamnesis' => $kunjunganUGD->anamnesisPasienDiperoleh->ALLOANAMNESIS ?? 0,
+            'dari' => $kunjunganUGD->anamnesisPasienDiperoleh->DARI ?? '-',
+            'anamnesis' => $kunjunganUGD->keluhanUtama->DESKRIPSI ?? 'Tidak ada data anamnesis',
+            'riwayat_penyakit_sekarang' => $kunjunganUGD->anamnesisPasien->DESKRIPSI ?? 'Tidak ada data riwayat penyakit sekarang',
+            'riwayat_penyakit_dahulu' => $kunjunganUGD->rpp->DESKRIPSI ?? 'Tidak ada data riwayat penyakit dahulu',
+            'riwayat_pengobatan' => $getRiwayatPengobatan,
+            'riwayat_penyakit_keluarga' => $riwayat_penyakit_keluarga,
+            'keadaan_umum' => $kunjunganUGD->tandaVital->KEADAAN_UMUM,
+            'tingkat_kesadaran' => $kunjunganUGD->tandaVital->tingkatKesadaran->DESKRIPSI,
+            'gcs' => $kunjunganUGD->tandaVital->GCS,
+            'eye' => $kunjunganUGD->tandaVital->EYE,
+            'motorik' => $kunjunganUGD->tandaVital->MOTORIK,
+            'verbal' => $kunjunganUGD->tandaVital->VERBAL,
+            'tekanan_darah' => $kunjunganUGD->tandaVital->SISTOLIK . '/' . $kunjunganUGD->tandaVital->DISTOLIK,
+            'frekuensi_nadi' => $kunjunganUGD->tandaVital->FREKUENSI_NADI,
+            'frekuensi_nafas' => $kunjunganUGD->tandaVital->FREKUENSI_NAFAS,
+            'suhu' => $kunjunganUGD->tandaVital->SUHU,
+            'saturasi_o2' => $kunjunganUGD->tandaVital->SATURASI_O2,
+        ];
+
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
             throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
@@ -397,7 +466,7 @@ class BridgeDataController extends Controller
             view('eklaim.PengkajianAwal', compact(
                 'pengkajianAwal',
                 'imageBase64', // Kirim Base64 ke view
-                'qrcodeBase64', // Kirim Base64 QR Code ke view
+                // 'qrcodeBase64', // Kirim Base64 QR Code ke view
             ))->render()
         );
         $dompdf->setPaper('A4', 'portrait');

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('skala')->nullable();
             $table->string('metode')->nullable();
             $table->timestamps();
+
         });
     }
 

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::connection('eklaim')->create('triage', function (Blueprint $table) {
             $table->id();
+            $table->string('resume_medis_id')->nullable();
             $table->string('nama_pasien')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->string('no_rm')->nullable();

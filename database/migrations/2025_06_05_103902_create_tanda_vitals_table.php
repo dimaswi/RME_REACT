@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('saturasi_o2')->nullable();
             $table->timestamps();
         });
+
     }
 
     public function down()

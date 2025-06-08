@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nomor_bpjs')->nullable();
             $table->timestamps();
 
+
             $table->foreign('resume_medis_id')->references('id')->on('resume_medis')->onDelete('cascade');
         });
     }

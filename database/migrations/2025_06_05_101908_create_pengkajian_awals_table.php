@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::connection('eklaim')->create('pengkajian_awal', function (Blueprint $table) {
             $table->id();
+            $table->string('resume_medis_id')->nullable();
             $table->string('nomor_kunjungan')->nullable();
             $table->string('ruangan')->nullable();
             $table->datetime('tanggal_masuk')->nullable();
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->text('rencana_terapi')->nullable();
             $table->string('nama_dokter')->nullable();
             $table->date('tanggal_tanda_tangan')->nullable();
+            $table->date('tanggal_keluar')->nullable();
             $table->timestamps();
         });
     }

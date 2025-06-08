@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('skor')->nullable();
             $table->string('metode')->nullable();
             $table->timestamps();
+
         });
     }
 

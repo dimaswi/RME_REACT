@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('skrinning')->nullable();
             $table->string('tindak_lanjut')->nullable();
             $table->timestamps();
+
         });
     }
 

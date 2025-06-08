@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('penurunan_asupan')->nullable();
             $table->string('diagnosis_khusus')->nullable();
             $table->timestamps();
+
         });
     }
 

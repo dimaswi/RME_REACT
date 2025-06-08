@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::connection('eklaim')->create('resume_medis', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_pengajuan_klaim')->nullable();
+            $table->string('nomor_kunjungan_rawat_inap')->nullable();
+            $table->string('nomor_kunjungan_igd')->nullable();
             $table->string('nama_pasien')->nullable();
             $table->string('no_rm')->nullable();
             $table->date('tanggal_lahir')->nullable();

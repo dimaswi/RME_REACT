@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('pekerjaan')->nullable();
             $table->string('penghasilan')->nullable();
             $table->timestamps();
+
+
         });
     }
 

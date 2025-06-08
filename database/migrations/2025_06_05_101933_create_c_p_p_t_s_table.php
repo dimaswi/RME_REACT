@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::connection('eklaim')->create('cppt', function (Blueprint $table) {
             $table->id();
+            $table->string('resume_medis_id')->nullable();
             $table->string('nomor_kunjungan')->nullable();
             $table->datetime('tanggal_jam')->nullable();
             $table->string('profesi')->nullable();
