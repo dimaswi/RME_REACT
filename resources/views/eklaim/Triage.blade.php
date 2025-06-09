@@ -12,26 +12,14 @@
 <style>
     body {
         font-family: 'halvetica', sans-serif;
+        font-size: 10px;
+        text-align: justify
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
         border: 1px solid #000;
-    }
-
-    ul {
-        margin: 0;
-        /* Hilangkan margin default */
-        padding-left: 20px;
-        /* Tambahkan padding untuk indentasi */
-        /* Ubah list menjadi angka */
-    }
-
-    li {
-        margin-bottom: 5px;
-        margin-left: -25px;
-        /* Atur jarak antar item */
     }
 </style>
 
@@ -95,39 +83,35 @@
         </tr>
     </table>
     <table>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Nama Pasien :</strong>
                 <br>
                 {{ $triage['nama_pasien'] }}
             </td>
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Nomor RM :</strong>
                 <br>
                 {{ $triage['no_rm'] }}
             </td>
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Tanggal Lahir :</strong>
                 <br>
                 {{ formatTanggalIndo($triage['tanggal_lahir']) }}
             </td>
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Jenis Kelamin :</strong>
                 <br>
                 {{ $triage['jenis_kelamin'] }}
             </td>
         </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+    </table>
+    <table>
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Cara Datang</strong>
             </td>
-            <td colspan="6"
-                style="vertical-align: top; height: 70px; width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <div>
                     <strong>Kedatangan Pasien</strong> :
                     @if ($triage['cara_datang']['JENIS'] == 1)
@@ -150,13 +134,11 @@
                 </div>
             </td>
         </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Macam Kasus</strong>
             </td>
-            <td colspan="6"
-                style="vertical-align: top; height: 70px; width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <div>
                     @if ($triage['macam_kasus']['JENIS'] == 1)
                         <strong>Trauma</strong> :
@@ -187,14 +169,11 @@
                 </div>
             </td>
         </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <strong>Anamnesa</strong>
             </td>
-            <td colspan="3"
-                style="vertical-align: top; height: 70px; width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="3" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <div>
                     <strong>Tanggal Masuk</strong> : {{ formatTanggalIndo($triage['tanggal_masuk']) }}
                 </div>
@@ -205,8 +184,7 @@
                     <strong>Anamnesa Terpimpim</strong> : {{ $triage['anamnesa']['TERPIMPIN'] }}
                 </div>
             </td>
-            <td colspan="3"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="3" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <div>
                     <strong>Tekanan Darah</strong> :
                     {{ $triage['tanda_vital']['SISTOLE'] . '/' . $triage['tanda_vital']['DIASTOLE'] }} mmHg
@@ -226,45 +204,44 @@
                 </div>
             </td>
         </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+    </table>
+    <table>
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; border: 1px solid #000">
                 <strong>Petugas Triage</strong>
             </td>
-            <td colspan="3" style="vertical-align: top; width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="3" style="vertical-align: top; border: 1px solid #000">
                 <center style="font-weight: bold;">
                     Primer
                 </center>
             </td>
-            <td colspan="3" style="vertical-align: top; width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="3" style="vertical-align: top; border: 1px solid #000">
                 <center style="font-weight: bold;">
                     Sekunder
                 </center>
             </td>
         </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2"
-                style="vertical-align: top; height:50px ;width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; height:50px ; border: 1px solid #000">
             </td>
-            <td colspan="3"
-                style="vertical-align: top; height:50px ;width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="3" style="vertical-align: top; height:50px ; border: 1px solid #000">
                 <center style="font-weight: bold;">
                     {{ $triage['petugas'] }}
                 </center>
             </td>
-            <td colspan="3"
-                style="vertical-align: top; height:50px ;width: 60%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="3" style="vertical-align: top; height:50px ; border: 1px solid #000">
                 <center style="font-weight: bold;">
 
                 </center>
             </td>
         </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+    </table>
+    <table>
+        <tr style="text-align: left;">
+            <td colspan="2" style="vertical-align: top; border: 1px solid #000">
                 <strong>Kebutuhan Khusus</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; width: 60%; border: 1px solid #000; padding: 5px">
+            <td colspan="6" style="vertical-align: top; border: 1px solid #000; padding: 5px">
                 @if ($triage['kebutuhan_khusus']['AIRBONE'] == 1)
                     <input type="checkbox"> <span>Tidak ada kebutuhan khusus</span><br>
                     <input type="checkbox" checked> <span>AIRBONE</span><br>
@@ -280,12 +257,13 @@
                 @endif
             </td>
         </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+    </table>
+    <table>
+        <tr style="text-align: left;">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <strong>Pemeriksaan</strong>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px; background: blue; color:white;">
+            <td style="vertical-align: top; border: 1px solid #000; background: blue; color:white;">
                 <center>Resusitasi (P1)</center> <br>
                 @if ($triage['resusitasi']['CHECKED'] == 1)
                     <center>
@@ -293,7 +271,8 @@
                     </center>
                 @endif
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px; background: Red; color:white;">
+            <td
+                style="vertical-align: top; border: 1px solid #000; background: Red; color:white;">
                 <center>Emergency (P2)</center> <br>
                 @if ($triage['emergency']['CHECKED'] == 1)
                     <center>
@@ -302,7 +281,7 @@
                 @endif
             </td>
             <td
-                style="vertical-align: top; border: 1px solid #000; padding-left: 5px; background: Yellow; color:black;">
+                style="vertical-align: top; border: 1px solid #000; background: Yellow; color:black;">
                 <center>Urgent (P3)</center> <br>
                 @if ($triage['urgent']['CHECKED'] == 1)
                     <center>
@@ -310,7 +289,8 @@
                     </center>
                 @endif
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px; background: Green; color:white;">
+            <td
+                style="vertical-align: top; border: 1px solid #000; background: Green; color:white;">
                 <center>Less Urgent (P4)</center> <br>
                 @if ($triage['less_urgent']['CHECKED'] == 1)
                     <center>
@@ -318,7 +298,8 @@
                     </center>
                 @endif
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px; background: white; color:black;">
+            <td
+                style="vertical-align: top; border: 1px solid #000; background: white; color:black;">
                 <center>Non-Urgent (P5)</center> <br>
                 @if ($triage['non_urgent']['CHECKED'] == 1)
                     <center>
@@ -326,7 +307,8 @@
                     </center>
                 @endif
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px; background: black; color:white;">
+            <td
+                style="vertical-align: top; border: 1px solid #000; background: black; color:white;">
                 <center>Expectant (Non-Priority)</center> <br>
                 @if ($triage['death']['CHECKED'] == 1)
                     <center>
@@ -335,84 +317,82 @@
                 @endif
             </td>
         </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <strong>Jalan Nafas</strong>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Sumbatan(obstruction)</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Stridor</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Stridor Corpal tanpa tanda gangguan pernafasan</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Bebas (patent)</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Bebas (patent)</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
 
             </td>
         </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <strong>Pernafasan</strong>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Henti Nafas (Breathing Arrest)</li>
                     <li>Freak Nafas (RR) < 10 x/Menit</li>
                     <li>Sianosis</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Freak Nafas (RR) < 32 x/Menit</li>
                     <li>Wheezing</li>
                     <li>Gurgling</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Freak Nafas (RR) > 24-32 x/Menit</li>
                     <li>Wheezing</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Freak Nafas (RR) > 24-32 x/Menit</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Freak Nafas (RR) > 24-32 x/Menit</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
 
             </td>
         </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <strong>Sirkulasi</strong>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Henti jantung (Cardiac Arrest)</li>
                     <li>Nadi tidak teraba (Pulsene)</li>
@@ -420,7 +400,7 @@
                     <li>Akral Dingin</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Nadi teraba lemah (Weakness pulse)</li>
                     <li>Frek nadi (HR) < 50 x/mnt </li>
@@ -430,82 +410,84 @@
                     <li>CRT < 2 detik</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Frek Nadi (HR) > 120 - 150 x/mnt</li>
                     <li>TD Sist > 160 mmHg</li>
                     <li>TD Diast > 100 mmHg</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Frek Nadi (HR) > 100 - 120 x/mnt</li>
                     <li>TD Sist > 120 - 140 mmHg</li>
                     <li>TD Diast > 80 - 100 mmHg</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Frek Nadi (HR) > 80 - 100 x/mnt</li>
                     <li>TD Sist > 120 mmHg</li>
                     <li>TD Diast > 80 mmHg</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
 
             </td>
         </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+        <tr style="text-align: left;">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <strong>Kesadaran</strong>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>GCS < 9</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>GCS 9 - 12</li>
                     <li>Pupil unisokor</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>GCS > 12</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>GCS 15</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>GCS 15</li>
                 </ol>
             </td>
-            <td style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+            <td style="vertical-align: top; border: 1px solid #000">
                 <ol>
                     <li>Pupil Midriasis Total</li>
                     <li>Kaku Mayat</li>
                 </ol>
             </td>
         </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="4" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+    </table>
+    <table>
+        <tr style="text-align: left;">
+            <td colspan="4" style="vertical-align: top; border: 1px solid #000">
                 <center>
                     <strong>Perawat</strong> <br>
                     {{ $triage['nama_perawat'] }} <br>
-                    <img src="{{ $triage['tanda_tangan_perawat'] }}" alt=""> <br>
+                    <img src="{{ $triage['tanda_tangan_perawat'] }}" width="50px" height="50px" alt=""> <br>
                     {{ $triage['nip_perawat'] }}
                 </center>
             </td>
-            <td colspan="4" style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
+            <td colspan="4" style="vertical-align: top; border: 1px solid #000">
                 <center>
                     <strong>Dokter</strong> <br>
                     {{ $triage['nama_dokter'] }} <br>
-                    <img src="{{ $triage['tanda_tangan_dokter'] }}" alt=""> <br>
+                    <img src="{{ $triage['tanda_tangan_dokter'] }}" width="50px" height="50px" alt=""> <br>
                     {{ $triage['nip_dokter'] }}
                 </center>
             </td>

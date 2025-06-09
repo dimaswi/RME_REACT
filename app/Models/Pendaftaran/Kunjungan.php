@@ -143,4 +143,19 @@ class Kunjungan extends Model
     {
         return $this->hasOne(Triage::class, 'KUNJUNGAN', 'NOMOR');
     }
+
+    public function pemeriksaanMata()
+    {
+        return $this->hasOne(\App\Models\RM\PemeriksaanMata::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function riwayatAlergiPasien()
+    {
+        return $this->hasMany(Alergi::class, 'KUNJUNGAN', 'NOMOR');
+    }
+
+    public function CPPT()
+    {
+        return $this->hasMany(\App\Models\RM\CPPT::class, 'KUNJUNGAN', 'NOMOR');
+    }
 }

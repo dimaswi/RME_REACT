@@ -1,5 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { PDFDocument } from "pdf-lib"; // install dengan: npm install pdf-lib
+
 
 // Fungsi untuk menampilkan modal loading
 function showLoadingModal() {
@@ -75,38 +77,48 @@ export const cetakResumeMedis = async (
 ) => {
     try {
         showLoadingModal();
-        const response = await axios.get(route("previewResumeMedis", {
-            pendaftaran: pendaftaranNomor,
-        }), {
-            responseType: "blob",
-        });
+
+        // 1. Fetch semua PDF (ubah route sesuai kebutuhan Anda)
+        const [resResume, resPengkajian, resTriage, resCppt] = await Promise.all([
+            axios.get(route("previewResumeMedis", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
+            axios.get(route("previewPengkajianAwal", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
+            axios.get(route("previewTriage", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
+            axios.get(route("previewCPPT", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
+        ]);
+
+        // 2. Gabungkan PDF dengan pdf-lib
+        const mergedPdf = await PDFDocument.create();
+
+        for (const res of [resResume, resPengkajian, resTriage, resCppt]) {
+            const pdfBytes = await res.data.arrayBuffer();
+            const pdf = await PDFDocument.load(pdfBytes);
+            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
+
+        const mergedPdfBytes = await mergedPdf.save();
+        const mergedBlob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+        const mergedUrl = URL.createObjectURL(mergedBlob);
+
+        hideLoadingModal();
+
         if (jenis === "preview") {
-            const pdfBlob = new Blob([response.data], { type: "application/pdf" });
-            const pdfUrl = URL.createObjectURL(pdfBlob);
-            hideLoadingModal();
-            showPDFModal(pdfUrl);
+            showPDFModal(mergedUrl);
+            toast.success("PDF gabungan berhasil ditampilkan");
         } else if (jenis === "download") {
-            const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", pendaftaranNomor + ".pdf");
+            link.href = mergedUrl;
+            link.setAttribute("download", pendaftaranNomor + "_gabungan.pdf");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            toast.success("PDF berhasil diunduh");
-            hideLoadingModal();
-        } else if (jenis === "merge") {
-            hideLoadingModal();
-            return new Blob([response.data], { type: "application/pdf" });
-        }
-        if (jenis !== "download") {
-            toast.success("PDF berhasil diambil untuk preview");
+            toast.success("PDF gabungan berhasil diunduh");
         }
     } catch (error) {
-        console.error("Error fetching PDF:", error);
-        toast.error("Gagal mengambil PDF");
+        console.error("Error merging PDF:", error);
+        toast.error("Gagal mengambil/gabung PDF");
         hidePDFModal();
     } finally {
         hideLoadingModal();
     }
-}
+};

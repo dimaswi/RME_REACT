@@ -19,20 +19,6 @@
         border-collapse: collapse;
         border: 1px solid #000;
     }
-
-    ul {
-        margin: 0;
-        /* Hilangkan margin default */
-        padding-left: 20px;
-        /* Tambahkan padding untuk indentasi */
-        /* Ubah list menjadi angka */
-    }
-
-    li {
-        margin-bottom: 5px;
-        margin-left: -25px;
-        /* Atur jarak antar item */
-    }
 </style>
 
 <body>

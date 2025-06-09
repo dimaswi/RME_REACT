@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::get('previewResumeMedis/{pendaftaran}', [BridgeDataController::class, 'previewResumeMedis'])->name('previewResumeMedis');
     Route::get('previewPengkajianAwal/{pendaftaran}', [BridgeDataController::class, 'previewPengkajianAwal'])->name('previewPengkajianAwal');
     Route::get('previewTriage/{pendaftaran}', [BridgeDataController::class, 'previewTriage'])->name('previewTriage');
+    Route::get('previewCPPT/{pendaftaran}', [BridgeDataController::class, 'previewCPPT'])->name('previewCPPT');
     Route::get('previewTagihan/{pendaftaran}', [BridgeDataController::class, 'previewTagihan'])->name('previewTagihan');
     Route::get('previewBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'previewBerkasKlaim'])->name('previewBerkasKlaim');
     Route::get('previewLaboratorium/{pendaftaran}', [BridgeDataController::class, 'previewLaboratorium'])->name('previewLaboratorium');

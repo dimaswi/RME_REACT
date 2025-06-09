@@ -328,7 +328,6 @@ class BridgeDataController extends Controller
             'tanda_tangan_perawat' => 'data:image/png;base64,' . base64_encode(QrCode::format('png')->size(150)->generate($nama_perawat)),
         ];
 
-
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
             throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
@@ -349,14 +348,14 @@ class BridgeDataController extends Controller
         $dompdf->render();
         $pdf = $dompdf->output();
 
-        // return response($pdf, 200)
-        //     ->header('Content-Type', 'application/pdf')
-        //     ->header('Content-Disposition', 'inline; filename="Triage.pdf"');
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="Triage.pdf"');
 
-        return view('eklaim.Triage', compact(
-            'triage',
-            'imageBase64' // Kirim Base64 ke view
-        ));
+        // return view('eklaim.Triage', compact(
+        //     'triage',
+        //     'imageBase64' // Kirim Base64 ke view
+        // ));
     }
 
     public function previewPengkajianAwal(Pendaftaran $pendaftaran)
@@ -368,10 +367,15 @@ class BridgeDataController extends Controller
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.anamnesisPasien',
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.rpp',
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.keluhanUtama',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.dokterDPJP',
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.orderResep.orderResepDetil.namaObat',
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.riwayatPenyakitKeluarga',
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.tandaVital.tingkatKesadaran',
             'pendaftaranTagihan.gabungTagihan.kunjunganPasien.pemeriksaanFisik',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.pemeriksaanMata',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.riwayatAlergi',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.rencanaTerapi',
+            'pendaftaranTagihan.gabungTagihan.kunjunganPasien.diagnosaPasien.namaDiagnosa',
         ]);
         $kunjunganUGD = null;
         $tagihanUGD = $pendaftaran->pendaftaranTagihan;
@@ -403,6 +407,21 @@ class BridgeDataController extends Controller
             })->values()->implode(', ')
             : '';
 
+        $getRiwayatAlergi = $kunjunganUGD->riwayatAlergi
+            ? $kunjunganUGD->riwayatAlergi->flatMap(function ($alergi) {
+                return $alergi->ALERGI ? [$alergi->ALERGI] : [];
+            })->implode(', ')
+            : '';
+
+        $getRiwayatAlergi = trim($getRiwayatAlergi) !== '' ? $getRiwayatAlergi : 'Tidak ada riwayat alergi';
+
+        $getDiagnosaPasien = $kunjunganUGD->pendaftaranPasien->diagnosaPasien
+            ? $kunjunganUGD->pendaftaranPasien->diagnosaPasien
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
+            })->implode(', ')
+            : 'Tidak ada data diagnosa';
+
         $riwayatKeluarga = [];
         if ($kunjunganUGD->riwayatPenyakitKeluarga) {
             if ($kunjunganUGD->riwayatPenyakitKeluarga->HIPERTENSI == 1) {
@@ -423,6 +442,13 @@ class BridgeDataController extends Controller
         }
         $riwayat_penyakit_keluarga = count($riwayatKeluarga) > 0 ? implode(', ', $riwayatKeluarga) : 'Tidak ada data';
 
+        $pupil =  ($kunjunganUGD->pemeriksaanMata->_ISOKOR ?? 0) == 1
+            ? 'Pupil Isokor'
+            : (($kunjunganUGD->pemeriksaanMata->_ANISOKOR ?? 0) == 1
+                ? 'Pupil Anisokor'
+                : 'Tidak Ada Kelainan');
+
+        $namaDokter = ($kunjunganUGD->dokterDPJP->GELAR_DEPAN ? $kunjunganUGD->dokterDPJP->GELAR_DEPAN . '.' : '') . $kunjunganUGD->dokterDPJP->NAMA . ($kunjunganUGD->dokterDPJP->GELAR_BELAKANG ? ',' . $kunjunganUGD->dokterDPJP->GELAR_BELAKANG : '') ?? 'Tidak ada data petugas';
 
         $pengkajianAwal = [
             'nama_pasien' => $kunjunganUGD->pendaftaranPasien->pasien->NAMA ?? 'Tidak ada data nama pasien',
@@ -451,7 +477,21 @@ class BridgeDataController extends Controller
             'frekuensi_nafas' => $kunjunganUGD->tandaVital->FREKUENSI_NAFAS,
             'suhu' => $kunjunganUGD->tandaVital->SUHU,
             'saturasi_o2' => $kunjunganUGD->tandaVital->SATURASI_O2,
+            'mata' => ($kunjunganUGD->pemeriksaanMata && $kunjunganUGD->pemeriksaanMata->ANEMIS == 1) ? 'Ada' : 'Tidak Ada Kelainan',
+            'ikterus' => ($kunjunganUGD->pemeriksaanMata && $kunjunganUGD->pemeriksaanMata->IKTERUS == 1) ? 'Ada' : 'Tidak Ada Kelainan',
+            'pupil' => $pupil,
+            'diameter' => ($kunjunganUGD->pemeriksaanMata && $kunjunganUGD->pemeriksaanMata->DIAMETER_ISIAN && $kunjunganUGD->pemeriksaanMata->DIAMETER_MM) ? $kunjunganUGD->pemeriksaanMata->DIAMETER_ISIAN . "/" . $kunjunganUGD->pemeriksaanMata->DIAMETER_MM : 'Tidak ada data diameter',
+            'udem_palpebrae' => ($kunjunganUGD->pemeriksaanMata && $kunjunganUGD->pemeriksaanMata->UDEM == 1) ? 'Ada' : 'Tidak Ada Kelainan',
+            'riwayat_alergi' => $getRiwayatAlergi,
+            'diagnosa' => $getDiagnosaPasien,
+            'rencana_terapi' => $kunjunganUGD->rencanaTerapi->DESKRIPSI ?? 'Tidak ada data rencana terapi',
+            'nama_dokter' => $namaDokter,
+            'nip_dokter' => $kunjunganUGD->dokterDPJP->NIP ?? 'Tidak ada data NIP dokter',
         ];
+
+        $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(150)->generate($namaDokter)
+        );
 
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
@@ -466,6 +506,88 @@ class BridgeDataController extends Controller
             view('eklaim.PengkajianAwal', compact(
                 'pengkajianAwal',
                 'imageBase64', // Kirim Base64 ke view
+                'qrcodeBase64', // Kirim Base64 QR Code ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="PengkajianAwal.pdf"');
+
+        // return view('eklaim.PengkajianAwal', compact(
+        //     'pengkajianAwal',
+        //     'imageBase64', // Kirim Base64 ke view
+        //     'qrcodeBase64', // Kirim Base64 QR Code ke view
+        // ));
+    }
+
+    public function previewCPPT(Pendaftaran $pendaftaran)
+    {
+        $pendaftaran->load([
+            'kunjunganPasien.ruangan',
+            'kunjunganPasien.CPPT.petugas.pegawai.profesi',
+            'kunjunganPasien.pendaftaranPasien.pasien',
+        ]);
+
+        $kunjunganRawatInap = $pendaftaran->kunjunganPasien
+            ->first(function ($kunjungan) {
+                return $kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 3;
+            });
+
+        if (!$kunjunganRawatInap) {
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'error' => 'Tidak ada data kunjungan rawat inap yang ditemukan untuk pendaftaran ini.',
+                ], 404);
+            }
+            return redirect()->back()->with([
+                'error' => 'Tidak ada data kunjungan rawat inap yang ditemukan untuk pendaftaran ini.',
+            ]);
+        }
+
+        $dataCppt = [];
+        foreach ($kunjunganRawatInap->CPPT as $item) {
+            // Ambil nama petugas, sesuaikan field jika perlu
+            $namaPetugas = $item->petugas->NAMA ?? '-';
+            // Generate QR code base64
+            $qrcodePetugas = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')->size(100)->generate($namaPetugas)
+            );
+            // Ubah ke array dan tambahkan qrcode_petugas
+            $cpptItem = $item->toArray();
+            $cpptItem['qrcode_petugas'] = $qrcodePetugas;
+            $dataCppt[] = $cpptItem;
+        }
+
+        $CPPT = [
+            'nama_pasien' => $kunjunganRawatInap->pendaftaranPasien->pasien->NAMA ?? 'Tidak ada data nama pasien',
+            'no_rm' => $kunjunganRawatInap->pendaftaranPasien->pasien->NORM ?? 'Tidak ada data nomor rekam medis',
+            'tanggal_lahir' => $kunjunganRawatInap->pendaftaranPasien->pasien->TANGGAL_LAHIR ?? 'Tidak ada data tanggal lahir',
+            'jenis_kelamin' => $kunjunganRawatInap->pendaftaranPasien->pasien->JENIS_KELAMIN === 1
+                ? 'Laki-laki'
+                : ($kunjunganRawatInap->pendaftaranPasien->pasien->JENIS_KELAMIN === 2
+                    ? 'Perempuan'
+                    : 'Tidak ada data jenis kelamin'),
+            'alamat' => $kunjunganRawatInap->pendaftaranPasien->pasien->ALAMAT ?? 'Tidak ada data alamat pasien',
+            'cppt' => $dataCppt,
+        ];
+
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.CPPT', compact(
+                'CPPT',
+                'imageBase64', // Kirim Base64 ke view
                 // 'qrcodeBase64', // Kirim Base64 QR Code ke view
             ))->render()
         );
@@ -473,14 +595,10 @@ class BridgeDataController extends Controller
         $dompdf->render();
         $pdf = $dompdf->output();
 
-        // return response($pdf, 200)
-        //     ->header('Content-Type', 'application/pdf')
-        //     ->header('Content-Disposition', 'inline; filename="PengkajianAwal.pdf"');
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="PengkajianAwal.pdf"');
 
-        return view('eklaim.PengkajianAwal', compact(
-            'pengkajianAwal',
-            'imageBase64' // Kirim Base64 ke view
-        ));
     }
 
     public function previewTagihan(Pendaftaran $pendaftaran)

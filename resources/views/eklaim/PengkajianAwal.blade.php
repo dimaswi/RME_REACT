@@ -19,20 +19,6 @@
         border-collapse: collapse;
         border: 1px solid #000;
     }
-
-    ul {
-        margin: 0;
-        /* Hilangkan margin default */
-        padding-left: 20px;
-        /* Tambahkan padding untuk indentasi */
-        /* Ubah list menjadi angka */
-    }
-
-    li {
-        margin-bottom: 5px;
-        margin-left: -25px;
-        /* Atur jarak antar item */
-    }
 </style>
 
 <body>
@@ -103,7 +89,7 @@
             <td colspan="4"
                 style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Tanggal Masuk</strong> : <br>
-                {{ $pengkajianAwal['tanggal_masuk'] }}
+                {{ formatTanggalIndo($pengkajianAwal['tanggal_masuk']) }} <br>
             </td>
         </tr>
         <tr style="font-size: 13px; text-align: left;">
@@ -116,7 +102,7 @@
                 <strong>Jenis Kelamin</strong> :
                 {{ $pengkajianAwal['jenis_kelamin'] }} <br>
                 <strong>Tanggal Lahir</strong> :
-                {{ $pengkajianAwal['tanggal_lahir'] }} <br>
+                {{ formatTanggalIndo($pengkajianAwal['tanggal_lahir']) }} <br>
             </td>
             <td colspan="4"
                 style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
@@ -140,10 +126,15 @@
                 <br>
                 <ol>
                     <li><b>Keluhan Utama</b> : <span>{{ $pengkajianAwal['anamnesis'] }}</span></li>
-                    <li><b>Riwayat Penyakit Sekarang</b> : <span>{{ $pengkajianAwal['riwayat_penyakit_sekarang'] }}</span></li>
-                    <li><b>Riwayat Penyakit Dahulu</b> : <span>{{ $pengkajianAwal['riwayat_penyakit_dahulu'] }}</span></li>
+                    <li><b>Riwayat Penyakit Sekarang</b> :
+                        <span>{{ $pengkajianAwal['riwayat_penyakit_sekarang'] }}</span>
+                    </li>
+                    <li><b>Riwayat Penyakit Dahulu</b> : <span>{{ $pengkajianAwal['riwayat_penyakit_dahulu'] }}</span>
+                    </li>
                     <li><b>Riwayat Pengobatan</b> : <span>{{ $pengkajianAwal['riwayat_pengobatan'] }}</span></li>
-                    <li><b>Riwayat Penyakit Keluarga</b> : <span>{{ $pengkajianAwal['riwayat_penyakit_keluarga'] }}</span></li>
+                    <li><b>Riwayat Penyakit Keluarga</b> :
+                        <span>{{ $pengkajianAwal['riwayat_penyakit_keluarga'] }}</span>
+                    </li>
                 </ol>
             </td>
         </tr>
@@ -173,40 +164,181 @@
                 style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong><u>Pemeriksaan Fisik</u></strong>
                 <ol>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
-                    <li><b>Mata</b> : <span>Tidak ada</span></li>
+                    <li><b>Anemis</b> : <span>{{ $pengkajianAwal['mata'] }}</span></li>
+                    <li><b>Ikterus</b> : <span>{{ $pengkajianAwal['ikterus'] }}</span></li>
+                    <li><b>Pupil</b> : <span>{{ $pengkajianAwal['pupil'] }}</span></li>
+                    <li><b>Diameter</b> : <span>{{ $pengkajianAwal['diameter'] }}</span></li>
+                    <li><b>Udem Palpebrae</b> : <span>{{ $pengkajianAwal['udem_palpebrae'] }}</span></li>
+                    <li><b>THT</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Leher</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Tongsil</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Faring</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Lidah</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Bibir</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>JVP</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Pembesaran Kelenjar Limfe</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Kaku Kuduk</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Thoraks</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Cor</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>s1s2</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Mur-Mur</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Pulmo</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Suara Nafas</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Ronchi</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Wheezing</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Abdomen</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Peristaltik</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Asites</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Hepar</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Nyeri Tekan</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Lien</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Extremitas</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Udem</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Defeksesi</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Urin</b> : <span>Tidak Ada Kelainan</span></li>
+                    <li><b>Lain-lain</b> : <span>Tidak Ada Kelainan</span></li>
                 </ol>
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Riwayat Alergi</u></strong> <br>
+                {{ $pengkajianAwal['riwayat_alergi'] }}
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Hubungan Status Psikosisial Spiritual</u></strong> <br>
+                <ol>
+                    <li><b>Status Psikologis</b> : <span>Tidak ada kelainan</span></li>
+                    <li><b>Status Mental</b> : <span>Tidak ada kelainan</span></li>
+                    <li><b>Hubungan Dengan Anggota Keluarga</b> : <span>Normal</span></li>
+                    <li><b>Tempat Tinggal</b> : <span>Rumah</span></li>
+                    <li><b>Agama</b> : <span>Tidak Diketahui</span></li>
+                    <li><b>Kebiasaan Beribadah</b> : <span>Tidak Diketahui</span></li>
+                    <li><b>Pekerjaan</b> : <span>Tidak Diketahui</span></li>
+                    <li><b>Penghasilan</b> : <span>Tidak Diketahui</span></li>
+                </ol>
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Penilaian Nyeri</u></strong> <br>
+                <ol>
+                    <li><b>Nyeri</b> : <span>Tidak ada </span></li>
+                    <li><b>Onset</b> : <span>Tidak ada</span></li>
+                    <li><b>Pencetus</b> : <span>Normal</span></li>
+                    <li><b>Lokasi Nyeri</b> : <span>Tidak ada</span></li>
+                    <li><b>Gambaran</b> : <span>Tidak Diketahui</span></li>
+                    <li><b>Durasi</b> : <span>Tidak Diketahui</span></li>
+                    <li><b>Skala Nyeri</b> : <span>Tidak ada</span></li>
+                    <li><b>Metode</b> : <span>Tidak ada</span></li>
+                </ol>
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Resiko Jatuh</u></strong> <br>
+                <ol>
+                    <li><b>Risiko Jatuh</b> : <span>Tidak ada </span></li>
+                    <li><b>Skor</b> : <span>Tidak ada</span></li>
+                    <li><b>Metode</b> : <span>Tidak Diketahui</span></li>
+                </ol>
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Resiko Gizi</u></strong> <br>
+                <ol>
+                    <li><b>Penurunan Berat Badan</b> : <span>Tidak ada </span></li>
+                    <li><b>Penurunan Asupan Makan</b> : <span>Tidak ada</span></li>
+                    <li><b>Pasien dengan Diagnosis Khusus</b> : <span>Tidak Diketahui</span></li>
+                </ol>
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Edukasi Pasien / Keluarga</u></strong> <br>
+                Tidak ada
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Rencana Pulang / Discharge Planning</u></strong> <br>
+                <ol>
+                    <li><b>Skrinning Faktor Resiko Pasien Pulang</b> : <span>Tidak ada </span></li>
+                    <li><b>Faktor Resiko Pulang</b> : <span>Tidak ada</span></li>
+                    <li><b>Tindak Lanjut</b> : <span>Tidak ada</span></li>
+                </ol>
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Masalah Keperawatan</u></strong> <br>
+                Tidak ada
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Rencana Keperawatan</u></strong> <br>
+                Tidak ada
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Masalah Medis</u></strong> <br>
+                {{ $pengkajianAwal['anamnesis'] }}
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Diagnosa Medis</u></strong> <br>
+                {{ $pengkajianAwal['diagnosa'] }}
+            </td>
+        </tr>
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="8"
+                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                <strong><u>Rencana Terapi / Tindakan</u></strong> <br>
+                {{ $pengkajianAwal['rencana_terapi'] }}
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4" style="text-align: center; font-size: 13px; padding: 10px; vertical-align: top;">
+                <strong>Keluarga Pasien</strong>
+            </td>
+            <td colspan="4" style="text-align: center; font-size: 13px; padding: 10px; vertical-align: top;">
+                <strong>Dokter Penanggung Jawab</strong>
+                <div>
+                    <img src="{{ $qrcodeBase64 }}" alt="" style="width: 50px; height: 50px; margin: 10px;">
+                </div>
+                <strong id='nama_dokter'>{{ $pengkajianAwal['nama_dokter'] }}</strong>
+                <br>
+                NIP. {{ $pengkajianAwal['nip_dokter'] }}
             </td>
         </tr>
     </table>
