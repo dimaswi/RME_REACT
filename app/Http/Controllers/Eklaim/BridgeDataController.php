@@ -3,8 +3,23 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Models\Eklaim\Anamnesis;
+use App\Models\Eklaim\CPPT;
+use App\Models\Eklaim\DischargePlanning;
 use App\Models\Eklaim\LogKlaim;
+use App\Models\Eklaim\PemeriksaanFisik;
 use App\Models\Eklaim\PengajuanKlaim;
+use App\Models\Eklaim\PengkajianAwal;
+use App\Models\Eklaim\PermintaanKonsul;
+use App\Models\Eklaim\Psikososial;
+use App\Models\Eklaim\ResikoDekubitus;
+use App\Models\Eklaim\ResikoGizi;
+use App\Models\Eklaim\ResikoJatuh;
+use App\Models\Eklaim\ResumeMedis;
+use App\Models\Eklaim\TandaVital;
+use App\Models\Eklaim\TerapiPulang;
+use App\Models\Eklaim\Triage;
+use App\Models\Eklaim\TTVResumeMedis;
 use App\Models\Pendaftaran\Kunjungan;
 use App\Models\Pendaftaran\Pendaftaran;
 use Dompdf\Dompdf;
@@ -598,7 +613,380 @@ class BridgeDataController extends Controller
         return response($pdf, 200)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'inline; filename="PengkajianAwal.pdf"');
+    }
 
+    public function previewResumeMedisEdit(PengajuanKlaim $pendaftaran)
+    {
+        $dataResumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
+        $dataPermintaanKonsultasi = PermintaanKonsul::where('resume_medis_id', $dataResumeMedis->id)->get();
+        $getKonsultasi = $dataPermintaanKonsultasi->map(function ($konsul) {
+            return [
+                'pertanyaan' => $konsul->pertanyaan ?? 'Tidak ada data pertanyaan',
+                'jawaban' => $konsul->jawaban ?? 'Tidak ada data jawaban',
+            ];
+        })->toArray();
+        $dataTTV = TTVResumeMedis::where('resume_medis_id', $dataResumeMedis->id)->first();
+        $dataTerapiPulang = TerapiPulang::where('resume_medis_id', $dataResumeMedis->id)->get();
+        $getTerapiPulang = $dataTerapiPulang->map(function ($terapi) {
+            return [
+                'nama_obat' => $terapi->nama_obat ?? 'Tidak ada data nama obat',
+                'frekuensi' => $terapi->frekuensi ?? 'Tidak ada data aturan pakai',
+                'jumlah' => $terapi->jumlah ?? 'Tidak ada data jumlah',
+                'cara_pakai' => $terapi->cara_pemberian ?? 'Tidak ada data cara pakai',
+            ];
+        })->toArray();
+
+        if (!$dataResumeMedis) {
+            throw new \Exception("Data Resume Medis tidak ditemukan");
+        }
+
+        $resumeMedis = [
+            'nama_pasien' => $dataResumeMedis->nama_pasien ?? 'Tidak ada data nama pasien',
+            'no_rm' => $dataResumeMedis->no_rm ?? 'Tidak ada data nomor rekam medis',
+            'ruang_rawat_terakhir' => $dataResumeMedis->ruang_rawat_terakhir ?? 'Tidak ada data ruang rawat',
+            'jenis_kelamin' => $dataResumeMedis->jenis_kelamin ?? 'Tidak ada data jenis kelamin',
+            'tanggal_lahir' => $dataResumeMedis->tanggal_lahir ?? 'Tidak ada data tanggal lahir',
+            'tanggal_masuk' => $dataResumeMedis->tanggal_masuk ?? 'Tidak ada data tanggal masuk',
+            'tanggal_keluar' => $dataResumeMedis->tanggal_keluar ?? 'Tidak ada data tanggal keluar',
+            'ruang_rawat_terakhir' => $dataResumeMedis->ruang_rawat_terakhir ?? 'Tidak ada data ruang rawat',
+            'penjamin' => $dataResumeMedis->penjamin ?? 'Tidak ada data penjamin',
+            'indikasi_rawat_inap' =>  $dataResumeMedis->indikasi_rawat_inap ?? 'Tidak ada data indikasi rawat inap',
+            'riwayat_penyakit_sekarang' => $dataResumeMedis->riwayat_penyakit_sekarang ?? 'Tidak ada data riwayat penyakit sekarang',
+            'riwayat_penyakit_dahulu' => $dataResumeMedis->riwayat_penyakit_dahulu ?? 'Tidak ada data ringkasan penyakit dahulu',
+            'pemeriksaan_fisik' => $dataResumeMedis->pemeriksaan_fisik ?? 'Tidak ada data pemeriksaan fisik',
+            'hasil_konsultasi' => $getKonsultasi ?? 'Tidak ada data hasil konsultasi',
+            'diagnosa_utama' => $dataResumeMedis->diagnosa_utama ?? 'Tidak ada data diagnosa utama',
+            'icd_10_diagnosa_utama' => $dataResumeMedis->icd_10_diagnosa_utama ?? 'Tidak ada data ICD 10 diagnosa utama',
+            'prosedur_utama' => $dataResumeMedis->prosedur_utama ?? 'Tidak ada data prosedur',
+            'icd_9_prosedur_utama' => $dataResumeMedis->icd_9_prosedur_utama ?? 'Tidak ada data prosedur',
+            'keadaan_pulang' => $dataResumeMedis->keadaan_pulang ?? 'Tidak ada data keadaan pulang',
+            'cara_pulang' => $dataResumeMedis->cara_pulang ?? 'Tidak ada data cara pulang',
+            'tekanan_darah' => $dataTTV->tekanan_darah ?? '0/0',
+            'nadi' => $dataTTV->nadi ?? '0',
+            'suhu' => $dataTTV->suhu ?? '0',
+            'pernafasan' => $dataTTV->pernafasan ?? '0',
+            'kesadaran' => $dataTTV->tingkat_kesadaran ?? '-',
+            'skala_nyeri' => $dataTTV->skala_nyeri ?? '-',
+            'terapi_pulang' => $getTerapiPulang,
+            'nama_dokter' => $dataResumeMedis->dokter ?? 'Tidak ada data nama dokter',
+            'nip_dokter' => $dataResumeMedis->NIP ?? '-',
+
+        ];
+
+        $namaDokter = $dataResumeMedis['dokter'] ?? '-';
+        $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(150)->generate($namaDokter)
+        );
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.ResumeMedis', compact(
+                'resumeMedis',
+                'imageBase64', // Kirim Base64 ke view
+                'qrcodeBase64', // Kirim Base64 QR Code ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="ResumeMedis.pdf"');
+    }
+
+    public function previewPengkajianAwalEdit(PengajuanKlaim $pendaftaran)
+    {
+        $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
+        $dataPengkajianAwal = PengkajianAwal::where('resume_medis_id', $resumeMedis->id)->first();
+        if (!$dataPengkajianAwal) {
+            throw new \Exception("Data Pengkajian Awal tidak ditemukan");
+        }
+        $dataTTV = TandaVital::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataAnamnesis = Anamnesis::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataPemeriksaanFisik = PemeriksaanFisik::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataResikoJatuh = ResikoJatuh::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataResikoDekubitus = ResikoDekubitus::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataResikoGizi = ResikoGizi::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataStatusPsokososial = Psikososial::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataDischargePlanning = DischargePlanning::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+
+        $pengkajianAwal = [
+            'nama_pasien' => $dataPengkajianAwal->nama_pasien ?? 'Tidak ada data nama pasien',
+            'no_rm' => $dataPengkajianAwal->no_rm ?? 'Tidak ada data nomor rekam medis',
+            'tanggal_lahir' => $dataPengkajianAwal->tanggal_lahir ?? 'Tidak ada data tanggal lahir',
+            'jenis_kelamin' => $dataPengkajianAwal->jenis_kelamin ?? 'Tidak ada data jenis kelamin',
+            'tanggal_masuk' => $dataPengkajianAwal->tanggal_masuk ?? 'Tidak ada data tanggal masuk',
+            'ruangan' => $dataPengkajianAwal->ruangan ?? 'Tidak ada data ruang rawat',
+            'alamat_pasien' => $dataPengkajianAwal->alamat ?? 'Tidak ada data alamat pasien',
+            'auto_anamnesis' => $dataAnamnesis->auto_anamnesis === "Ya" ? 1 : 0,
+            'allo_anamnesis' => $dataAnamnesis->allo_anamnesis === "Ya" ? 1 : 0,
+            'dari' => $dataAnamnesis->dari ?? '-',
+            'anamnesis' => $dataAnamnesis->keluhan_utama ?? 'Tidak ada data anamnesis',
+            'riwayat_penyakit_sekarang' => $dataAnamnesis->riwayat_penyakit_sekarang ?? 'Tidak ada data riwayat penyakit sekarang',
+            'riwayat_penyakit_dahulu' => $dataAnamnesis->riwayat_penyakit_lalu ?? 'Tidak ada data riwayat penyakit dahulu',
+            'riwayat_pengobatan' => $dataAnamnesis->riwayat_pengobatan ?? 'Tidak ada data riwayat pengobatan',
+            'riwayat_penyakit_keluarga' => $dataAnamnesis->riwayat_penyakit_keluarga ?? 'Tidak ada data riwayat penyakit keluarga',
+            'keadaan_umum' => $dataTTV->keadaan_umum ?? 'Tidak ada data keadaan umum',
+            'tingkat_kesadaran' => $dataTTV->tingkat_kesadaran ?? 'Tidak ada data tingkat kesadaran',
+            'gcs' => $dataTTV->GCS ?? 'Tidak ada data GCS',
+            'eye' => $dataTTV->EYE ?? 'Tidak ada data eye',
+            'motorik' => $dataTTV->MOTORIK ?? 'Tidak ada data motorik',
+            'verbal' => $dataTTV->VERBAL ?? 'Tidak ada data verbal',
+            'tekanan_darah' => $dataTTV->SISTOLIK . '/' . $dataTTV->DISTOLIK ?? 'Tidak ada data tekanan darah',
+            'frekuensi_nadi' => $dataTTV->FREKUENSI_NADI ?? 'Tidak ada data frekuensi nadi',
+            'frekuensi_nafas' => $dataTTV->FREKUENSI_NAFAS ?? 'Tidak ada data frekuensi nafas',
+            'suhu' => $dataTTV->SUHU ?? 'Tidak ada data suhu',
+            'saturasi_o2' => $dataTTV->SATURASI_O2 ?? 'Tidak ada data saturasi O2',
+            'mata' => $dataPemeriksaanFisik->mata ?? 'Tidak ada kelainan',
+            'ikterus' => $dataPemeriksaanFisik->ikterus ?? 'Tidak ada kelainan',
+            'pupil' => $dataPemeriksaanFisik->pupil ?? 'Tidak ada kelainan',
+            'diameter' => $dataPemeriksaanFisik->diameter_mata ?? 'Tidak ada kelainan',
+            'udem_palpebrae' => $dataPemeriksaanFisik->udema_palpebrae ?? 'Tidak ada kelainan',
+            'kelainan_mata' => $dataPemeriksaanFisik->kelainan_mata ?? 'Tidak ada kelainan',
+            'tht' => $dataPemeriksaanFisik->tht ?? 'Tidak ada kelainan',
+            'tongsil' => $dataPemeriksaanFisik->tongsil ?? 'Tidak ada kelainan',
+            'faring' => $dataPemeriksaanFisik->faring ?? 'Tidak ada kelainan',
+            'lidah' => $dataPemeriksaanFisik->lidah ?? 'Tidak ada kelainan',
+            'bibir' => $dataPemeriksaanFisik->bibir ?? 'Tidak ada kelainan',
+            'leher' => $dataPemeriksaanFisik->leher ?? 'Tidak ada kelainan',
+            'jvp' => $dataPemeriksaanFisik->jvp ?? 'Tidak ada kelainan',
+            'limfe' => $dataPemeriksaanFisik->limfe ?? 'Tidak ada kelainan',
+            'kaku_kuduk' => $dataPemeriksaanFisik->kaku_kuduk ?? 'Tidak ada kelainan',
+            'thoraks' => $dataPemeriksaanFisik->thoraks ?? 'Tidak ada kelainan',
+            'cor' => $dataPemeriksaanFisik->cor ?? 'Tidak ada kelainan',
+            'murmur' => $dataPemeriksaanFisik->murmur ?? 'Tidak ada kelainan',
+            's1s2' => $dataPemeriksaanFisik->s1s2 ?? 'Tidak ada kelainan',
+            'pulmo' => $dataPemeriksaanFisik->pulmo ?? 'Tidak ada kelainan',
+            'suara_nafas' => $dataPemeriksaanFisik->suara_nafas ?? 'Tidak ada kelainan',
+            'ronchi' => $dataPemeriksaanFisik->ronchi ?? 'Tidak ada kelainan',
+            'wheezing' => $dataPemeriksaanFisik->wheezing ?? 'Tidak ada kelainan',
+            'abdomen' => $dataPemeriksaanFisik->abdomen ?? 'Tidak ada kelainan',
+            'meteorismus' => $dataPemeriksaanFisik->meteorismus ?? 'Tidak ada kelainan',
+            'peristaltik' => $dataPemeriksaanFisik->peristaltik ?? 'Tidak ada kelainan',
+            'asites' => $dataPemeriksaanFisik->asites ?? 'Tidak ada kelainan',
+            'nyeri_tekan' => $dataPemeriksaanFisik->nyeri_tekan ?? 'Tidak ada kelainan',
+            'hepar' => $dataPemeriksaanFisik->hepar ?? 'Tidak ada kelainan',
+            'lien' => $dataPemeriksaanFisik->lien ?? 'Tidak ada kelainan',
+            'extremitas' => $dataPemeriksaanFisik->extremitas ?? 'Tidak ada kelainan',
+            'udem' => $dataPemeriksaanFisik->udem ?? 'Tidak ada kelainan',
+            'defeksasi' => $dataPemeriksaanFisik->defeksasi ?? 'Tidak ada kelainan',
+            'urin' => $dataPemeriksaanFisik->urin ?? 'Tidak ada kelainan',
+            'pemeriksaan_lain_lain' => $dataPemeriksaanFisik->pemeriksaan_lain_lain ?? 'Tidak ada kelainan',
+            'riwayat_alergi' => $dataPengkajianAwal->riwayat_alergi ?? 'Tidak ada data riwayat alergi',
+            'diagnosa' => $dataPengkajianAwal->diagnosa_keperawatan ?? 'Tidak ada data diagnosa',
+            'rencana_terapi' => $dataPengkajianAwal->rencana_terapi ?? 'Tidak ada data rencana terapi',
+            'nama_dokter' => $dataPengkajianAwal->nama_dokter ?? 'Tidak ada data nama dokter',
+            'nip_dokter' =>  '-',
+        ];
+
+        $namaDokter = $dataResumeMedis['dokter'] ?? '-';
+        $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(150)->generate($namaDokter)
+        );
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.PengkajianAwal', compact(
+                'pengkajianAwal',
+                'imageBase64', // Kirim Base64 ke view
+                'qrcodeBase64', // Kirim Base64 QR Code ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="PengkajianAwal.pdf"');
+    }
+
+    public function previewTriageEdit(PengajuanKlaim $pendaftaran)
+    {
+        $dataResumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
+        $dataTriage = Triage::where('resume_medis_id', $dataResumeMedis->id)->first();
+        $getCaraDatang = [
+            'JENIS' => 99,
+            'PENGANTAR' => $dataTriage->pengantar ?? 'Tidak ada data pengantar',
+            'ALAT_TRANSPORTASI' => $dataTriage->alat_transportasi ?? 'Tidak ada data alat transportasi',
+            'ASAL_RUJUKAN' => $dataTriage->pasien_rujukan ?? '-',
+            'KEPOLISIAN' => $dataTriage->dikirim_polisi ?? '-',
+        ];
+        $getDataMacamKasus = [
+            'JENIS' => $dataTriage->jenis_kasus ?? 0,
+            'DIMANA' => $dataTriage->lokasi_kasus ?? "Tidak ada data lokasi kasus",
+        ];
+        $getDataAnamnesa = [
+            'KELUHAN_UTAMA' => $dataTriage->keluhan_utama ?? 'Tidak ada data keluhan utama',
+            'TERPIMPIN' => $dataTriage->anamnesa_terpimpin ?? 'Tidak ada data terpimpin',
+        ];
+        $getDataTandaVital = [
+            'SISTOLE' => 0,
+            'DIASTOLE' => 0,
+            'TEKANAN_DARAH' => $dataTriage->tekanan_darah ?? 'Tidak ada data tekanan darah',
+            'FREK_NADI' => $dataTriage->nadi ?? 'Tidak ada data frekuensi nadi',
+            'FREK_NAFAS' => $dataTriage->pernapasan ?? 'Tidak ada data frekuensi nafas',
+            'SUHU' => $dataTriage->suhu ?? 'Tidak ada data suhu',
+            'SKALA_NYERI' => $dataTriage->nyeri ?? 'Tidak ada data nyeri',
+            'METODE_UKUR' => $dataTriage->metode_ukur_nyeri ?? 'Tidak ada data metode ukur',
+        ];
+        $getDataKebutuhanKhusus = [
+            'AIRBONE' => $dataTriage->airborne ?? 0,
+            'DEKONTAMINAN' => $dataTriage->dekontaminasi ?? 0,
+        ];
+        $getDataResusitasi = [
+            'CHECKED' => $dataTriage->resusitasi ?? 0,
+        ];
+        $getDataEmergency = [
+            'CHECKED' => $dataTriage->emergency ?? 0,
+        ];
+        $getDataUrgent = [
+            'CHECKED' => $dataTriage->urgent ?? 0,
+        ];
+        $getDataLessUrgent = [
+            'CHECKED' => $dataTriage->less_urgent ?? 0,
+        ];
+        $getDataNonUrgent = [
+            'CHECKED' => $dataTriage->non_urgent ?? 0,
+        ];
+        $getDataDeath = [
+            'CHECKED' => $dataTriage->zona_hitam ?? 0,
+        ];
+
+        $triage = [
+            'nama_pasien' => $dataTriage->nama_pasien ?? 'Tidak ada data nama pasien',
+            'no_rm' =>  $dataTriage->no_rm ?? 'Tidak ada data nomor rekam medis',
+            'tanggal_lahir' => $dataTriage->tanggal_lahir ?? 'Tidak ada data tanggal lahir',
+            'jenis_kelamin' => $dataTriage->jenis_kelamin ?? 'Tidak ada jenis kelamin',
+            'tanggal_masuk' => $dataTriage->tanggal_kedatangan ?? 'Tidak ada data tanggal masuk',
+            'cara_datang' => $getCaraDatang,
+            'macam_kasus' => $getDataMacamKasus,
+            'anamnesa' => $getDataAnamnesa,
+            'tanda_vital' => $getDataTandaVital,
+            'petugas' => $dataTriage->petugas ?? '',
+            'kebutuhan_khusus' => $getDataKebutuhanKhusus,
+            'resusitasi' => $getDataResusitasi,
+            'emergency' => $getDataEmergency,
+            'urgent' => $getDataUrgent,
+            'less_urgent' => $getDataLessUrgent,
+            'non_urgent' => $getDataNonUrgent,
+            'death' => $getDataDeath,
+            'nama_dokter' => 'dr.MUSATAFID ALWI',
+            'nip_dokter' => '202301169',
+            'tanda_tangan_dokter' => 'data:image/png;base64,' . base64_encode(QrCode::format('png')->size(150)->generate("dr.MUSATAFID ALWI")),
+            'nama_perawat' => $dataTriage->petugas ?? '',
+            'nip_perawat' => $dataTriage->nip_petugas ?? '',
+            'tanda_tangan_perawat' => 'data:image/png;base64,' . base64_encode(QrCode::format('png')->size(150)->generate($dataTriage->petugas ?? '-')),
+        ];
+
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.Triage', compact(
+                'triage',
+                'imageBase64', // Kirim Base64 ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="Triage.pdf"');
+    }
+
+    public function previewCPPTEdit(PengajuanKlaim $pendaftaran)
+    {
+        $dataResumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
+        $dataPengkajianAwal = PengkajianAwal::where('resume_medis_id', $dataResumeMedis->id)->select('alamat')->first();
+        $dataCPPT = CPPT::where('resume_medis_id', $dataResumeMedis->id)->get();
+
+        $listCPPT = [];
+        foreach ($dataCPPT as $item) {
+            // Ambil nama petugas, sesuaikan field jika perlu
+            $namaPetugas = $item->nama_petugas ?? '-';
+            // Generate QR code base64
+            $qrcodePetugas = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')->size(100)->generate($namaPetugas)
+            );
+            // Ubah ke array dan tambahkan qrcode_petugas
+            $cpptItem = $item->toArray();
+            $cpptItem = [
+                'TANGGAL' => $item->tanggal_jam ?? 'Tidak ada data tanggal',
+                'profesi' => $item->profesi ?? 'Tidak ada data profesi',
+                'petugas' => [
+                    'NAMA' => $item->petugas->pegawai->NAMA ?? 'Tidak ada data nama petugas',
+                    'pegawai' => [
+                        'profesi' => [
+                            'DESKRIPSI' => $item->profesi ?? 'Tidak ada data profesi',
+                        ]
+                    ]
+                ],
+                'SUBYEKTIF' => $item->subyektif ?? 'Tidak ada data subyektif',
+                'OBYEKTIF' => $item->obyektif ?? 'Tidak ada data objektif',
+                'ASSESMENT' => $item->assesment ?? 'Tidak ada data assesment',
+                'PLANNING' => $item->planning ?? 'Tidak ada data planning',
+                'INSTRUKSI' => $item->instruksi ?? 'Tidak ada data instruksi',
+                'qrcode_petugas' => $qrcodePetugas, // Tambahkan QR code petugas
+            ];
+            $listCPPT[] = $cpptItem;
+        }
+
+        $CPPT = [
+            'nama_pasien' => $dataResumeMedis->nama_pasien ?? 'Tidak ada data nama pasien',
+            'no_rm' => $dataResumeMedis->no_rm ?? 'Tidak ada data nomor rekam medis',
+            'tanggal_lahir' => $dataResumeMedis->tanggal_lahir ?? 'Tidak ada data tanggal lahir',
+            'jenis_kelamin' => $dataResumeMedis->jenis_kelamin ?? 'Tidak ada data jenis kelamin',
+            'alamat' => $dataPengkajianAwal->alamat ?? 'Tidak ada data alamat pasien',
+            'cppt' => $listCPPT,
+        ];
+
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.CPPT', compact(
+                'CPPT',
+                'imageBase64', // Kirim Base64 ke view
+                // 'qrcodeBase64', // Kirim Base64 QR Code ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="CPPT.pdf"');
     }
 
     public function previewTagihan(Pendaftaran $pendaftaran)

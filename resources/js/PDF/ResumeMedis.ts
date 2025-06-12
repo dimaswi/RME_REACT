@@ -74,22 +74,37 @@ function hidePDFModal() {
 export const cetakResumeMedis = async (
     pendaftaranNomor: string,
     jenis: string,
+    pengajuanKlaim?: {id?: string, edit?: number, pengkajian_awal?: number, triage?: number, cppt?: number } | null,
 ) => {
     try {
         showLoadingModal();
 
-        // 1. Fetch semua PDF (ubah route sesuai kebutuhan Anda)
-        const [resResume, resPengkajian, resTriage, resCppt] = await Promise.all([
-            axios.get(route("previewResumeMedis", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
-            axios.get(route("previewPengkajianAwal", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
-            axios.get(route("previewTriage", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
-            axios.get(route("previewCPPT", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }),
-        ]);
+        // Siapkan daftar request dan urutan
+        const pdfRequests: Promise<any>[] = [];
+        // Resume Medis selalu diambil
+        if (pengajuanKlaim && pengajuanKlaim.edit === 1) {
+            pdfRequests.push(axios.get(route("previewResumeMedisEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+            if (pengajuanKlaim.pengkajian_awal === 1)
+                pdfRequests.push(axios.get(route("previewPengkajianAwalEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+            if (pengajuanKlaim.triage === 1)
+                pdfRequests.push(axios.get(route("previewTriageEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+            if (pengajuanKlaim.cppt === 1)
+                pdfRequests.push(axios.get(route("previewCPPTEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+        } else {
+            pdfRequests.push(axios.get(route("previewResumeMedis", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+            if (pengajuanKlaim?.pengkajian_awal === 1)
+                pdfRequests.push(axios.get(route("previewPengkajianAwal", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+            if (pengajuanKlaim?.triage === 1)
+                pdfRequests.push(axios.get(route("previewTriage", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+            if (pengajuanKlaim?.cppt === 1)
+                pdfRequests.push(axios.get(route("previewCPPT", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+        }
 
-        // 2. Gabungkan PDF dengan pdf-lib
+        const responses = await Promise.all(pdfRequests);
+
+        // Gabungkan PDF dengan pdf-lib
         const mergedPdf = await PDFDocument.create();
-
-        for (const res of [resResume, resPengkajian, resTriage, resCppt]) {
+        for (const res of responses) {
             const pdfBytes = await res.data.arrayBuffer();
             const pdf = await PDFDocument.load(pdfBytes);
             const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());

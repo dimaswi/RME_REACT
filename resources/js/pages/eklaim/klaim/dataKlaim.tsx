@@ -440,7 +440,7 @@ export default function DataKlaim() {
                                         SEP
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-2 gap-2">
+                                        <div className="lg:grid grid-cols-1 gap-2">
                                             <Button
                                                 variant="outline"
                                                 className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -473,7 +473,7 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadSEP}
@@ -504,7 +504,7 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
-                                            </Button>
+                                            </Button> */}
                                         </div>
                                     </td>
                                     <td rowSpan={14} className="h-[60px] p-0 align-middle">
@@ -585,7 +585,7 @@ export default function DataKlaim() {
                                         Berkas Klaim
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-2 gap-2">
+                                        <div className="lg:grid grid-cols-1 gap-2">
                                             <Button
                                                 variant="outline"
                                                 className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -622,7 +622,7 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadBerkasKlaim}
@@ -660,7 +660,7 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
-                                            </Button>
+                                            </Button> */}
                                         </div>
                                     </td>
                                 </tr>
@@ -669,7 +669,7 @@ export default function DataKlaim() {
                                         Resume Medis
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-5 gap-2">
+                                        <div className="lg:grid grid-cols-4 gap-2">
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -688,7 +688,7 @@ export default function DataKlaim() {
                                                     setPreviewResumeMedis(true);
                                                     setTimeout(async () => {
                                                         try {
-                                                            await cetakResumeMedis(dataPendaftaran.NOMOR, 'preview');
+                                                            await cetakResumeMedis(dataPendaftaran.NOMOR, 'preview', dataKlaim);
                                                         } catch (error) {
                                                             console.error(error);
                                                         } finally {
@@ -709,7 +709,7 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadResumeMedis}
@@ -743,7 +743,7 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
-                                            </Button>
+                                            </Button> */}
                                             <Button
                                                 variant="outline"
                                                 className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -792,7 +792,7 @@ export default function DataKlaim() {
                                         Tagihan
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-5 gap-2">
+                                        <div className="lg:grid grid-cols-4 gap-2">
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -838,7 +838,7 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadTagihan}
@@ -872,7 +872,7 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
-                                            </Button>
+                                            </Button> */}
                                             <Button
                                                 variant="outline"
                                                 className="button-preview w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -939,7 +939,7 @@ export default function DataKlaim() {
                                         Laboratorium
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-4 gap-2">
+                                        <div className="lg:grid grid-cols-3 gap-2">
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -985,7 +985,7 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadLaboratorium}
@@ -1019,7 +1019,7 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
-                                            </Button>
+                                            </Button> */}
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -1035,7 +1035,7 @@ export default function DataKlaim() {
                                         Radiologi
                                     </td>
                                     <td colSpan={6} className="border-b border-l border-r border-gray-300 px-4 py-2">
-                                        <div className="lg:grid grid-cols-4 gap-2">
+                                        <div className="lg:grid grid-cols-3 gap-2">
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
@@ -1081,7 +1081,7 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
                                                 disabled={loadingDownloadRadiologi}
@@ -1115,7 +1115,7 @@ export default function DataKlaim() {
                                                         Download
                                                     </>
                                                 )}
-                                            </Button>
+                                            </Button> */}
                                             <Button
                                                 variant="outline"
                                                 className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"

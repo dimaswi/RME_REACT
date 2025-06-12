@@ -181,7 +181,11 @@
                 <strong>Hasil Konsultasi :</strong>
             </td>
             <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{ $resumeMedis['hasil_konsultasi'] }}
+                <ol>
+                    @foreach ($resumeMedis['hasil_konsultasi'] as $terapi)
+                        <li>Pertanyaan : {{ $terapi['pertanyaan'] }} - Jawaban : {{ preg_replace('/(&nbsp;|[^\pL\pN\s.,:;!?()\/-]+)/u', '', strip_tags($terapi['jawaban'])) }}</li>
+                    @endforeach
+                </ol>
             </td>
         </tr>
         <tr style="font-size: 13px; text-align: left;">
@@ -298,7 +302,7 @@
             <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
                 <ol>
                     @foreach ($resumeMedis['terapi_pulang'] as $terapi)
-                        <li>{{ $terapi['nama_obat'] }} - {{ $terapi['frekuensi'] }} - {{ $terapi['cara_pakai'] }}
+                        <li>{{ $terapi['nama_obat'] }} ({{ (int)$terapi['jumlah'] }}) - {{ $terapi['frekuensi'] }} - {{ $terapi['cara_pakai'] }}
                         </li>
                     @endforeach
                 </ol>

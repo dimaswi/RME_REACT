@@ -35,6 +35,10 @@ Route::middleware('auth')->group(function () {
     Route::get('previewBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'previewBerkasKlaim'])->name('previewBerkasKlaim');
     Route::get('previewLaboratorium/{pendaftaran}', [BridgeDataController::class, 'previewLaboratorium'])->name('previewLaboratorium');
     Route::get('previewRadiologi/{pendaftaran}', [BridgeDataController::class, 'previewRadiologi'])->name('previewRadiologi');
+    Route::get('previewResumeMedisEdit/{pendaftaran}', [BridgeDataController::class, 'previewResumeMedisEdit'])->name('previewResumeMedisEdit');
+    Route::get('previewPengkajianAwalEdit/{pendaftaran}', [BridgeDataController::class, 'previewPengkajianAwalEdit'])->name('previewPengkajianAwalEdit');
+    Route::get('previewTriageEdit/{pendaftaran}', [BridgeDataController::class, 'previewTriageEdit'])->name('previewTriageEdit');
+    Route::get('previewCPPTEdit/{pendaftaran}', [BridgeDataController::class, 'previewCPPTEdit'])->name('previewCPPTEdit');
 });
 
 Route::middleware('auth')->group(function () {
@@ -54,4 +58,6 @@ Route::middleware('auth')->group(function () {
     Route::get('eklaim/get/pengkajian-awal-edit/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataPengkajianAwalEdit'])->name('eklaim.getDataPengkajianAwalEdit');
     Route::get('eklaim/get/triage-edit/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataTriageEdit'])->name('eklaim.getDataTriageEdit');
     Route::get('eklaim/get/cppt-edit/{nomorKunjungan}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataCPPTEdit'])->name('eklaim.getDataCPPTEdit');
+    Route::get('getNamaObat', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getNamaObat'])->name('getNamaObat');
+    Route::get('eklaim/syncTagihan/{pengajuanKlaim}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'syncTagihan'])->name('eklaim.syncTagihan');
 });

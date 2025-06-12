@@ -17,9 +17,12 @@ use App\Models\Eklaim\ResikoDekubitus;
 use App\Models\Eklaim\ResikoGizi;
 use App\Models\Eklaim\ResikoJatuh;
 use App\Models\Eklaim\ResumeMedis;
+use App\Models\Eklaim\RincianTagihan;
+use App\Models\Eklaim\Tagihan;
 use App\Models\Eklaim\TandaVital;
 use App\Models\Eklaim\TerapiPulang;
 use App\Models\Eklaim\Triage as EklaimTriage;
+use App\Models\Inventory\Obat;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Kunjungan;
 use App\Models\RM\CPPT;
@@ -188,7 +191,9 @@ class EditDataController extends Controller
 
             if (!empty($resumeData['terapi_pulang']) && is_array($resumeData['terapi_pulang'])) {
                 // Delete existing terapi records for this resume
+                $klaim = PengajuanKlaim::where('id', $resumeData['id_pengajuan_klaim'])->first();
                 TerapiPulang::where('resume_medis_id', $resume->id)->delete();
+                RincianTagihan::where('id_pengajuan_klaim', $resume['id_pengajuan_klaim'])->where('edit', 1)->delete();
                 foreach ($resumeData['terapi_pulang'] as $terapi) {
                     $terapi['resume_medis_id'] = $resume->id;
                     TerapiPulang::updateOrCreate(
@@ -201,6 +206,18 @@ class EditDataController extends Controller
                         ],
                         $terapi
                     );
+
+                    $obat = Obat::where('NAMA', 'LIKE', '%' . $terapi['namaObat'] . '%')->with('hargaBarang')->first();
+                    RincianTagihan::where('id_tarif', $obat->hargaBarang->ID ?? null)->delete();
+                    RincianTagihan::create([
+                        'id_pengajuan_klaim' => $resume['id_pengajuan_klaim'] ?? null,
+                        'tagihan' => $klaim->nomor_pendaftaran ?? null,
+                        'jenis' => 4, // Jenis Obat
+                        'ref' => 'Apotek',
+                        'id_tarif' => $obat->hargaBarang->ID ?? null,
+                        'jumlah' => $terapi['jumlah'] ?? null,
+                        'tarif' => $obat->hargaBarang->HARGA_JUAL ?? null,
+                    ]);
                 }
             }
 
@@ -489,22 +506,58 @@ class EditDataController extends Controller
 
     public function EditTagihan(PengajuanKlaim $pengajuanKlaim)
     {
-        $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)->where('UTAMA', 1)
+        $rincian = RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)
             ->with([
-                'tagihan.rincianTagihan',
-                'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
-                'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
-                'tagihan.rincianTagihan.tarifTindakan.tindakan',
-                'tagihan.rincianTagihan.hargaBarang.obat',
-                'tagihan.rincianTagihan.paket',
-                'tagihan.rincianTagihan.tarifOksigen'
+                'tagihan',
+                'tarifAdministrasi.ruangan',
+                'tarifRuangRawat.ruanganKelas',
+                'tarifTindakan.tindakan',
+                'hargaBarang.obat',
+                'paket',
+                'tarifOksigen'
             ])
-            ->first();
+            ->get();
 
         return Inertia::render('eklaim/EditData/Tagihan', [
             'pengajuanKlaim' => $pengajuanKlaim,
-            'tagihanPendaftaran' => $tagihanPendaftaran
+            'rincian' => $rincian
         ]);
+    }
+
+    public function syncTagihan(PengajuanKlaim $pengajuanKlaim)
+    {
+        try {
+            $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
+                ->with([
+                    'tagihan.rincianTagihan',
+                    'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
+                    'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
+                    'tagihan.rincianTagihan.tarifTindakan.tindakan',
+                    'tagihan.rincianTagihan.hargaBarang.obat',
+                    'tagihan.rincianTagihan.paket',
+                    'tagihan.rincianTagihan.tarifOksigen'
+                ])
+                ->where('UTAMA', 1)
+                ->first();
+
+            RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
+            foreach ($tagihanPendaftaran->tagihan->rincianTagihan as $rincian) {
+                RincianTagihan::create([
+                    'id_pengajuan_klaim' => $pengajuanKlaim->id,
+                    'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
+                    'id_tarif' => $rincian->TARIF_ID,
+                    'jenis' => $rincian->JENIS,
+                    'ref' => $rincian->REF_ID,
+                    'jumlah' => $rincian->JUMLAH,
+                    'tarif' => $rincian->TARIF,
+                    'edit' => 0
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Tagihan berhasil disinkronkan.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal menyinkronkan tagihan: ' . $th->getMessage());
+        }
     }
 
     public function StoreEditTagihan(Request $request)
@@ -698,5 +751,18 @@ class EditDataController extends Controller
         } else {
             return response()->json(['error' => 'Data Pengkajian Awal tidak ditemukan.'], 404);
         }
+    }
+
+    public function getNamaObat(Request $request)
+    {
+        $keyword = $request->input('q', '');
+
+        $obat = Obat::with('hargaBarang')
+            ->where('NAMA', 'like', '%' . $keyword . '%')
+            ->select('ID', 'NAMA as DESKRIPSI')
+            ->take(10)
+            ->get();
+
+        return response()->json($obat);
     }
 }

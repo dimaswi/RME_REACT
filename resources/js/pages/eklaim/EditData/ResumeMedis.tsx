@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import Triage from "./Triage";
 import CPPT from "./CPPT";
+import SearchableDropdown from "@/components/SearchableDropdown";
 
 
 export default function EditResumeMedis() {
@@ -439,6 +440,28 @@ export default function EditResumeMedis() {
             }
             console.error("Error saving data:", error);
         }
+    };
+
+    const [obatOptions, setObatOptions] = useState<any[]>([]);
+
+    const handleSearchObat = async (keyword: string) => {
+        try {
+            const res = await axios.get(route("getNamaObat"), { params: { q: keyword } });
+            setObatOptions(res.data);
+        } catch {
+            setObatOptions([]);
+        }
+    };
+
+    const getObatDropdownData = (value: string, options: any[]) => {
+        if (!value) return options;
+        // Cek apakah value sudah ada di options
+        const exists = options.some((item) => item?.DESKRIPSI === value);
+        if (!exists) {
+            // Tambahkan value manual agar tetap muncul di dropdown
+            return [{ DESKRIPSI: value, ID: value }, ...options];
+        }
+        return options;
     };
 
     return (
@@ -1371,14 +1394,14 @@ export default function EditResumeMedis() {
                                                             paddingRight: 10,
                                                         }}
                                                     >
-                                                        <Input
-                                                            type="text"
+                                                        <SearchableDropdown
+                                                            data={getObatDropdownData(terapi.namaObat, obatOptions)}
                                                             value={terapi.namaObat}
-                                                            onChange={(e) =>
-                                                                handleUpdateTerapi(index, "namaObat", e.target.value)
-                                                            }
-                                                            placeholder="Masukkan nama obat"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            setValue={(val: string) => handleUpdateTerapi(index, "namaObat", val)}
+                                                            placeholder="Cari nama obat"
+                                                            getOptionLabel={(item) => item?.DESKRIPSI ?? ""}
+                                                            getOptionValue={(item) => item?.DESKRIPSI ?? ""}
+                                                            onSearch={handleSearchObat}
                                                         />
                                                     </td>
                                                     <td
@@ -1393,7 +1416,7 @@ export default function EditResumeMedis() {
                                                     >
                                                         <Input
                                                             type="number"
-                                                            value={terapi.jumlah}
+                                                            value={Number(terapi.jumlah)}
                                                             onChange={(e) =>
                                                                 handleUpdateTerapi(index, "jumlah", e.target.value)
                                                             }

@@ -117,6 +117,11 @@
                     @if ($triage['cara_datang']['JENIS'] == 1)
                         <span>Datang Sendiri, diantar Oleh {{ $triage['cara_datang']['PENGANTAR'] }}</span>
                     @endif
+
+                    @if ($triage['cara_datang']['JENIS'] == 99)
+                        <span>Datang Sendiri, diantar Oleh {{ $triage['cara_datang']['PENGANTAR'] }}</span>
+                    @else
+                    @endif
                 </div>
 
                 <div>
@@ -187,7 +192,11 @@
             <td colspan="3" style="vertical-align: top; height: 70px; border: 1px solid #000">
                 <div>
                     <strong>Tekanan Darah</strong> :
-                    {{ $triage['tanda_vital']['SISTOLE'] . '/' . $triage['tanda_vital']['DIASTOLE'] }} mmHg
+                    @if ($triage['tanda_vital']['SISTOLE'] == 0 && $triage['tanda_vital']['DIASTOLE'] == 0)
+                        {{ $triage['tanda_vital']['TEKANAN_DARAH'] }} mmHg
+                    @else
+                        {{ $triage['tanda_vital']['SISTOLE'] . '/' . $triage['tanda_vital']['DIASTOLE'] }} mmHg
+                    @endif
                 </div>
                 <div>
                     <strong>Frekuensi Nadi</strong> : {{ $triage['tanda_vital']['FREK_NADI'] }} bpm
@@ -271,8 +280,7 @@
                     </center>
                 @endif
             </td>
-            <td
-                style="vertical-align: top; border: 1px solid #000; background: Red; color:white;">
+            <td style="vertical-align: top; border: 1px solid #000; background: Red; color:white;">
                 <center>Emergency (P2)</center> <br>
                 @if ($triage['emergency']['CHECKED'] == 1)
                     <center>
@@ -280,8 +288,7 @@
                     </center>
                 @endif
             </td>
-            <td
-                style="vertical-align: top; border: 1px solid #000; background: Yellow; color:black;">
+            <td style="vertical-align: top; border: 1px solid #000; background: Yellow; color:black;">
                 <center>Urgent (P3)</center> <br>
                 @if ($triage['urgent']['CHECKED'] == 1)
                     <center>
@@ -289,8 +296,7 @@
                     </center>
                 @endif
             </td>
-            <td
-                style="vertical-align: top; border: 1px solid #000; background: Green; color:white;">
+            <td style="vertical-align: top; border: 1px solid #000; background: Green; color:white;">
                 <center>Less Urgent (P4)</center> <br>
                 @if ($triage['less_urgent']['CHECKED'] == 1)
                     <center>
@@ -298,8 +304,7 @@
                     </center>
                 @endif
             </td>
-            <td
-                style="vertical-align: top; border: 1px solid #000; background: white; color:black;">
+            <td style="vertical-align: top; border: 1px solid #000; background: white; color:black;">
                 <center>Non-Urgent (P5)</center> <br>
                 @if ($triage['non_urgent']['CHECKED'] == 1)
                     <center>
@@ -307,8 +312,7 @@
                     </center>
                 @endif
             </td>
-            <td
-                style="vertical-align: top; border: 1px solid #000; background: black; color:white;">
+            <td style="vertical-align: top; border: 1px solid #000; background: black; color:white;">
                 <center>Expectant (Non-Priority)</center> <br>
                 @if ($triage['death']['CHECKED'] == 1)
                     <center>
@@ -479,7 +483,8 @@
                 <center>
                     <strong>Perawat</strong> <br>
                     {{ $triage['nama_perawat'] }} <br>
-                    <img src="{{ $triage['tanda_tangan_perawat'] }}" width="50px" height="50px" alt=""> <br>
+                    <img src="{{ $triage['tanda_tangan_perawat'] }}" width="50px" height="50px" alt="">
+                    <br>
                     {{ $triage['nip_perawat'] }}
                 </center>
             </td>
@@ -487,7 +492,8 @@
                 <center>
                     <strong>Dokter</strong> <br>
                     {{ $triage['nama_dokter'] }} <br>
-                    <img src="{{ $triage['tanda_tangan_dokter'] }}" width="50px" height="50px" alt=""> <br>
+                    <img src="{{ $triage['tanda_tangan_dokter'] }}" width="50px" height="50px" alt="">
+                    <br>
                     {{ $triage['nip_dokter'] }}
                 </center>
             </td>
