@@ -68,24 +68,27 @@ function hidePDFModal() {
     }
 }
 
-export const cetakTagihanPDF = async (nomor_pendaftaran: string, jenis: string) => {
+export const cetakLaboratoriumPDF = async (pengajuanKlaim: string, jenis: string) => {
     showLoadingModal();
     try {
-        // Panggil API untuk mengunduh PDF
         const response = await axios.get(
-            route('previewTagihan', {
-                nomor_pendaftaran: nomor_pendaftaran, // Ganti dengan parameter yang sesuai
+            route('previewLaboratorium', {
+                pengajuanKlaim: pengajuanKlaim,
             }),
             {
-                responseType: 'blob', // Pastikan responseType adalah blob untuk PDF
+                responseType: 'blob',
                 validateStatus: (status) => status === 200,
             },
         );
 
-        // Periksa status respons
-        if (response.status !== 200) {
-            toast.error('Gagal pada pengambilan berkas klaim');
-            return; // Jangan lanjutkan jika status bukan 200
+        // Cek tipe MIME dari response
+        const contentType = response.headers['content-type'];
+        if (!contentType || !contentType.includes('application/pdf')) {
+            // Bukan PDF, baca sebagai text
+            const text = await response.data.text();
+            toast.error(JSON.parse(text).message || 'Gagal mengambil PDF');
+            hideLoadingModal();
+            return;
         }
 
         hideLoadingModal();
@@ -97,7 +100,7 @@ export const cetakTagihanPDF = async (nomor_pendaftaran: string, jenis: string) 
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement("a");
             link.href = url;
-            link.setAttribute("download", "Tagihan.pdf"); // Nama file PDF
+            link.setAttribute("download", "Tagihan.pdf");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

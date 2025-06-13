@@ -9,4 +9,9 @@ class Tindakan extends Model
     protected $connection = 'master';
 
     protected $table = 'tindakan';
+
+    public function parameterTindakanLab()
+    {
+        return $this->hasMany(ParameterTindakanLab::class, 'TINDAKAN', 'ID');
+    }
 }

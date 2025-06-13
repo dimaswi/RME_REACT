@@ -18,6 +18,8 @@ import { cetakSEP, fetchSEPData } from "../../../PDF/SEP";
 import { cetakBerkasKlaim } from "../../../PDF/BerkasKlaim";
 import { mergePDFs } from "../../../PDF/MergePDF";
 import { ModalUpload } from "@/components/modalUpload";
+import { cetakTagihanPDF } from "@/PDF/Tagihan";
+import { cetakLaboratoriumPDF } from "@/PDF/Laboratorium";
 
 export default function DataKlaim() {
     const { dataKlaim } = usePage().props as { dataKlaim: any };
@@ -809,21 +811,15 @@ export default function DataKlaim() {
                                                 disabled={previewTagihan}
                                                 onClick={async () => {
                                                     setPreviewTagihan(true);
-                                                    try {
-                                                        await router.get(
-                                                            route('loadDataResumeMedis', {
-                                                                pendaftaran: dataPendaftaran.NOMOR
-                                                            }),
-                                                            {},
-                                                            {
-                                                                onFinish: () => setPreviewTagihan(false)
-                                                            }
-                                                        );
-                                                        console.log("Ambil Data Resume Medis");
-                                                    } catch (error) {
-                                                        console.log(error)
-                                                        setPreviewTagihan(false);
-                                                    }
+                                                    setTimeout(async () => {
+                                                        try {
+                                                            await cetakTagihanPDF(dataPendaftaran.NOMOR, 'preview');
+                                                        } catch (error) {
+                                                            console.error(error);
+                                                        } finally {
+                                                            setPreviewTagihan(false);
+                                                        }
+                                                    }, 100); // Timeout selama 0,5 detik
                                                 }}
                                             >
                                                 {previewTagihan ? (
@@ -956,21 +952,15 @@ export default function DataKlaim() {
                                                 disabled={previewLaboratorium}
                                                 onClick={async () => {
                                                     setPreviewLaboratorium(true);
-                                                    try {
-                                                        await router.get(
-                                                            route('loadDataResumeMedis', {
-                                                                pendaftaran: dataPendaftaran.NOMOR
-                                                            }),
-                                                            {},
-                                                            {
-                                                                onFinish: () => setPreviewLaboratorium(false)
-                                                            }
-                                                        );
-                                                        console.log("Ambil Data Resume Medis");
-                                                    } catch (error) {
-                                                        console.log(error)
-                                                        setPreviewLaboratorium(false);
-                                                    }
+                                                    setTimeout(async () => {
+                                                        try {
+                                                            await cetakLaboratoriumPDF(dataKlaim.id, 'preview');
+                                                        } catch (error) {
+                                                            console.error(error);
+                                                        } finally {
+                                                            setPreviewLaboratorium(false);
+                                                        }
+                                                    }, 100); // Timeout selama 0,1 detik
                                                 }}
                                             >
                                                 {previewLaboratorium ? (

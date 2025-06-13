@@ -1,22 +1,21 @@
-import axios from "axios";
-import { toast } from "sonner";
-import { PDFDocument } from "pdf-lib"; // install dengan: npm install pdf-lib
-
+import axios from 'axios';
+import { PDFDocument } from 'pdf-lib'; // install dengan: npm install pdf-lib
+import { toast } from 'sonner';
 
 // Fungsi untuk menampilkan modal loading
 function showLoadingModal() {
-    const modal = document.createElement("div");
-    modal.id = "resume-loading-modal";
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100vw";
-    modal.style.height = "100vh";
-    modal.style.background = "rgba(0,0,0,0.3)";
-    modal.style.display = "flex";
-    modal.style.alignItems = "center";
-    modal.style.justifyContent = "center";
-    modal.style.zIndex = "9999";
+    const modal = document.createElement('div');
+    modal.id = 'resume-loading-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.3)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '9999';
     modal.innerHTML = `
         <div style="background: white; padding: 24px 32px; border-radius: 8px; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.2)">
             Memuat dokumen Resume Medis...
@@ -27,7 +26,7 @@ function showLoadingModal() {
 
 // Fungsi untuk menghilangkan modal loading
 function hideLoadingModal() {
-    const modal = document.getElementById("resume-loading-modal");
+    const modal = document.getElementById('resume-loading-modal');
     if (modal) {
         document.body.removeChild(modal);
     }
@@ -35,18 +34,18 @@ function hideLoadingModal() {
 
 // Fungsi untuk menampilkan PDF di modal
 function showPDFModal(pdfUrl: string) {
-    const modal = document.createElement("div");
-    modal.id = "resume-pdf-modal";
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100vw";
-    modal.style.height = "100vh";
-    modal.style.background = "rgba(0,0,0,0.95)";
-    modal.style.display = "flex";
-    modal.style.alignItems = "center";
-    modal.style.justifyContent = "center";
-    modal.style.zIndex = "10000";
+    const modal = document.createElement('div');
+    modal.id = 'resume-pdf-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '10000';
     modal.innerHTML = `
         <div id="resume-pdf-content" style="background: white; border-radius: 0; position: relative; width: 85vw; height: 85vh; max-width: 85vw; max-height: 85vh; padding: 0; display: flex; flex-direction: column; box-shadow: 0 0 24px #0008;">
             <div style="width: 100%; height: 5vh; background: #f5f5f5; border-bottom: 1px solid #ddd;"></div>
@@ -56,8 +55,8 @@ function showPDFModal(pdfUrl: string) {
     document.body.appendChild(modal);
 
     // Tutup modal jika klik di luar konten PDF
-    modal.addEventListener("mousedown", (e) => {
-        const content = document.getElementById("resume-pdf-content");
+    modal.addEventListener('mousedown', (e) => {
+        const content = document.getElementById('resume-pdf-content');
         if (content && !content.contains(e.target as Node)) {
             hidePDFModal();
         }
@@ -65,7 +64,7 @@ function showPDFModal(pdfUrl: string) {
 }
 
 function hidePDFModal() {
-    const modal = document.getElementById("resume-pdf-modal");
+    const modal = document.getElementById('resume-pdf-modal');
     if (modal) {
         document.body.removeChild(modal);
     }
@@ -74,7 +73,7 @@ function hidePDFModal() {
 export const cetakResumeMedis = async (
     pendaftaranNomor: string,
     jenis: string,
-    pengajuanKlaim?: {id?: string, edit?: number, pengkajian_awal?: number, triage?: number, cppt?: number } | null,
+    pengajuanKlaim?: { id?: string; edit?: number; pengkajian_awal?: number; triage?: number; cppt?: number } | null,
 ) => {
     try {
         showLoadingModal();
@@ -83,21 +82,21 @@ export const cetakResumeMedis = async (
         const pdfRequests: Promise<any>[] = [];
         // Resume Medis selalu diambil
         if (pengajuanKlaim && pengajuanKlaim.edit === 1) {
-            pdfRequests.push(axios.get(route("previewResumeMedisEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+            pdfRequests.push(axios.get(route('previewResumeMedisEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
             if (pengajuanKlaim.pengkajian_awal === 1)
-                pdfRequests.push(axios.get(route("previewPengkajianAwalEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+                pdfRequests.push(axios.get(route('previewPengkajianAwalEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
             if (pengajuanKlaim.triage === 1)
-                pdfRequests.push(axios.get(route("previewTriageEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+                pdfRequests.push(axios.get(route('previewTriageEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
             if (pengajuanKlaim.cppt === 1)
-                pdfRequests.push(axios.get(route("previewCPPTEdit", { pendaftaran: pengajuanKlaim.id }), { responseType: "blob" }));
+                pdfRequests.push(axios.get(route('previewCPPTEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
         } else {
-            pdfRequests.push(axios.get(route("previewResumeMedis", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+            pdfRequests.push(axios.get(route('previewResumeMedis', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
             if (pengajuanKlaim?.pengkajian_awal === 1)
-                pdfRequests.push(axios.get(route("previewPengkajianAwal", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+                pdfRequests.push(axios.get(route('previewPengkajianAwal', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
             if (pengajuanKlaim?.triage === 1)
-                pdfRequests.push(axios.get(route("previewTriage", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+                pdfRequests.push(axios.get(route('previewTriage', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
             if (pengajuanKlaim?.cppt === 1)
-                pdfRequests.push(axios.get(route("previewCPPT", { pendaftaran: pendaftaranNomor }), { responseType: "blob" }));
+                pdfRequests.push(axios.get(route('previewCPPT', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
         }
 
         const responses = await Promise.all(pdfRequests);
@@ -112,26 +111,26 @@ export const cetakResumeMedis = async (
         }
 
         const mergedPdfBytes = await mergedPdf.save();
-        const mergedBlob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+        const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
         const mergedUrl = URL.createObjectURL(mergedBlob);
 
         hideLoadingModal();
 
-        if (jenis === "preview") {
+        if (jenis === 'preview') {
             showPDFModal(mergedUrl);
-            toast.success("PDF gabungan berhasil ditampilkan");
-        } else if (jenis === "download") {
-            const link = document.createElement("a");
+            toast.success('PDF gabungan berhasil ditampilkan');
+        } else if (jenis === 'download') {
+            const link = document.createElement('a');
             link.href = mergedUrl;
-            link.setAttribute("download", pendaftaranNomor + "_gabungan.pdf");
+            link.setAttribute('download', pendaftaranNomor + '_gabungan.pdf');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            toast.success("PDF gabungan berhasil diunduh");
+            toast.success('PDF gabungan berhasil diunduh');
         }
     } catch (error) {
-        console.error("Error merging PDF:", error);
-        toast.error("Gagal mengambil/gabung PDF");
+        console.error('Error merging PDF:', error);
+        toast.error('Gagal mengambil/gabung PDF');
         hidePDFModal();
     } finally {
         hideLoadingModal();

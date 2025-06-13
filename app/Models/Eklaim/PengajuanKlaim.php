@@ -27,6 +27,7 @@ class PengajuanKlaim extends Model
         'pengkajian_awal',
         'triage',
         'cppt',
+        'laboratorium',
     ];
 
     public function penjamin()

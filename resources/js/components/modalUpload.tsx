@@ -46,8 +46,6 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
         // eslint-disable-next-line
     }, [open]);
 
-    console.log("ModalUpload rendered with open:", open, "show:", show, "leaving:", leaving);
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setFile(e.target.files[0]);

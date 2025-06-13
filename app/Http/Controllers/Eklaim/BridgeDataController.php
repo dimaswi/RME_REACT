@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Models\Aplikasi\Pengguna;
 use App\Models\Eklaim\Anamnesis;
 use App\Models\Eklaim\CPPT;
 use App\Models\Eklaim\DischargePlanning;
+use App\Models\Eklaim\Laboratorium;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PemeriksaanFisik;
 use App\Models\Eklaim\PengajuanKlaim;
@@ -16,10 +18,14 @@ use App\Models\Eklaim\ResikoDekubitus;
 use App\Models\Eklaim\ResikoGizi;
 use App\Models\Eklaim\ResikoJatuh;
 use App\Models\Eklaim\ResumeMedis;
+use App\Models\Eklaim\RincianTagihan;
 use App\Models\Eklaim\TandaVital;
 use App\Models\Eklaim\TerapiPulang;
 use App\Models\Eklaim\Triage;
 use App\Models\Eklaim\TTVResumeMedis;
+use App\Models\Master\Pasien;
+use App\Models\Pembayaran\PembayaranTagihan;
+use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Kunjungan;
 use App\Models\Pendaftaran\Pendaftaran;
 use Dompdf\Dompdf;
@@ -97,11 +103,6 @@ class BridgeDataController extends Controller
         $pdf = base64_decode($send["data"]);
         return response($pdf, 200)
             ->header('Content-Type', 'application/pdf');
-    }
-
-    public function downloadLaboratorium(Pendaftaran $pendaftaran)
-    {
-        return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
     }
 
     public function downloadRadiologi(Pendaftaran $pendaftaran)
@@ -989,9 +990,111 @@ class BridgeDataController extends Controller
             ->header('Content-Disposition', 'inline; filename="CPPT.pdf"');
     }
 
-    public function previewTagihan(Pendaftaran $pendaftaran)
+    public function previewTagihan($nomor_pendaftaran)
     {
-        return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
+        $pengajuanKlaim = PengajuanKlaim::where('nomor_pendaftaran', $nomor_pendaftaran)->first();
+        $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
+        $dataPasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
+        $tanggalMasuk = $resumeMedis->tanggal_masuk ?? 'Tidak ada data tanggal masuk';
+        $tanggalKeluar = $resumeMedis->tanggal_keluar ?? 'Tidak ada data tanggal keluar';
+        $ruangan = $resumeMedis->ruang_rawat ?? 'Tidak ada data ruang rawat';
+        $penjamin = $resumeMedis->penjamin ?? 'Tidak ada data penjamin';
+        $dataTagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
+            ->where('STATUS', '!=', 0)
+            ->where('UTAMA', 1)
+            ->first();
+        $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
+            ->with('pegawai')
+            ->first();
+        $qrcode_petugas = 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(100)->generate(
+                $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas'
+            )
+        );
+        $rincianTagihan = RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)
+            ->with([
+                'tarifAdministrasi.ruangan',
+                'tarifRuangRawat.ruanganKelas',
+                'tarifTindakan.tindakan',
+                'hargaBarang.obat',
+                'paket',
+                'tarifOksigen',
+            ])
+            ->get()
+            ->map(function ($item) {
+                $data = $item->toArray();
+
+                // Set semua relasi null dulu
+                $data['tarif_administrasi'] = null;
+                $data['tarif_ruang_rawat'] = null;
+                $data['tarif_tindakan'] = null;
+                $data['harga_barang'] = null;
+                $data['paket'] = null;
+                $data['tarif_oksigen'] = null;
+
+                // Isi hanya relasi yang sesuai jenis
+                switch ($item->jenis) {
+                    case 1:
+                        $data['tarif_administrasi'] = $item->tarifAdministrasi ? $item->tarifAdministrasi->toArray() : null;
+                        break;
+                    case 2:
+                        $data['tarif_ruang_rawat'] = $item->tarifRuangRawat ? $item->tarifRuangRawat->toArray() : null;
+                        break;
+                    case 3:
+                        $data['tarif_tindakan'] = $item->tarifTindakan ? $item->tarifTindakan->toArray() : null;
+                        break;
+                    case 4:
+                        $data['harga_barang'] = $item->hargaBarang ? $item->hargaBarang->toArray() : null;
+                        break;
+                    case 5:
+                        $data['paket'] = $item->paket ? $item->paket->toArray() : null;
+                        break;
+                    case 6:
+                        $data['tarif_oksigen'] = $item->tarifOksigen ? $item->tarifOksigen->toArray() : null;
+                        break;
+                }
+
+                // relasi_jenis tetap untuk kemudahan akses
+                $data['relasi_jenis'] =
+                    $data['tarif_administrasi'] ??
+                    $data['tarif_ruang_rawat'] ??
+                    $data['tarif_tindakan'] ??
+                    $data['harga_barang'] ??
+                    $data['paket'] ??
+                    $data['tarif_oksigen'];
+
+                return $data;
+            });
+
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.Tagihan', compact(
+                'rincianTagihan', // Kirim rincian tagihan ke view
+                'imageBase64', // Kirim Base64 ke view
+                'dataPasien', // Kirim data pasien ke view
+                'tanggalMasuk',
+                'tanggalKeluar',
+                'ruangan',
+                'penjamin',
+                'dataPembayaran',
+                'qrcode_petugas', // Kirim QR code petugas ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="Tagihan.pdf"');
     }
 
     public function previewBerkasKlaim(Pendaftaran $pendaftaran)
@@ -999,13 +1102,105 @@ class BridgeDataController extends Controller
         return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
     }
 
-    public function previewLaboratorium(Pendaftaran $pendaftaran)
+    public function previewLaboratorium(PengajuanKlaim $pengajuanKlaim)
     {
-        return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
+        if ($pengajuanKlaim->laboratorium == 0) {
+            return response()->json(['message' => 'Tidak ada data laboratorium untuk pengajuan klaim ini']);
+        }
+        $pasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
+        $dataLaboratorium = Laboratorium::where('pengajuan_klaim_id', $pengajuanKlaim->id)
+            ->with('hasilLaboratorium.parameterTindakanLab')
+            ->get()
+            ->map(function ($tindakan) {
+                return [
+                    'ID' => $tindakan->id,
+                    'KUNJUNGAN' => $tindakan->kunjungan_id,
+                    'TINDAKAN' => $tindakan->tindakan_id,
+                    'TANGGAL' => $tindakan->tanggal,
+                    'OLEH' => $tindakan->oleh,
+                    'STATUS' => $tindakan->status,
+                    'OTOMATIS' => $tindakan->otomatis,
+                    'tindakan_laboratorium' => [
+                        'ID' => $tindakan->tindakan_id,
+                        'NAMA' => $tindakan->nama_tindakan,
+                    ],
+                    'hasil_lab' => collect($tindakan->hasilLaboratorium)->map(function ($hasil) {
+                        return [
+                            'ID' => $hasil->id,
+                            'TINDAKAN_MEDIS' => $hasil->laboratorium_tindakan_id,
+                            'PARAMETER_TINDAKAN' => $hasil->parameter_id,
+                            'TANGGAL' => $hasil->created_at,
+                            'HASIL' => $hasil->hasil,
+                            'NILAI_NORMAL' => $hasil->parameterTindakanLab->NILAI_RUJUKAN ?? null,
+                            'SATUAN' => $hasil->parameterTindakanLab->satuan->DESKRIPSI ?? null,
+                            'KETERANGAN' => $hasil->keterangan,
+                            'OLEH' => $hasil->oleh,
+                            'OTOMATIS' => $hasil->otomatis,
+                            'parameter_tindakan_lab' => [
+                                'ID' => $hasil->parameterTindakanLab->ID ?? null,
+                                'PARAMETER' => $hasil->parameterTindakanLab->PARAMETER ?? null,
+                                'NILAI_RUJUKAN' => $hasil->parameterTindakanLab->NILAI_RUJUKAN ?? null,
+                                'SATUAN' => $hasil->parameterTindakanLab->SATUAN ?? null,
+                            ],
+                            'STATUS' => $hasil->status,
+                        ];
+                    }),
+                ];
+            })
+            ->values();
+
+        $dataKunjungan = Kunjungan::where('NOMOR', $dataLaboratorium[0]['KUNJUNGAN'])->first();
+        $dataPendaftaran = Pendaftaran::where('NOMOR', $dataKunjungan->NOPEN)->first();
+        $getRuanganPerujuk = Kunjungan::where('NOPEN', $dataKunjungan->NOPEN)
+            ->with('ruangan')
+            ->get();
+        foreach ($getRuanganPerujuk as $ruangan) {
+            if (in_array($ruangan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
+                $ruanganPerujuk = $ruangan->ruangan->DESKRIPSI ?? 'Tidak ada nama ruangan';
+            }
+        }
+        $dataPegawai = Pengguna::where('ID', $dataLaboratorium[0]['OLEH'])->first();
+        $dokterPJ = "dr. YUSRON ABDURROHMAN";
+        $qrcodeBase64DokterPJ = 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(150)->generate($dokterPJ)
+        );
+
+        $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
+            QrCode::format('png')->size(150)->generate($dataPegawai->NAMA ?? 'Tidak ada nama pasien')
+        );
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.Laboratorium', compact(
+                'pasien', // Kirim data pasien ke view
+                'dataLaboratorium', // Kirim data laboratorium ke view
+                'imageBase64', // Kirim Base64 ke view
+                'qrcodeBase64', // Kirim Base64 QR Code ke view
+                'ruanganPerujuk', // Kirim nama perujuk ke view
+                'dataKunjungan',
+                'dataPegawai',
+                'dokterPJ',
+                'qrcodeBase64DokterPJ', // Kirim QR Code Dokter PJ ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="Laboratorium.pdf"');
     }
 
-    public function previewRadiologi(Pendaftaran $pendaftaran)
+    public function previewRadiologi(PengajuanKlaim $pengajuanKlaim)
     {
-        return response()->json($pendaftaran, 200, [], JSON_PRETTY_PRINT);
+        return response()->json($pengajuanKlaim, 200, [], JSON_PRETTY_PRINT);
     }
 }

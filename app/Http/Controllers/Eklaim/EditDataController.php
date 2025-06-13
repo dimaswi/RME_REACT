@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Eklaim\Anamnesis;
 use App\Models\Eklaim\CPPT as EklaimCPPT;
 use App\Models\Eklaim\DischargePlanning;
+use App\Models\Eklaim\HasilLaboratorium;
 use App\Models\Eklaim\IntruksiTindakLanjut;
+use App\Models\Eklaim\Laboratorium;
 use App\Models\Eklaim\PemeriksaanFisik;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Eklaim\PengkajianAwal;
 use App\Models\Eklaim\PenilaianNyeri;
 use App\Models\Eklaim\PermintaanKonsul;
 use App\Models\Eklaim\Psikososial;
+use App\Models\Eklaim\Radiologi;
 use App\Models\Eklaim\ResikoDekubitus;
 use App\Models\Eklaim\ResikoGizi;
 use App\Models\Eklaim\ResikoJatuh;
@@ -23,10 +26,16 @@ use App\Models\Eklaim\TandaVital;
 use App\Models\Eklaim\TerapiPulang;
 use App\Models\Eklaim\Triage as EklaimTriage;
 use App\Models\Inventory\Obat;
+use App\Models\Layanan\OrderLab;
+use App\Models\Layanan\TindakanMedis;
+use App\Models\Master\Pegawai;
+use App\Models\Master\Tindakan;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Kunjungan;
+use App\Models\Pendaftaran\Pendaftaran;
 use App\Models\RM\CPPT;
 use App\Models\RM\Triage;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -554,9 +563,20 @@ class EditDataController extends Controller
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Tagihan berhasil disinkronkan.');
+            return redirect()->back()->with('success', 'Data tagihan berhasil disinkronkan.');
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Gagal menyinkronkan tagihan: ' . $th->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyinkronkan data tagihan: ' . $th->getMessage());
+        }
+    }
+
+    public function deleteRincianTagihan(RincianTagihan $rincianTagihan)
+    {
+        try {
+            $rincianTagihan->delete();
+
+            return redirect()->back()->with('success', 'Data rincian tagihan berhasil dihapus.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal menghapus data rincian tagihan: ' . $th->getMessage());
         }
     }
 
@@ -573,37 +593,307 @@ class EditDataController extends Controller
 
     public function EditLaboratorium(PengajuanKlaim $pengajuanKlaim)
     {
+        $dataPendaftaran = Pendaftaran::where('NORM', $pengajuanKlaim->NORM)
+            ->with([
+                'kunjunganPasien.ruangan'
+            ])->get();
+
+        if ($dataPendaftaran->isEmpty()) {
+            return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
+        }
+
+        $tindakanLab = Tindakan::where('JENIS', 8)
+            ->with([
+                'parameterTindakanLab.satuan',
+            ])
+            ->get()
+            ->map(function ($tindakan) {
+                return [
+                    'ID' => $tindakan->ID,
+                    'NAMA' => $tindakan->NAMA,
+                    'PARAMETER' => $tindakan->parameterTindakanLab->map(function ($param) {
+                        return [
+                            'ID' => $param->ID,
+                            'PARAMETER' => $param->PARAMETER,
+                            'NILAI_RUJUKAN' => $param->NILAI_RUJUKAN,
+                            'SATUAN' => $param->satuan->DESKRIPSI ?? null,
+                        ];
+                    })->values(),
+                ];
+            })
+            ->values();
+
+        $dataKunjunganLab = [];
+        foreach ($dataPendaftaran as $pendaftaran) {
+            foreach ($pendaftaran->kunjunganPasien as $kunjungan) {
+                if (in_array($kunjungan->ruangan->JENIS_KUNJUNGAN, [4])) {
+                    $tanggalMasuk = null;
+                    if ($kunjungan->MASUK) {
+                        $tanggalMasuk = Carbon::parse($kunjungan->MASUK)->translatedFormat('d F Y');
+                    }
+
+                    $dataKunjunganLab[] = [
+                        'ID' => $kunjungan->NOMOR,
+                        'TANGGAL' => $tanggalMasuk,
+                        'RUANGAN' => $kunjungan->ruangan->DESKRIPSI,
+                    ];
+                }
+            }
+        }
+
+        $pegawai = Pegawai::all()->map(function ($pegawai) {
+            $nama = trim($pegawai->NAMA);
+
+            $gelarDepan = $pegawai->GELAR_DEPAN ? trim($pegawai->GELAR_DEPAN) . '.' : '';
+            $gelarBelakang = $pegawai->GELAR_BELAKANG ? ', ' . trim($pegawai->GELAR_BELAKANG) : '';
+
+            return [
+                'ID' => $pegawai->ID,
+                'DESKRIPSI' => trim($gelarDepan . ' ' . $nama . $gelarBelakang),
+            ];
+        })->values();
+
         return Inertia::render('eklaim/EditData/Laboratorium', [
-            'pengajuanKlaim' => $pengajuanKlaim
+            'pengajuanKlaim' => $pengajuanKlaim,
+            'dataKunjunganLab' => $dataKunjunganLab,
+            'listTindakanLab' => $tindakanLab,
+            'pegawai' => $pegawai,
         ]);
+    }
+
+    public function getDataLaboratorium($nomorKunjungan, $jenisData)
+    {
+        if ($jenisData === 'Real') {
+            $data = TindakanMedis::where('KUNJUNGAN', $nomorKunjungan)
+                ->with([
+                    'hasilLab.parameterTindakanLab.satuan',
+                    'tindakanLaboratorium',
+                ])
+                ->get();
+        } else {
+            $data = Laboratorium::with('hasilLaboratorium.parameterTindakanLab')
+                ->where('kunjungan_id', $nomorKunjungan)
+                ->get()
+                ->map(function ($tindakan) {
+                    return [
+                        'ID' => $tindakan->id,
+                        'KUNJUNGAN' => $tindakan->kunjungan_id,
+                        'TINDAKAN' => $tindakan->tindakan_id,
+                        'TANGGAL' => $tindakan->tanggal,
+                        'OLEH' => $tindakan->oleh,
+                        'STATUS' => $tindakan->status,
+                        'OTOMATIS' => $tindakan->otomatis,
+                        'tindakan_laboratorium' => [
+                            'ID' => $tindakan->tindakan_id,
+                            'NAMA' => $tindakan->nama_tindakan,
+                        ],
+                        'hasil_lab' => collect($tindakan->hasilLaboratorium)->map(function ($hasil) {
+                            return [
+                                'ID' => $hasil->id,
+                                'TINDAKAN_MEDIS' => $hasil->laboratorium_tindakan_id,
+                                'PARAMETER_TINDAKAN' => $hasil->parameter_id,
+                                'TANGGAL' => $hasil->created_at,
+                                'HASIL' => $hasil->hasil,
+                                'NILAI_NORMAL' => $hasil->parameterTindakanLab->NILAI_RUJUKAN ?? null,
+                                'SATUAN' => $hasil->parameterTindakanLab->satuan->DESKRIPSI ?? null,
+                                'KETERANGAN' => $hasil->keterangan,
+                                'OLEH' => $hasil->oleh,
+                                'OTOMATIS' => $hasil->otomatis,
+                                'parameter_tindakan_lab' => [
+                                    'ID' => $hasil->parameterTindakanLab->ID ?? null,
+                                    'PARAMETER' => $hasil->parameterTindakanLab->PARAMETER ?? null,
+                                    'NILAI_RUJUKAN' => $hasil->parameterTindakanLab->NILAI_RUJUKAN ?? null,
+                                    'SATUAN' => $hasil->parameterTindakanLab->SATUAN ?? null,
+                                ],
+                                'STATUS' => $hasil->status,
+                            ];
+                        }),
+                    ];
+                })
+                ->values();
+        }
+
+        return response()->json($data);
     }
 
     public function StoreEditLaboratorium(Request $request)
     {
+        DB::connection('eklaim')->beginTransaction();
         try {
+            $data = $request->input('data');
+            $nomorKunjungan = $request->input('kunjungan_id');
+            $pengajuanKlaimId = $request->input('pengajuanKlaim_id');
+            $dokter = $request->input('dokter');
+            $petugas = $request->input('petugas');
 
-            return redirect()->back()->with('success', 'Data Laboratorium berhasil disimpan.');
+            $laboratoriumLama = Laboratorium::where('pengajuan_klaim_id', $pengajuanKlaimId)->get();
+            foreach ($laboratoriumLama as $lab) {
+                $lab->hasilLaboratorium()->delete();
+                $lab->delete();
+            }
+
+            PengajuanKlaim::where('id', $pengajuanKlaimId)->update(['laboratorium' => 1]);
+
+            foreach ($data as $item) {
+                $laboratoriumData = Laboratorium::create([
+                    'pengajuan_klaim_id' => $pengajuanKlaimId,
+                    'kunjungan_id' => $nomorKunjungan,
+                    'tindakan_id' => $item['tindakan_laboratorium']['ID'] ?? null,
+                    'nama_tindakan' => $item['tindakan_laboratorium']['NAMA'] ?? null,
+                    'tanggal' => $item['TANGGAL'] ?? null,
+                    'oleh' => $item['OLEH'] ?? null,
+                    'status' => $item['STATUS'] ?? null,
+                    'otomatis' => $item['OTOMATIS'] ?? null,
+                    'dokter' => $dokter,
+                    'petugas' => $petugas,
+                ]);
+
+                foreach ($item['hasil_lab'] as $hasil) {
+                    HasilLaboratorium::create([
+                        'laboratorium_tindakan_id' => $laboratoriumData->id,
+                        'parameter_id' => $hasil['PARAMETER_TINDAKAN'] ?? null,
+                        'parameter_nama' => $hasil['parameter_tindakan_lab']['PARAMETER'] ?? null,
+                        'hasil' => $hasil['HASIL'] ?? null,
+                        'nilai_normal' => $hasil['parameter_tindakan_lab']['NILAI_RUJUKAN'] ?? null,
+                        'satuan' => $hasil['parameter_tindakan_lab']['SATUAN'] ?? null,
+                        'keterangan' => $hasil['KETERANGAN'] ?? null,
+                        'oleh' => $hasil['OLEH'] ?? null,
+                        'otomatis' => $hasil['OTOMATIS'] ?? null,
+                        'status' => $hasil['STATUS'] ?? null
+                    ]);
+                }
+            }
+            DB::connection('eklaim')->commit();
+
+            return response()->json(['success' => 'Data Laboratorium berhasil disimpan.']);
         } catch (\Throwable $th) {
+            DB::connection('eklaim')->rollBack();
 
-            return redirect()->back()->with('error', 'Gagal menyimpan data Laboratorium: ' . $th->getMessage());
+            return response()->json(['error' => 'Gagal menyimpan data Laboratorium: ' . $th->getMessage()]);
         }
     }
 
     public function EditRadiologi(PengajuanKlaim $pengajuanKlaim)
     {
+        $dataPendaftaran = Pendaftaran::where('NORM', $pengajuanKlaim->NORM)
+            ->with([
+                'kunjunganPasien.ruangan'
+            ])->get();
+
+        if ($dataPendaftaran->isEmpty()) {
+            return redirect()->back()->with('error', 'Data pendaftaran tidak ditemukan.');
+        }
+
+        $dataKunjungan = $dataPendaftaran->first()->kunjunganPasien;
+        $dataKunjunganRadiologi = [];
+        foreach ($dataKunjungan as $kunjungan) {
+            if (in_array($kunjungan->ruangan->JENIS_KUNJUNGAN, [5])) {
+                $tanggalMasuk = null;
+                if ($kunjungan->MASUK) {
+                    $tanggalMasuk = Carbon::parse($kunjungan->MASUK)->translatedFormat('d F Y');
+                }
+
+                $dataKunjunganRadiologi[] = [
+                    'ID' => $kunjungan->NOMOR,
+                    'TANGGAL' => $tanggalMasuk,
+                    'RUANGAN' => $kunjungan->ruangan->DESKRIPSI,
+                ];
+            }
+        }
+
+        if (empty($dataKunjunganRadiologi)) {
+            return redirect()->back()->with('error', 'Tidak ada kunjungan Radiologi yang ditemukan.');
+        }
+
+        $tindakanRad = Tindakan::where('JENIS', 7)->get();
+        $pegawai = Pegawai::all()->map(function ($pegawai) {
+            $nama = trim($pegawai->NAMA);
+
+            $gelarDepan = $pegawai->GELAR_DEPAN ? trim($pegawai->GELAR_DEPAN) . '.' : '';
+            $gelarBelakang = $pegawai->GELAR_BELAKANG ? ', ' . trim($pegawai->GELAR_BELAKANG) : '';
+
+            return [
+                'ID' => $pegawai->ID,
+                'DESKRIPSI' => trim($gelarDepan . ' ' . $nama . $gelarBelakang),
+            ];
+        })->values();
+
         return Inertia::render('eklaim/EditData/Radiologi', [
-            'pengajuanKlaim' => $pengajuanKlaim
+            'pengajuanKlaim' => $pengajuanKlaim,
+            'dataKunjunganRadiologi' => $dataKunjunganRadiologi,
+            'tindakanRad' => $tindakanRad,
+            'pegawai' => $pegawai
         ]);
+    }
+
+    public function getDataRadiologi($nomorKunjungan, $jenisData)
+    {
+        if ($jenisData === 'Real') {
+            $data = TindakanMedis::where('KUNJUNGAN', $nomorKunjungan)
+                ->with([
+                    'tindakanRadiologi',
+                    'hasilRadiologi'
+                ])
+                ->get();
+        } else {
+            $data = Radiologi::where('nomor_kunjungan', $nomorKunjungan)
+                ->with(
+                    'tindakanRadiologi'
+                )
+                ->get()
+                ->map(function ($item) use ($nomorKunjungan) {
+                    return [
+                        'KUNJUNGAN' => $nomorKunjungan,
+                        'hasil_radiologi' => [
+                            'KLINIS' => $item->klinis,
+                            'KESAN' => $item->kesan,
+                            'USUL' => $item->usul,
+                            'HASIL' => $item->hasil,
+                        ],
+                        'tindakan_radiologi' => [
+                            'ID' => $item->tindakanRadiologi->ID ?? null,
+                            'NAMA' => $item->tindakanRadiologi->NAMA ?? null,
+                        ],
+                    ];
+                })
+                ->values();
+        }
+
+        return response()->json($data);
     }
 
     public function StoreEditRadiologi(Request $request)
     {
+        DB::connection('eklaim')->beginTransaction();
         try {
+            $data = $request->input('data');
+            $dataKlaim = $request->input('dataKlaim');
+            $dokter = $request->input('dokter');
+            $petugas = $request->input('petugas');
 
-            return redirect()->back()->with('success', 'Data Radiologi berhasil disimpan.');
+            Radiologi::where('id_pengajuan_klaim', $dataKlaim['id'])->delete();
+
+            foreach ($data as $item) {
+                // Simpan atau update data Radiologi
+                Radiologi::create([
+                    'id_pengajuan_klaim' => $dataKlaim['id'],
+                    'nomor_kunjungan' => $item['KUNJUNGAN'],
+                    'nama_petugas' => $petugas,
+                    'nama_dokter' => $dokter,
+                    'tindakan' => $item['tindakan_radiologi']['ID'],
+                    'klinis' => $item['hasil_radiologi']['KLINIS'],
+                    'kesan' => $item['hasil_radiologi']['KESAN'],
+                    'usul' => $item['hasil_radiologi']['USUL'],
+                    'hasil' => $item['hasil_radiologi']['HASIL'],
+                ]);
+            }
+
+            DB::connection('eklaim')->commit();
+            return response()->json(['success' => 'Data Laboratorium berhasil disimpan.']);
         } catch (\Throwable $th) {
+            DB::connection('eklaim')->rollBack();
 
-            return redirect()->back()->with('error', 'Gagal menyimpan data Radiologi: ' . $th->getMessage());
+            return response()->json(['error' => 'Gagal menyimpan data Laboratorium: ' . $th->getMessage()]);
         }
     }
 

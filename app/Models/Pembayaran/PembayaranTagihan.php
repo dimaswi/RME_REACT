@@ -2,6 +2,8 @@
 
 namespace App\Models\Pembayaran;
 
+use App\Models\Aplikasi\Pengguna;
+use App\Models\Master\Pegawai;
 use Illuminate\Database\Eloquent\Model;
 
 class PembayaranTagihan extends Model
@@ -40,4 +42,9 @@ class PembayaranTagihan extends Model
         'DIUBAH_OLEH',
         'STATUS',
     ];
+
+    public function pegawai()
+    {
+        return $this->hasOne(Pengguna::class, 'ID', 'OLEH');
+    }
 }
