@@ -1,30 +1,8 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-function showLoadingModal() {
-    const modal = document.createElement('div');
-    modal.id = 'resume-loading-modal';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100vw';
-    modal.style.height = '100vh';
-    modal.style.background = 'rgba(0,0,0,0.3)';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    modal.style.zIndex = '9999';
-    modal.innerHTML = `
-        <div style="background: white; padding: 24px 32px; border-radius: 8px; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.2)">
-            Memuat dokumen Resume Medis...
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-// Fungsi untuk menghilangkan modal loading
-function hideLoadingModal() {
-    const modal = document.getElementById('resume-loading-modal');
+function hidePDFModal() {
+    const modal = document.getElementById('resume-pdf-modal');
     if (modal) {
         document.body.removeChild(modal);
     }
@@ -61,15 +39,7 @@ function showPDFModal(pdfUrl: string) {
     });
 }
 
-function hidePDFModal() {
-    const modal = document.getElementById('resume-pdf-modal');
-    if (modal) {
-        document.body.removeChild(modal);
-    }
-}
-
 export const cetakLaboratoriumPDF = async (pengajuanKlaim: string, jenis: string) => {
-    showLoadingModal();
     try {
         const response = await axios.get(
             route('previewLaboratorium', {
@@ -87,14 +57,13 @@ export const cetakLaboratoriumPDF = async (pengajuanKlaim: string, jenis: string
             // Bukan PDF, baca sebagai text
             const text = await response.data.text();
             toast.error(JSON.parse(text).message || 'Gagal mengambil PDF');
-            hideLoadingModal();
             return;
         }
 
-        hideLoadingModal();
         if (jenis === 'preview') {
             const pdfBlob = new Blob([response.data], { type: "application/pdf" });
             const pdfUrl = URL.createObjectURL(pdfBlob);
+            toast.success('Berhasil mengambil PDF');
             showPDFModal(pdfUrl);
         } else if (jenis === 'download') {
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -110,8 +79,6 @@ export const cetakLaboratoriumPDF = async (pengajuanKlaim: string, jenis: string
     } catch (error) {
         console.error('Error merging PDF:', error);
         toast.error('Gagal mengambil/gabung PDF');
-        hidePDFModal();
     } finally {
-        hideLoadingModal();
     }
 };

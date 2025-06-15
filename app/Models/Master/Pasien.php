@@ -91,4 +91,10 @@ class Pasien extends Model
     {
         return $this->hasMany(PengajuanKlaim::class, 'NORM', 'NORM');
     }
+
+    public function nomorBPJS()
+    {
+        return $this->hasOne(KartuAsuransiPasien::class, 'NORM', 'NORM')
+            ->where('JENIS', 2);
+    }
 }

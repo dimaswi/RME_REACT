@@ -1,35 +1,6 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-function showLoadingModal() {
-    const modal = document.createElement('div');
-    modal.id = 'resume-loading-modal';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100vw';
-    modal.style.height = '100vh';
-    modal.style.background = 'rgba(0,0,0,0.3)';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    modal.style.zIndex = '9999';
-    modal.innerHTML = `
-        <div style="background: white; padding: 24px 32px; border-radius: 8px; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.2)">
-            Memuat dokumen Resume Medis...
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-// Fungsi untuk menghilangkan modal loading
-function hideLoadingModal() {
-    const modal = document.getElementById('resume-loading-modal');
-    if (modal) {
-        document.body.removeChild(modal);
-    }
-}
-
 // Fungsi untuk menampilkan PDF di modal
 function showPDFModal(pdfUrl: string) {
     const modal = document.createElement('div');
@@ -69,7 +40,6 @@ function hidePDFModal() {
 }
 
 export const cetakTagihanPDF = async (nomor_pendaftaran: string, jenis: string) => {
-    showLoadingModal();
     try {
         // Panggil API untuk mengunduh PDF
         const response = await axios.get(
@@ -88,7 +58,6 @@ export const cetakTagihanPDF = async (nomor_pendaftaran: string, jenis: string) 
             return; // Jangan lanjutkan jika status bukan 200
         }
 
-        hideLoadingModal();
         if (jenis === 'preview') {
             const pdfBlob = new Blob([response.data], { type: "application/pdf" });
             const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -109,6 +78,5 @@ export const cetakTagihanPDF = async (nomor_pendaftaran: string, jenis: string) 
         toast.error('Gagal mengambil/gabung PDF');
         hidePDFModal();
     } finally {
-        hideLoadingModal();
     }
 };

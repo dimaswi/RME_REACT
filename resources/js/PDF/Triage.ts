@@ -1,36 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-// Fungsi untuk menampilkan modal loading
-function showLoadingModal() {
-    const modal = document.createElement("div");
-    modal.id = "triage-loading-modal";
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100vw";
-    modal.style.height = "100vh";
-    modal.style.background = "rgba(0,0,0,0.3)";
-    modal.style.display = "flex";
-    modal.style.alignItems = "center";
-    modal.style.justifyContent = "center";
-    modal.style.zIndex = "9999";
-    modal.innerHTML = `
-        <div style="background: white; padding: 24px 32px; border-radius: 8px; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.2)">
-            Memuat dokumen Triage...
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-// Fungsi untuk menghilangkan modal loading
-function hideLoadingModal() {
-    const modal = document.getElementById("triage-loading-modal");
-    if (modal) {
-        document.body.removeChild(modal);
-    }
-}
-
 // Fungsi untuk menampilkan PDF di modal
 function showPDFModal(pdfUrl: string) {
     const modal = document.createElement("div");
@@ -69,7 +39,6 @@ export const cetakTriage = async (
     jenis: string,
 ) => {
     try {
-        showLoadingModal();
         const response = await axios.get(route("previewTriage", {
             pendaftaran: pendaftaranNomor,
         }), {
@@ -78,7 +47,6 @@ export const cetakTriage = async (
         if (jenis === "preview") {
             const pdfBlob = new Blob([response.data], { type: "application/pdf" });
             const pdfUrl = URL.createObjectURL(pdfBlob);
-            hideLoadingModal();
             showPDFModal(pdfUrl);
         } else if (jenis === "download") {
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -89,9 +57,7 @@ export const cetakTriage = async (
             link.click();
             document.body.removeChild(link);
             toast.success("PDF berhasil diunduh");
-            hideLoadingModal();
         } else if (jenis === "merge") {
-            hideLoadingModal();
             return new Blob([response.data], { type: "application/pdf" });
         }
         if (jenis !== "download") {
@@ -102,6 +68,5 @@ export const cetakTriage = async (
         toast.error("Gagal mengambil PDF");
         hidePDFModal();
     } finally {
-        hideLoadingModal();
     }
 }

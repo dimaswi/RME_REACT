@@ -523,8 +523,7 @@ export default function DataKlaim() {
                                                             dataPendaftaran.NOMOR,
                                                             dataKlaim.nomor_SEP,
                                                             dataKlaim,
-                                                            setPreviewPDF,
-                                                            setPreviewSEPData,
+                                                            'preview',
                                                         );
                                                     } catch (error) {
                                                         console.log(error)
@@ -553,18 +552,16 @@ export default function DataKlaim() {
                                                 onClick={async () => {
                                                     setLoadingDownloadAll(true);
                                                     try {
-                                                        await router.get(
-                                                            route('loadDataResumeMedis', {
-                                                                pendaftaran: dataPendaftaran.NOMOR
-                                                            }),
-                                                            {},
-                                                            {
-                                                                onFinish: () => setLoadingDownloadAll(false)
-                                                            }
+                                                        await mergePDFs(
+                                                            dataPendaftaran.NOMOR,
+                                                            dataKlaim.nomor_SEP,
+                                                            dataKlaim,
+                                                            'download',
                                                         );
-                                                        console.log("Ambil Data Resume Medis");
                                                     } catch (error) {
                                                         console.log(error)
+                                                        setLoadingDownloadAll(false);
+                                                    } finally {
                                                         setLoadingDownloadAll(false);
                                                     }
                                                 }}

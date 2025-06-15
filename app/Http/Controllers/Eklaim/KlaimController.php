@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Models\BPJS\Kunjungan;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Master\Pasien;
@@ -374,18 +375,55 @@ class KlaimController extends Controller
         return redirect()->back()->with('success', 'Data pasien berhasil diupdate.');
     }
 
+
     public function listPengajuanKlaim(Request $request)
     {
-        $perPage = $request->input('per_page', 10); // Jumlah item per halaman
-        $pengajuanKlaim = PengajuanKlaim::orderByDesc('tanggal_pengajuan')
+        $perPage = $request->input('per_page', 10);
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+        $status = $request->input('status'); // Ambil status dari request
+
+        $query = PengajuanKlaim::query();
+
+        // Filter status klaim
+        if ($status !== null && $status !== '') {
+            if (is_array($status)) {
+                $query->whereIn('status', $status);
+            } elseif (is_string($status) && str_starts_with($status, '[')) {
+                // Jika status dikirim sebagai string array (misal: "[0,1,2,3,4]")
+                $arr = json_decode($status, true);
+                if (is_array($arr)) {
+                    $query->whereIn('status', $arr);
+                } else {
+                    $query->where('status', $status);
+                }
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        // Filter tanggal_pengajuan
+        if ($tanggalAwal && $tanggalAkhir) {
+            $query->whereBetween('tanggal_pengajuan', [$tanggalAwal, $tanggalAkhir]);
+        } elseif ($tanggalAwal) {
+            $query->whereDate('tanggal_pengajuan', '>=', $tanggalAwal);
+        } elseif ($tanggalAkhir) {
+            $query->whereDate('tanggal_pengajuan', '<=', $tanggalAkhir);
+        }
+
+        $pengajuanKlaim = $query->orderByDesc('tanggal_pengajuan')
             ->paginate($perPage)
-            ->withQueryString(); // Tambahkan query string untuk pagination
+            ->withQueryString();
 
         return Inertia::render('eklaim/klaim/listPengajuan', [
             'pengajuanKlaim' => $pengajuanKlaim,
             'filters' => [
                 'perPage' => $perPage,
+                'status' => $status,
             ],
+            'tanggal_awal' => $tanggalAwal,
+            'tanggal_akhir' => $tanggalAkhir,
+            'status' => $status,
         ]);
     }
 
@@ -461,5 +499,46 @@ class KlaimController extends Controller
         ]);
         DB::connection('eklaim')->commit();
         return redirect()->back()->with('success', 'Status Klaim: ' . $send['response']['nmStatusSep']);
+    }
+
+    public function searchRekamMedis(Request $request)
+    {
+        $q = $request->input('q', '');
+        $limit = $request->input('limit', 10);
+
+        $query = Pasien::query()
+            ->with('nomorBPJS')
+            ->select('NORM', 'NAMA', 'TANGGAL_LAHIR', 'ALAMAT', 'JENIS_KELAMIN')
+            ->orderBy('NORM');
+
+        if ($q) {
+            $query->where('NORM', 'like', "%{$q}%")->orWhere('NAMA', 'like', "%{$q}%")->orWhere('ALAMAT', 'like', "%{$q}%");
+        }
+
+        // Pagination for fast loading
+        $data = $query->limit($limit)->get();
+
+        return response()->json([
+            'data' => $data
+        ]);
+    }
+
+    public function searchDataSEP($nomorKartu)
+    {
+
+        $query = Kunjungan::query()
+            ->select('noSEP', 'noKartu', 'tglSEP', 'poliTujuan')
+            ->orderBy('tglSEP', 'desc');
+
+        if ($nomorKartu) {
+            $query->where('noKartu', 'like', "%{$nomorKartu}%");
+        }
+
+        // Pagination for fast loading
+        $data = $query->get();
+
+        return response()->json([
+            'data' => $data
+        ]);
     }
 }

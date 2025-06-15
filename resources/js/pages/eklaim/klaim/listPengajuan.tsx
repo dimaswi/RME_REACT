@@ -1,43 +1,59 @@
-import React from "react";
-import AppLayout from "@/layouts/app-layout";
-import { BreadcrumbItem } from "@/types";
-import { Head, usePage, router } from "@inertiajs/react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
-import { Tab } from "@headlessui/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlignJustify, Check, Home, Pencil, Trash } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { AlignJustify, CalendarIcon, Check, Home, Pencil, Trash } from 'lucide-react';
+import React, { useState } from 'react';
+import ModalBuatPengajuanBaru from './ModalBuatPengajuanBaru';
+import PengajuanKlaimCollapse from './collapseListPengajuan';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
-    if (!tanggal) return "-";
-    return format(new Date(tanggal), "d MMMM yyyy", { locale: id });
+    if (!tanggal) return '-';
+    return format(new Date(tanggal), 'd MMMM yyyy', { locale: id });
 };
 
 // Function untuk menampilkan badge status
 const getStatusBadge = (status: number, id: string) => {
-    switch (status) {
-        case 0:
-            return <Badge onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))} variant="outline" className="hover:cursor-pointer hover:bg-yellow-300 bg-yellow-100 text-yellow-800">Belum Diajukan</Badge>;
-        case 1:
-            return <Badge onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))} variant="outline" className="hover:cursor-pointer hover:bg-green-300 bg-green-100 text-green-800">Sudah Diajukan</Badge>;
-        case 2:
-            return <Badge onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))} variant="outline" className="hover:cursor-pointer hover:bg-blue-300 bg-blue-100 text-blue-800">Group Stage 1</Badge>;
-        case 3:
-            return <Badge onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))} variant="outline" className="hover:cursor-pointer hover:bg-blue-300 bg-blue-100 text-blue-800">Group Stage 2</Badge>;
-        case 4:
-            return <Badge onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))} variant="outline" className="hover:cursor-pointer hover:bg-blue-300 bg-blue-100 text-blue-800">Final</Badge>;
-        default:
-            return <Badge onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))} variant="outline" className="hover:cursor-pointer hover:bg-gray-300 bg-gray-100 text-gray-800">Unknown</Badge>;
-    }
+    const statusMap: Record<number, { label: string; color: string; text: string }> = {
+        0: { label: 'Belum Diajukan', color: 'yellow', text: 'yellow-800' },
+        1: { label: 'Sudah Diajukan', color: 'green', text: 'green-800' },
+        2: { label: 'Group Stage 1', color: 'blue', text: 'blue-800' },
+        3: { label: 'Group Stage 2', color: 'blue', text: 'blue-800' },
+        4: { label: 'Final', color: 'blue', text: 'blue-800' },
+    };
+    const statusInfo = statusMap[status] || { label: 'Unknown', color: 'gray', text: 'gray-800' };
+    return (
+        <Badge
+            onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))}
+            variant="outline"
+            className={`hover:cursor-pointer hover:bg-${statusInfo.color}-300 bg-${statusInfo.color}-100 text-${statusInfo.text}`}
+        >
+            {statusInfo.label}
+        </Badge>
+    );
 };
 
 export default function ListPengajuan() {
-    const { pengajuanKlaim, filters } = usePage().props as {
+    const props = usePage().props as any;
+    const tanggal_awal = props.tanggal_awal || '';
+    const tanggal_akhir = props.tanggal_akhir || '';
+
+    function parseDate(str: string): Date | undefined {
+        if (!str) return undefined;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? undefined : d;
+    }
+
+    const { pengajuanKlaim, filters } = usePage().props as unknown as {
         pengajuanKlaim: {
             data: any[];
             links: any[];
@@ -48,38 +64,172 @@ export default function ListPengajuan() {
             perPage: number;
         };
     };
+    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+        from: parseDate(tanggal_awal),
+        to: parseDate(tanggal_akhir),
+    });
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: <Home className="inline mr-1" />,
-            href: route("eklaim.klaim.index"),
+            title: <Home className="mr-1 inline" />,
+            href: route('eklaim.klaim.index'),
         },
         {
-            title: "List Pengajuan Klaim",
-            href: route("eklaim.klaim.indexPengajuanKlaim"),
+            title: 'List Pengajuan Klaim',
+            href: route('eklaim.klaim.indexPengajuanKlaim'),
         },
     ];
 
+    const statusFilter = props.status ?? '';
+    const [status, setStatus] = useState<string>(statusFilter);
     const handlePageChange = (url: string | null) => {
         if (url) {
-            router.get(url, {}, { preserveState: true });
+            router.get(
+                url,
+                {
+                    tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                    tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                    status,
+                },
+                { preserveState: true },
+            );
         }
     };
 
     const handlePerPageChange = (value: string) => {
-        router.get(route("eklaim.klaim.indexPengajuanKlaim"), { per_page: value }, { preserveState: true });
+        router.get(
+            route('eklaim.klaim.indexPengajuanKlaim'),
+            {
+                per_page: value,
+                tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                status,
+            },
+            { preserveState: true },
+        );
     };
 
-    const prevLink = pengajuanKlaim.links.find((l) => l.label === "Previous" || l.label === "&laquo; Previous");
-    const nextLink = pengajuanKlaim.links.find((l) => l.label === "Next" || l.label === "Next &raquo;");
+    const prevLink = pengajuanKlaim.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous');
+    const nextLink = pengajuanKlaim.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;');
+
+    const [openRow, setOpenRow] = useState<number | null>(null);
+    const [openModalBaru, setOpenModalBaru] = useState(false);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="List Pengajuan Klaim" />
             <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                </div>
                 <div className="w-full overflow-x-auto rounded-md border">
+                    <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-green-400 text-white hover:bg-green-600"
+                            onClick={() => setOpenModalBaru(true)}
+                        >
+                            Buat Pengajuan Klaim Baru
+                        </Button>
+                        <Select
+                            value={status}
+                            onValueChange={(val) => {
+                                setStatus(val);
+                                let statusParam = val;
+                                try {
+                                    const arr = JSON.parse(val);
+                                    if (Array.isArray(arr)) statusParam = arr;
+                                } catch {}
+                                router.get(
+                                    route('eklaim.klaim.indexPengajuanKlaim'),
+                                    {
+                                        ...filters,
+                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                                        status: statusParam,
+                                    },
+                                    { preserveState: true },
+                                );
+                            }}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter Status Klaim" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={JSON.stringify([0, 1, 2, 3, 4])}>
+                                    <Badge className="bg-amber-200 text-amber-700">Semua Status</Badge>
+                                </SelectItem>
+                                <SelectItem value="0">
+                                    <Badge className="bg-red-200 text-red-700">Belum Diajukan</Badge>
+                                </SelectItem>
+                                <SelectItem value="1">
+                                    <Badge className="bg-green-200 text-green-700">Sudah Diajukan</Badge>
+                                </SelectItem>
+                                <SelectItem value="2">
+                                    <Badge className="bg-blue-200 text-blue-700">Group Stage 1</Badge>
+                                </SelectItem>
+                                <SelectItem value="3">
+                                    <Badge className="bg-blue-200 text-blue-700">Group Stage 2</Badge>
+                                </SelectItem>
+                                <SelectItem value="4">
+                                    <Badge className="bg-blue-200 text-blue-700">Final</Badge>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {/* Filter tanggal tetap */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-[260px] justify-start text-left font-normal">
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateRange.from && dateRange.to
+                                        ? `${format(dateRange.from, 'dd MMM yyyy')} - ${format(dateRange.to, 'dd MMM yyyy')}`
+                                        : 'Pilih Rentang Tanggal'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-auto p-0">
+                                <div className="flex flex-col gap-2 p-4">
+                                    <Calendar
+                                        mode="range"
+                                        selected={dateRange}
+                                        onSelect={(range) => {
+                                            setDateRange(range);
+                                            if (range.from && range.to) {
+                                                router.get(
+                                                    route('eklaim.klaim.indexPengajuanKlaim'),
+                                                    {
+                                                        ...filters,
+                                                        tanggal_awal: format(range.from, 'yyyy-MM-dd'),
+                                                        tanggal_akhir: format(range.to, 'yyyy-MM-dd'),
+                                                        status,
+                                                    },
+                                                    { preserveState: true },
+                                                );
+                                            }
+                                        }}
+                                        numberOfMonths={2}
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-2 self-end"
+                                        onClick={() => {
+                                            setDateRange({ from: undefined, to: undefined });
+                                            router.get(
+                                                route('eklaim.klaim.indexPengajuanKlaim'),
+                                                {
+                                                    ...filters,
+                                                    tanggal_awal: '',
+                                                    tanggal_akhir: '',
+                                                    status,
+                                                },
+                                                { preserveState: true },
+                                            );
+                                        }}
+                                    >
+                                        Reset
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                     <Table className="w-full min-w-max">
                         <TableHeader>
                             <TableRow>
@@ -87,110 +237,113 @@ export default function ListPengajuan() {
                                 <TableHead>NORM</TableHead>
                                 <TableHead>Nomor SEP</TableHead>
                                 <TableHead>
-                                    <center>
-                                        Status
-                                    </center>
+                                    <center>Status</center>
                                 </TableHead>
                                 <TableHead>
-                                    <center>
-                                        Tanggal Pengajuan
-                                    </center>
+                                    <center>Tanggal Pengajuan</center>
                                 </TableHead>
                                 <TableHead>
-                                    <center>
-                                        #
-                                    </center>
+                                    <center>#</center>
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {pengajuanKlaim.data.length > 0 ? (
                                 pengajuanKlaim.data.map((item, idx) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell>{idx + 1 + (pengajuanKlaim.current_page - 1) * filters.perPage}</TableCell>
-                                        <TableCell>{item.NORM}</TableCell>
-                                        <TableCell>
-                                            <div className="hover:underline cursor-pointer hover:text-blue-600"
-                                                onClick={() => router.get(route('eklaim.klaim.getDataKlaim', { pengajuanKlaim: item.id }))}
-                                            >
-                                                {item.nomor_SEP}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <center>
-                                                {getStatusBadge(item.status, item.id)}
-                                            </center>
-                                        </TableCell>
-                                        <TableCell>
-                                            <center>
-                                                {formatTanggal(item.tanggal_pengajuan)}
-                                            </center>
-                                        </TableCell>
-                                        <TableCell>
-                                            <center>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            variant='outline'
-                                                            size="sm"
-                                                        >
-                                                            <AlignJustify size={16} />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent>
-                                                        {item.status === 0 && (
-                                                            <DropdownMenuItem
-                                                                onClick={() => router.post(route('eklaim.klaim.pengajuanUlang', { pengajuanKlaim: item.id }))}
-                                                                className="flex items-center gap-2"
-                                                            >
-                                                                <Check size={16} className="text-green-600" />
-                                                                Ajukan
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                        {
-                                                            item.status === 1 && (
+                                    <React.Fragment key={item.id}>
+                                        <TableRow
+                                            className="cursor-pointer transition hover:bg-gray-100"
+                                            onClick={() => setOpenRow(openRow === item.id ? null : item.id)}
+                                        >
+                                            <TableCell>
+                                                <div className="pl-5">{idx + 1 + (pengajuanKlaim.current_page - 1) * filters.perPage}</div>
+                                            </TableCell>
+                                            <TableCell>{item.NORM}</TableCell>
+                                            <TableCell>
+                                                <p>{item.nomor_SEP}</p>
+                                            </TableCell>
+                                            <TableCell>
+                                                <center>{getStatusBadge(item.status, item.id)}</center>
+                                            </TableCell>
+                                            <TableCell>
+                                                <center>{formatTanggal(item.tanggal_pengajuan)}</center>
+                                            </TableCell>
+                                            <TableCell>
+                                                <center>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="outline" size="sm">
+                                                                <AlignJustify size={16} />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent>
+                                                            {item.status === 0 && (
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        router.post(route('eklaim.klaim.pengajuanUlang', { pengajuanKlaim: item.id }))
+                                                                    }
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <Check size={16} className="text-green-600" />
+                                                                    Ajukan
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            {item.status === 1 && (
                                                                 <>
                                                                     <DropdownMenuItem
-                                                                        onClick={() => router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }))}
+                                                                        onClick={() =>
+                                                                            router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }))
+                                                                        }
                                                                         className="flex items-center gap-2"
                                                                     >
                                                                         <Pencil size={16} className="text-yellow-600" />
                                                                         Isi Data Klaim
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem
-                                                                        onClick={() => router.post(route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }))}
+                                                                        onClick={() =>
+                                                                            router.post(
+                                                                                route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }),
+                                                                            )
+                                                                        }
                                                                         className="flex items-center gap-2"
                                                                     >
                                                                         <Trash size={16} className="text-red-600" />
                                                                         Batalkan Klaim
                                                                     </DropdownMenuItem>
                                                                 </>
-
-                                                            )
-                                                        }
-                                                        {
-                                                            item.status === 2 && (
-                                                                <>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => router.post(route('eklaim.klaim.editUlangKlaim', { pengajuanKlaim: item.id }))}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Pencil size={16} className="text-yellow-600" />
-                                                                        Edit Ulang
-                                                                    </DropdownMenuItem>
-                                                                </>
-
-                                                            )
-                                                        }
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </center>
-                                        </TableCell>
-                                    </TableRow>
+                                                            )}
+                                                            {item.status === 2 && (
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        router.post(route('eklaim.klaim.editUlangKlaim', { pengajuanKlaim: item.id }))
+                                                                    }
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <Pencil size={16} className="text-yellow-600" />
+                                                                    Edit Ulang
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </center>
+                                            </TableCell>
+                                        </TableRow>
+                                        {openRow === item.id && (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="bg-gray-50">
+                                                    <PengajuanKlaimCollapse
+                                                        item={item}
+                                                        formatTanggal={formatTanggal}
+                                                        getStatusBadge={getStatusBadge}
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </React.Fragment>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center">
+                                    <TableCell colSpan={6} className="text-center">
                                         Data tidak ditemukan
                                     </TableCell>
                                 </TableRow>
@@ -199,7 +352,7 @@ export default function ListPengajuan() {
                     </Table>
                 </div>
                 {/* Pagination */}
-                <div className="flex items-center mt-4 float-end gap-2">
+                <div className="mt-4 flex items-center justify-end gap-2">
                     <Select defaultValue={filters.perPage.toString()} onValueChange={handlePerPageChange}>
                         <SelectTrigger className="w-24">
                             <SelectValue placeholder="Per Page" />
@@ -211,23 +364,14 @@ export default function ListPengajuan() {
                             <SelectItem value="100">100</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(prevLink?.url)}
-                        disabled={!prevLink?.url}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handlePageChange(prevLink?.url)} disabled={!prevLink?.url}>
                         Previous
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(nextLink?.url)}
-                        disabled={!nextLink?.url}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handlePageChange(nextLink?.url)} disabled={!nextLink?.url}>
                         Next
                     </Button>
                 </div>
+                <ModalBuatPengajuanBaru open={openModalBaru} onOpenChange={setOpenModalBaru} />
             </div>
         </AppLayout>
     );

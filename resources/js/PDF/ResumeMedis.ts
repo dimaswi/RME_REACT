@@ -2,35 +2,6 @@ import axios from 'axios';
 import { PDFDocument } from 'pdf-lib'; // install dengan: npm install pdf-lib
 import { toast } from 'sonner';
 
-// Fungsi untuk menampilkan modal loading
-function showLoadingModal() {
-    const modal = document.createElement('div');
-    modal.id = 'resume-loading-modal';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100vw';
-    modal.style.height = '100vh';
-    modal.style.background = 'rgba(0,0,0,0.3)';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    modal.style.zIndex = '9999';
-    modal.innerHTML = `
-        <div style="background: white; padding: 24px 32px; border-radius: 8px; font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.2)">
-            Memuat dokumen Resume Medis...
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-// Fungsi untuk menghilangkan modal loading
-function hideLoadingModal() {
-    const modal = document.getElementById('resume-loading-modal');
-    if (modal) {
-        document.body.removeChild(modal);
-    }
-}
 
 // Fungsi untuk menampilkan PDF di modal
 function showPDFModal(pdfUrl: string) {
@@ -76,7 +47,6 @@ export const cetakResumeMedis = async (
     pengajuanKlaim?: { id?: string; edit?: number; pengkajian_awal?: number; triage?: number; cppt?: number } | null,
 ) => {
     try {
-        showLoadingModal();
 
         // Siapkan daftar request dan urutan
         const pdfRequests: Promise<any>[] = [];
@@ -114,7 +84,6 @@ export const cetakResumeMedis = async (
         const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
         const mergedUrl = URL.createObjectURL(mergedBlob);
 
-        hideLoadingModal();
 
         if (jenis === 'preview') {
             showPDFModal(mergedUrl);
@@ -135,6 +104,5 @@ export const cetakResumeMedis = async (
         toast.error('Gagal mengambil/gabung PDF');
         hidePDFModal();
     } finally {
-        hideLoadingModal();
     }
 };
