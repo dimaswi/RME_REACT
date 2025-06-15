@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('previewTagihan/{nomor_pendaftaran}', [BridgeDataController::class, 'previewTagihan'])->name('previewTagihan');
     Route::get('previewBerkasKlaim/{pendaftaran}', [BridgeDataController::class, 'previewBerkasKlaim'])->name('previewBerkasKlaim');
     Route::get('previewLaboratorium/{pengajuanKlaim}', [BridgeDataController::class, 'previewLaboratorium'])->name('previewLaboratorium');
-    Route::get('previewRadiologi/{pendaftaran}', [BridgeDataController::class, 'previewRadiologi'])->name('previewRadiologi');
+    Route::get('previewRadiologi/{pengajuanKlaim}', [BridgeDataController::class, 'previewRadiologi'])->name('previewRadiologi');
     Route::get('previewResumeMedisEdit/{pendaftaran}', [BridgeDataController::class, 'previewResumeMedisEdit'])->name('previewResumeMedisEdit');
     Route::get('previewPengkajianAwalEdit/{pendaftaran}', [BridgeDataController::class, 'previewPengkajianAwalEdit'])->name('previewPengkajianAwalEdit');
     Route::get('previewTriageEdit/{pendaftaran}', [BridgeDataController::class, 'previewTriageEdit'])->name('previewTriageEdit');

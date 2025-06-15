@@ -32,12 +32,12 @@ class Radiologi extends Model
 
     public function petugas()
     {
-        return $this->belongsTo(Pegawai::class, 'ID', 'nama_petugas');
+        return $this->hasOne(Pegawai::class, 'ID', 'nama_petugas');
     }
 
     public function dokter()
     {
-        return $this->belongsTo(Pegawai::class, 'ID', 'nama_dokter');
+        return $this->hasOne(Pegawai::class, 'ID', 'nama_dokter');
     }
 
     public function tindakan()

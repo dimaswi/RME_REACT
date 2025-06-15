@@ -1,8 +1,6 @@
 import axios from 'axios';
-import { PDFDocument } from 'pdf-lib'; // install dengan: npm install pdf-lib
 import { toast } from 'sonner';
 
-// Fungsi untuk menampilkan modal loading
 function showLoadingModal() {
     const modal = document.createElement('div');
     modal.id = 'resume-loading-modal';
@@ -70,65 +68,44 @@ function hidePDFModal() {
     }
 }
 
-export const cetakResumeMedis = async (
-    pendaftaranNomor: string,
-    jenis: string,
-    pengajuanKlaim?: { id?: string; edit?: number; pengkajian_awal?: number; triage?: number; cppt?: number } | null,
-) => {
+export const cetakRadiologiPDF = async (pengajuanKlaim: string, jenis: string) => {
+    showLoadingModal();
     try {
-        showLoadingModal();
+        const response = await axios.get(
+            route('previewRadiologi', {
+                pengajuanKlaim: pengajuanKlaim,
+            }),
+            {
+                responseType: 'blob',
+                validateStatus: (status) => status === 200,
+            },
+        );
 
-        // Siapkan daftar request dan urutan
-        const pdfRequests: Promise<any>[] = [];
-        // Resume Medis selalu diambil
-        if (pengajuanKlaim && pengajuanKlaim.edit === 1) {
-            pdfRequests.push(axios.get(route('previewResumeMedisEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
-            if (pengajuanKlaim.pengkajian_awal === 1)
-                pdfRequests.push(axios.get(route('previewPengkajianAwalEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
-            if (pengajuanKlaim.triage === 1)
-                pdfRequests.push(axios.get(route('previewTriageEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
-            if (pengajuanKlaim.cppt === 1)
-                pdfRequests.push(axios.get(route('previewCPPTEdit', { pendaftaran: pengajuanKlaim.id }), { responseType: 'blob' }));
-        } else {
-            pdfRequests.push(axios.get(route('previewResumeMedis', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
-            if (pengajuanKlaim?.pengkajian_awal === 1)
-                pdfRequests.push(axios.get(route('previewPengkajianAwal', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
-            if (pengajuanKlaim?.triage === 1)
-                pdfRequests.push(axios.get(route('previewTriage', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
-            if (pengajuanKlaim?.cppt === 1)
-                pdfRequests.push(axios.get(route('previewCPPT', { pendaftaran: pendaftaranNomor }), { responseType: 'blob' }));
+        // Cek tipe MIME dari response
+        const contentType = response.headers['content-type'];
+        if (!contentType || !contentType.includes('application/pdf')) {
+            // Bukan PDF, baca sebagai text
+            const text = await response.data.text();
+            toast.error(JSON.parse(text).message || 'Gagal mengambil PDF');
+            hideLoadingModal();
+            return;
         }
-
-        const responses = await Promise.all(pdfRequests);
-
-        // Gabungkan PDF dengan pdf-lib
-        const mergedPdf = await PDFDocument.create();
-        for (const res of responses) {
-            const pdfBytes = await res.data.arrayBuffer();
-            const pdf = await PDFDocument.load(pdfBytes);
-            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-            copiedPages.forEach((page) => mergedPdf.addPage(page));
-        }
-
-        const mergedPdfBytes = await mergedPdf.save();
-        const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-        const mergedUrl = URL.createObjectURL(mergedBlob);
 
         hideLoadingModal();
-
         if (jenis === 'preview') {
-            showPDFModal(mergedUrl);
-            toast.success('PDF gabungan berhasil ditampilkan');
+            const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            showPDFModal(pdfUrl);
         } else if (jenis === 'download') {
-            const link = document.createElement('a');
-            link.href = mergedUrl;
-            link.setAttribute('download', pendaftaranNomor + '_gabungan.pdf');
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "Tagihan.pdf");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            toast.success('PDF gabungan berhasil diunduh');
         } else if (jenis === 'merge') {
-            return mergedBlob;
+            return new Blob([response.data], { type: 'application/pdf' });
         }
     } catch (error) {
         console.error('Error merging PDF:', error);

@@ -20,6 +20,7 @@ import { mergePDFs } from "../../../PDF/MergePDF";
 import { ModalUpload } from "@/components/modalUpload";
 import { cetakTagihanPDF } from "@/PDF/Tagihan";
 import { cetakLaboratoriumPDF } from "@/PDF/Laboratorium";
+import { cetakRadiologiPDF } from "@/PDF/Radiologi";
 
 export default function DataKlaim() {
     const { dataKlaim } = usePage().props as { dataKlaim: any };
@@ -521,6 +522,7 @@ export default function DataKlaim() {
                                                         await mergePDFs(
                                                             dataPendaftaran.NOMOR,
                                                             dataKlaim.nomor_SEP,
+                                                            dataKlaim,
                                                             setPreviewPDF,
                                                             setPreviewSEPData,
                                                         );
@@ -813,7 +815,7 @@ export default function DataKlaim() {
                                                     setPreviewTagihan(true);
                                                     setTimeout(async () => {
                                                         try {
-                                                            await cetakTagihanPDF(dataPendaftaran.NOMOR, 'preview');
+                                                            await cetakTagihanPDF(dataKlaim.id, 'preview');
                                                         } catch (error) {
                                                             console.error(error);
                                                         } finally {
@@ -1042,21 +1044,15 @@ export default function DataKlaim() {
                                                 disabled={previewRadiologi}
                                                 onClick={async () => {
                                                     setPreviewRadiologi(true);
-                                                    try {
-                                                        await router.get(
-                                                            route('loadDataResumeMedis', {
-                                                                pendaftaran: dataPendaftaran.NOMOR
-                                                            }),
-                                                            {},
-                                                            {
-                                                                onFinish: () => setPreviewRadiologi(false)
-                                                            }
-                                                        );
-                                                        console.log("Ambil Data Resume Medis");
-                                                    } catch (error) {
-                                                        console.log(error)
-                                                        setPreviewRadiologi(false);
-                                                    }
+                                                    setTimeout(async () => {
+                                                        try {
+                                                            await cetakRadiologiPDF(dataKlaim.id, 'preview');
+                                                        } catch (error) {
+                                                            console.error(error);
+                                                        } finally {
+                                                            setPreviewRadiologi(false);
+                                                        }
+                                                    }, 100); // Timeout selama 0,1 detik
                                                 }}
                                             >
                                                 {previewRadiologi ? (

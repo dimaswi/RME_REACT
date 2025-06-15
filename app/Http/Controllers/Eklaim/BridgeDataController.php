@@ -14,6 +14,7 @@ use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Eklaim\PengkajianAwal;
 use App\Models\Eklaim\PermintaanKonsul;
 use App\Models\Eklaim\Psikososial;
+use App\Models\Eklaim\Radiologi;
 use App\Models\Eklaim\ResikoDekubitus;
 use App\Models\Eklaim\ResikoGizi;
 use App\Models\Eklaim\ResikoJatuh;
@@ -70,7 +71,7 @@ class BridgeDataController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string)$nomor_sep,
+            "nomor_sep" => (string) $nomor_sep,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
@@ -173,18 +174,21 @@ class BridgeDataController extends Controller
             })
             ->implode(', ') ?: 'Tidak ada data hasil konsultasi';
 
+                    dd($hasilKonsultasi);
+
+
         $diagnosaUtama = $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
             ? $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
-            ->flatMap(function ($diagnosa) {
-                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
-            })->implode(', ')
+                ->flatMap(function ($diagnosa) {
+                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
+                })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $icd10DiagnosaUtama = $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
             ? $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
-            ->flatMap(function ($diagnosa) {
-                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
-            })->implode(', ')
+                ->flatMap(function ($diagnosa) {
+                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
+                })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $jenisKelamin = $kunjunganRawatInap->pendaftaranPasien->pasien->JENIS_KELAMIN === 1
@@ -195,18 +199,18 @@ class BridgeDataController extends Controller
 
         $terapiPulang = $kunjunganRawatInap->orderResepPulang
             ? $kunjunganRawatInap->orderResepPulang
-            ->flatMap(function ($orderResep) {
-                return $orderResep->orderResepDetil
-                    ? $orderResep->orderResepDetil->map(function ($resep) {
-                        return [
-                            'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
-                            'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
-                            'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
-                        ];
-                    })
-                    : collect();
-            })
-            ->toArray()
+                ->flatMap(function ($orderResep) {
+                    return $orderResep->orderResepDetil
+                        ? $orderResep->orderResepDetil->map(function ($resep) {
+                            return [
+                                'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
+                                'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
+                                'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
+                            ];
+                        })
+                        : collect();
+                })
+                ->toArray()
             : [];
 
         $resumeMedis = [
@@ -219,7 +223,7 @@ class BridgeDataController extends Controller
             'tanggal_keluar' => $kunjunganRawatInap->KELUAR ?? 'Tidak ada data tanggal keluar',
             'ruang_rawat_terakhir' => $kunjunganUGD->ruangan->DESKRIPSI ?? 'Tidak ada data ruang rawat',
             'penjamin' => $kunjunganRawatInap->pendaftaranPasien->penjamin->jenisPenjamin->DESKRIPSI ?? 'Tidak ada data penjamin',
-            'indikasi_rawat_inap' =>  $kunjunganRawatInap->pendaftaranPasien->resumeMedis->INDIKASI_RAWAT_INAP ?? 'Tidak ada data indikasi rawat inap',
+            'indikasi_rawat_inap' => $kunjunganRawatInap->pendaftaranPasien->resumeMedis->INDIKASI_RAWAT_INAP ?? 'Tidak ada data indikasi rawat inap',
             'riwayat_penyakit_sekarang' => $kunjunganRawatInap->keluhanUtama->DESKRIPSI ?? 'Tidak ada data riwayat penyakit sekarang',
             'riwayat_penyakit_dahulu' => $kunjunganRawatInap->rpp->DESKRIPSI ?? 'Tidak ada data ringkasan penyakit dahulu',
             'pemeriksaan_fisik' => $kunjunganRawatInap->pemeriksaanFisik->DESKRIPSI ?? 'Tidak ada data pemeriksaan fisik',
@@ -433,9 +437,9 @@ class BridgeDataController extends Controller
 
         $getDiagnosaPasien = $kunjunganUGD->pendaftaranPasien->diagnosaPasien
             ? $kunjunganUGD->pendaftaranPasien->diagnosaPasien
-            ->flatMap(function ($diagnosa) {
-                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
-            })->implode(', ')
+                ->flatMap(function ($diagnosa) {
+                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
+                })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $riwayatKeluarga = [];
@@ -458,7 +462,7 @@ class BridgeDataController extends Controller
         }
         $riwayat_penyakit_keluarga = count($riwayatKeluarga) > 0 ? implode(', ', $riwayatKeluarga) : 'Tidak ada data';
 
-        $pupil =  ($kunjunganUGD->pemeriksaanMata->_ISOKOR ?? 0) == 1
+        $pupil = ($kunjunganUGD->pemeriksaanMata->_ISOKOR ?? 0) == 1
             ? 'Pupil Isokor'
             : (($kunjunganUGD->pemeriksaanMata->_ANISOKOR ?? 0) == 1
                 ? 'Pupil Anisokor'
@@ -651,7 +655,7 @@ class BridgeDataController extends Controller
             'tanggal_keluar' => $dataResumeMedis->tanggal_keluar ?? 'Tidak ada data tanggal keluar',
             'ruang_rawat_terakhir' => $dataResumeMedis->ruang_rawat_terakhir ?? 'Tidak ada data ruang rawat',
             'penjamin' => $dataResumeMedis->penjamin ?? 'Tidak ada data penjamin',
-            'indikasi_rawat_inap' =>  $dataResumeMedis->indikasi_rawat_inap ?? 'Tidak ada data indikasi rawat inap',
+            'indikasi_rawat_inap' => $dataResumeMedis->indikasi_rawat_inap ?? 'Tidak ada data indikasi rawat inap',
             'riwayat_penyakit_sekarang' => $dataResumeMedis->riwayat_penyakit_sekarang ?? 'Tidak ada data riwayat penyakit sekarang',
             'riwayat_penyakit_dahulu' => $dataResumeMedis->riwayat_penyakit_dahulu ?? 'Tidak ada data ringkasan penyakit dahulu',
             'pemeriksaan_fisik' => $dataResumeMedis->pemeriksaan_fisik ?? 'Tidak ada data pemeriksaan fisik',
@@ -785,7 +789,7 @@ class BridgeDataController extends Controller
             'diagnosa' => $dataPengkajianAwal->diagnosa_keperawatan ?? 'Tidak ada data diagnosa',
             'rencana_terapi' => $dataPengkajianAwal->rencana_terapi ?? 'Tidak ada data rencana terapi',
             'nama_dokter' => $dataPengkajianAwal->nama_dokter ?? 'Tidak ada data nama dokter',
-            'nip_dokter' =>  '-',
+            'nip_dokter' => '-',
         ];
 
         $namaDokter = $dataResumeMedis['dokter'] ?? '-';
@@ -871,7 +875,7 @@ class BridgeDataController extends Controller
 
         $triage = [
             'nama_pasien' => $dataTriage->nama_pasien ?? 'Tidak ada data nama pasien',
-            'no_rm' =>  $dataTriage->no_rm ?? 'Tidak ada data nomor rekam medis',
+            'no_rm' => $dataTriage->no_rm ?? 'Tidak ada data nomor rekam medis',
             'tanggal_lahir' => $dataTriage->tanggal_lahir ?? 'Tidak ada data tanggal lahir',
             'jenis_kelamin' => $dataTriage->jenis_kelamin ?? 'Tidak ada jenis kelamin',
             'tanggal_masuk' => $dataTriage->tanggal_kedatangan ?? 'Tidak ada data tanggal masuk',
@@ -992,7 +996,7 @@ class BridgeDataController extends Controller
 
     public function previewTagihan($nomor_pendaftaran)
     {
-        $pengajuanKlaim = PengajuanKlaim::where('nomor_pendaftaran', $nomor_pendaftaran)->first();
+        $pengajuanKlaim = PengajuanKlaim::where('id', $nomor_pendaftaran)->first();
         $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
         $dataPasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
         $tanggalMasuk = $resumeMedis->tanggal_masuk ?? 'Tidak ada data tanggal masuk';
@@ -1201,6 +1205,57 @@ class BridgeDataController extends Controller
 
     public function previewRadiologi(PengajuanKlaim $pengajuanKlaim)
     {
-        return response()->json($pengajuanKlaim, 200, [], JSON_PRETTY_PRINT);
+        $pasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
+        $dataRadiologi = Radiologi::where('id_pengajuan_klaim', $pengajuanKlaim->id)
+            ->with([
+                'tindakanRadiologi',
+                'dokter',
+                'petugas'
+            ])
+            ->get();
+        $dataRadiologi = $dataRadiologi->map(function ($item) {
+            // Misal QR code untuk nama dokter, bisa diganti sesuai kebutuhan
+            $gelarDepanDokter = $item->dokter->GELAR_DEPAN ? trim($item->dokter->GELAR_DEPAN) . '.' : '';
+            $gelarBelakangDokter = $item->dokter->GELAR_BELAKANG ? ', ' . trim($item->dokter->GELAR_BELAKANG) : '';
+            $gelarDepanPetugas = $item->petugas->GELAR_DEPAN ? trim($item->petugas->GELAR_DEPAN) . '.' : '';
+            $gelarBelakangPetugas = $item->petugas->GELAR_BELAKANG ? ', ' . trim($item->petugas->GELAR_BELAKANG) : '';
+
+            $namaDokter = trim($gelarDepanDokter . ' ' . $item->dokter->NAMA . $gelarBelakangDokter) ?? 'Tidak ada nama dokter';
+            $namaPetugas = trim($gelarDepanPetugas . ' ' . $item->petugas->NAMA . $gelarBelakangPetugas) ?? 'Tidak ada nama petugas';
+            $item->qrcodeDokter = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')->size(100)->generate($namaDokter)
+            );
+            $item->qrcodePetugas = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')->size(100)->generate($namaPetugas)
+            );
+            $item->dokter_nama = $namaDokter;
+            $item->petugas_nama = $namaPetugas;
+            return $item;
+        });
+        $dataKunjungan = Kunjungan::where('NOMOR', $dataRadiologi[0]->nomor_kunjungan)->first();
+
+        $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
+        }
+        $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
+        $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(
+            view('eklaim.Radiologi', compact(
+                'pasien',
+                'dataRadiologi',
+                'dataKunjungan',
+                'imageBase64', // Kirim Base64 ke view
+            ))->render()
+        );
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="Radiologi.pdf"');
     }
 }
