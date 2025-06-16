@@ -78,7 +78,7 @@ export const cetakLaboratoriumPDF = async (pengajuanKlaim: string, jenis: string
         }
     } catch (error) {
         console.error('Error merging PDF:', error);
-        toast.error('Gagal mengambil/gabung PDF');
+        toast.error('Gagal mengambil PDF atau tidak ada data yang ditemukan');
     } finally {
     }
 };

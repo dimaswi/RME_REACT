@@ -50,62 +50,74 @@ export const mergePDFs = async (
     nomorPendaftaran: string,
     nomorSEP: string,
     pengajuanKlaim: any,
-    jenis: "preview" | "download" = "preview" // Tambahkan parameter jenis
+    jenis: "preview" | "download" = "preview"
 ) => {
     toast.info('Menggabungkan PDF membutuhkan waktu, harap tunggu...');
 
     try {
-        // Fetch all PDF blobs in parallel
-        const [resumeMedisBlob, tagihanBlob, laboratoriumBlob, radiologiBlob, sepData] = await Promise.all([
-            cetakResumeMedis(nomorPendaftaran, 'merge', pengajuanKlaim),
-            cetakTagihanPDF(pengajuanKlaim.id, 'merge'),
-            cetakLaboratoriumPDF(pengajuanKlaim.id, 'merge'),
-            cetakRadiologiPDF(pengajuanKlaim.id, 'merge'),
-            fetchSEPData(nomorPendaftaran),
-        ]);
+        // Resume Medis dan SEP selalu diambil
+        const resumeMedisBlob = await cetakResumeMedis(nomorPendaftaran, 'merge', pengajuanKlaim);
+        const sepData = await fetchSEPData(nomorPendaftaran);
+        const sepBlob = await cetakSEP(sepData, 'merge', () => {}, () => {}, () => {});
 
-        const sepBlob = await cetakSEP(
-            sepData,
-            'merge',
-            () => {},
-            () => {},
-            () => {},
-        );
-        const berkasKlaimBlob = await cetakBerkasKlaim(
-            nomorSEP,
-            'merge',
-            () => {},
-            () => {},
-            () => {},
-            () => {},
-            () => {},
-        );
+        // Siapkan array dokumen lain yang akan diambil jika value === 1
+        const blobPromises: { key: string, name: string, promise: Promise<Blob> }[] = [];
 
-        // Validate all blobs
-        const blobs = [
-            { name: 'Resume Medis', blob: resumeMedisBlob },
-            { name: 'Tagihan', blob: tagihanBlob },
-            { name: 'Laboratorium', blob: laboratoriumBlob },
-            { name: 'Radiologi', blob: radiologiBlob },
-            { name: 'SEP', blob: sepBlob },
-            { name: 'Berkas Klaim', blob: berkasKlaimBlob },
+        if (pengajuanKlaim.berkasKlaim === 1) {
+            blobPromises.push({
+                key: 'berkasKlaim',
+                name: 'Berkas Klaim',
+                promise: cetakBerkasKlaim(nomorSEP, 'merge', () => {}, () => {}, () => {}, () => {}, () => {}),
+            });
+        }
+        if (pengajuanKlaim.tagihan === 1) {
+            blobPromises.push({
+                key: 'tagihan',
+                name: 'Tagihan',
+                promise: cetakTagihanPDF(pengajuanKlaim.id, 'merge'),
+            });
+        }
+        if (pengajuanKlaim.laboratorium === 1) {
+            blobPromises.push({
+                key: 'laboratorium',
+                name: 'Laboratorium',
+                promise: cetakLaboratoriumPDF(pengajuanKlaim.id, 'merge'),
+            });
+        }
+        if (pengajuanKlaim.radiologi === 1) {
+            blobPromises.push({
+                key: 'radiologi',
+                name: 'Radiologi',
+                promise: cetakRadiologiPDF(pengajuanKlaim.id, 'merge'),
+            });
+        }
+
+        // Tunggu semua dokumen yang diperlukan
+        const blobs = await Promise.all(blobPromises.map(b => b.promise));
+
+        // Gabungkan dokumen: Resume Medis + SEP + dokumen lain yang dipilih
+        const filteredBlobs = [
+            { key: 'sep', name: 'SEP', blob: sepBlob },
+            ...blobPromises.map((b, i) => ({
+                key: b.key,
+                name: b.name,
+                blob: blobs[i],
+            })),
+            { key: 'resumeMedis', name: 'Resume Medis', blob: resumeMedisBlob },
         ];
-        for (const { name, blob } of blobs) {
+
+        // Validasi dokumen yang wajib ada
+        for (const { name, blob } of filteredBlobs) {
             if (!blob) {
                 toast.error(`Gagal mengambil dokumen PDF: ${name}`);
                 return;
             }
         }
 
-        // Load all PDFs
-        const pdfDocs = await Promise.all([
-            PDFDocument.load(await sepBlob.arrayBuffer()),
-            PDFDocument.load(await berkasKlaimBlob.arrayBuffer()),
-            PDFDocument.load(await resumeMedisBlob.arrayBuffer()),
-            PDFDocument.load(await tagihanBlob.arrayBuffer()),
-            PDFDocument.load(await laboratoriumBlob.arrayBuffer()),
-            PDFDocument.load(await radiologiBlob.arrayBuffer()),
-        ]);
+        // Load only selected PDFs
+        const pdfDocs = await Promise.all(
+            filteredBlobs.map(async ({ blob }) => PDFDocument.load(await blob.arrayBuffer()))
+        );
 
         // Merge all PDFs
         const mergedPdf = await PDFDocument.create();

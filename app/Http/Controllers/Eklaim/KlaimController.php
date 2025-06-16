@@ -90,55 +90,33 @@ class KlaimController extends Controller
             "gender" => (string)$request->input('gender'),
         ];
 
-        // dd(json_encode($data));
         // Init Klaim Controller
+        $this->generateClaimNumber();
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
         $send = $inacbgController->sendToEklaim($metadata, $data);
 
         // Check response Eklaim
-        if ($send['metadata']['code'] != 200) {
-            DB::connection('eklaim')->beginTransaction();
-            $pasien = Pasien::where('NORM', $request->input('NORM'))->firstOrFail();
-            $pengajuanKlaim = PengajuanKlaim::create([
-                'NORM' => $request->input('NORM'),
-                'nomor_pendaftaran' => $request->input('nomor_pendaftaran'),
-                'nomor_SEP' => $request->input('nomor_SEP'),
-                'status' => 0,
-                'petugas' => Auth::user()->nama,
-                'request' => json_encode($data), // pastikan tersimpan sebagai JSON
-                'tanggal_pengajuan' => now(),
-            ]);
 
-            LogKlaim::create([
-                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-                'method' => json_encode($metadata),
-                'request' => json_encode($data),
-                'response' => json_encode($send),
-            ]);
-            DB::connection('eklaim')->commit();
-            return redirect()->back()->with('error', 'Gagal mengirim pengajuan klaim: ' . $send['metadata']['message']);
-        } else if ($send['metadata']['code'] == 200) {
-            DB::connection('eklaim')->beginTransaction();
-            $pasien = Pasien::where('NORM', $request->input('NORM'))->firstOrFail();
-            $pengajuanKlaim = PengajuanKlaim::create([
-                'NORM' => $request->input('NORM'),
-                'nomor_pendaftaran' => $request->input('nomor_pendaftaran'),
-                'nomor_SEP' => $request->input('nomor_SEP'),
-                'status' => 1,
-                'petugas' => Auth::user()->nama,
-                'request' => json_encode($data), // pastikan tersimpan sebagai JSON
-                'tanggal_pengajuan' => now(),
-            ]);
+        DB::connection('eklaim')->beginTransaction();
+        $pasien = Pasien::where('NORM', $data['nomor_rm'])->firstOrFail();
+        $pengajuanKlaim = PengajuanKlaim::create([
+            'NORM' => $pasien->NORM,
+            'nomor_pendaftaran' => $request->input('nomor_pendaftaran'),
+            'nomor_SEP' => $request->input('nomor_sep'),
+            'status' => 1,
+            'jenis_perawatan' => $request->input('jenis_perawatan'),
+            'petugas' => Auth::user()->nama,
+            'request' => json_encode($data), // pastikan tersimpan sebagai JSON
+            'tanggal_pengajuan' => now(),
+        ]);
 
-            LogKlaim::create([
-                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-                'method' => json_encode($metadata),
-                'request' => json_encode($data),
-                'response' => json_encode($send),
-            ]);
-            DB::connection('eklaim')->commit();
-            return redirect()->back()->with('success', 'Pengajuan klaim berhasil dibuat.');
-        }
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
+        DB::connection('eklaim')->commit();
 
         return redirect()->back()->with('success', 'Pengajuan klaim berhasil dibuat.');
     }
@@ -183,6 +161,157 @@ class KlaimController extends Controller
         ]);
         DB::connection('eklaim')->commit();
         return redirect()->back()->with('success', 'Pengajuan klaim berhasil dibuat.');
+    }
+
+    public function updateDataKlaim(Request $request, PengajuanKlaim $pengajuanKlaim)
+    {
+        $metadata = [
+            'method' => 'set_claim_data',
+            'nomor_sep' => $pengajuanKlaim->nomor_SEP,
+        ];
+
+        $data = [
+            "nomor_sep" => (string)$pengajuanKlaim->nomor_SEP,
+            "nomor_kartu" => json_decode($pengajuanKlaim->request)->nomor_kartu,
+            "tgl_masuk" => "2023-01-25 12:55:00",
+            "tgl_pulang" => "2023-01-31 09:55:00",
+            "cara_masuk" => "gp",
+            "jenis_rawat" => "1",
+            "kelas_rawat" => "1",
+            "adl_sub_acute" => "15",
+            "adl_chronic" => "12",
+            "icu_indikator" => "1",
+            "icu_los" => "2",
+            "ventilator_hour" => "5",
+            "ventilator" => [
+                "use_ind" => "1",
+                "start_dttm" => "2023-01-26 12:55:00",
+                "stop_dttm" => "2023-01-26 17:50:00"
+            ],
+            "upgrade_class_ind" => "1",
+            "upgrade_class_class" => "vip",
+            "upgrade_class_los" => "5",
+            "upgrade_class_payor" => "peserta",
+            "add_payment_pct" => "35",
+            "birth_weight" => "0",
+            "sistole" => 120,
+            "diastole" => 70,
+            "discharge_status" => "1",
+            "diagnosa" => "S71.0#A00.1",
+            "procedure" => "81.52#88.38#86.22",
+            "diagnosa_inagrouper" => "S71.0#A00.1",
+            "procedure_inagrouper" => "81.52#88.38#86.22+3#86.22",
+            "tarif_rs" => [
+                "prosedur_non_bedah" => "300000",
+                "prosedur_bedah" => "20000000",
+                "tenaga_ahli" => "200000",
+                "keperawatan" => "80000",
+                "penunjang" => "1000000",
+                "radiologi" => "500000",
+                "laboratorium" => "600000",
+                "pelayanan_darah" => "150000",
+                "rehabilitasi" => "100000",
+                "kamar" => "6000000",
+                "rawat_intensif" => "2500000",
+                "obat" => "100000",
+                "obat_kronis" => "1000000",
+                "obat_kemoterapi" => "5000000",
+                "alkes" => "500000",
+                "bmhp" => "400000",
+                "sewa_alat" => "210000"
+            ],
+            "pemulasaraan_jenazah" => "1",
+            "kantong_jenazah" => "1",
+            "peti_jenazah" => "1",
+            "plastik_erat" => "1",
+            "desinfektan_jenazah" => "1",
+            "mobil_jenazah" => "0",
+            "desinfektan_mobil_jenazah" => "0",
+            "covid19_status_cd" => "1",
+            "nomor_kartu_t" => "nik",
+            "episodes" => "1;12#2;3#6;5",
+            "covid19_cc_ind" => "1",
+            "covid19_rs_darurat_ind" => "1",
+            "covid19_co_insidense_ind" => "1",
+            "covid19_penunjang_pengurang" => [
+                "lab_asam_laktat" => "1",
+                "lab_procalcitonin" => "1",
+                "lab_crp" => "1",
+                "lab_kultur" => "1",
+                "lab_d_dimer" => "1",
+                "lab_pt" => "1",
+                "lab_aptt" => "1",
+                "lab_waktu_pendarahan" => "1",
+                "lab_anti_hiv" => "1",
+                "lab_analisa_gas" => "1",
+                "lab_albumin" => "1",
+                "rad_thorax_ap_pa" => "0"
+            ],
+            "terapi_konvalesen" => "1000000",
+            "akses_naat" => "C",
+            "isoman_ind" => "0",
+            "bayi_lahir_status_cd" => 1,
+            "dializer_single_use" => 0,
+            "kantong_darah" => 1,
+            "alteplase_ind" => 0,
+            "apgar" => [
+                "menit_1" => [
+                    "appearance" => 1,
+                    "pulse" => 2,
+                    "grimace" => 1,
+                    "activity" => 1,
+                    "respiration" => 1
+                ],
+                "menit_5" => [
+                    "appearance" => 2,
+                    "pulse" => 2,
+                    "grimace" => 2,
+                    "activity" => 2,
+                    "respiration" => 2
+                ]
+            ],
+            "persalinan" => [
+                "usia_kehamilan" => "22",
+                "gravida" => "2",
+                "partus" => "4",
+                "abortus" => "2",
+                "onset_kontraksi" => "induksi",
+                "delivery" => [
+                    [
+                        "delivery_sequence" => "1",
+                        "delivery_method" => "vaginal",
+                        "delivery_dttm" => "2023-01-21 17:01:33",
+                        "letak_janin" => "kepala",
+                        "kondisi" => "livebirth",
+                        "use_manual" => "1",
+                        "use_forcep" => "0",
+                        "use_vacuum" => "1",
+                        "shk_spesimen_ambil" => "ya",
+                        "shk_lokasi" => "tumit",
+                        "shk_spesimen_dttm" => "2023-01-21 18:11:33"
+                    ],
+                    [
+                        "delivery_sequence" => "2",
+                        "delivery_method" => "vaginal",
+                        "delivery_dttm" => "2023-01-21 17:03:49",
+                        "letak_janin" => "lintang",
+                        "kondisi" => "livebirth",
+                        "use_manual" => "1",
+                        "use_forcep" => "0",
+                        "use_vacuum" => "0",
+                        "shk_spesimen_ambil" => "tidak",
+                        "shk_alasan" => "akses-sulit"
+                    ]
+                ]
+            ],
+            "tarif_poli_eks" => "100000",
+            "nama_dokter" => "RUDY, DR",
+            "kode_tarif" => "AP",
+            "payor_id" => "3",
+            "payor_cd" => "JKN",
+            "cob_cd" => "0001",
+            "coder_nik" => "123123123123"
+        ];
     }
 
     public function hapusDataKlaim(PengajuanKlaim $pengajuanKlaim)
@@ -528,6 +657,7 @@ class KlaimController extends Controller
 
         $query = Kunjungan::query()
             ->select('noSEP', 'noKartu', 'tglSEP', 'poliTujuan')
+            ->with('penjaminPendaftaran')
             ->orderBy('tglSEP', 'desc');
 
         if ($nomorKartu) {

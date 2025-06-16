@@ -371,7 +371,14 @@ export default function ListPengajuan() {
                         Next
                     </Button>
                 </div>
-                <ModalBuatPengajuanBaru open={openModalBaru} onOpenChange={setOpenModalBaru} />
+                <ModalBuatPengajuanBaru
+                    open={openModalBaru}
+                    onOpenChange={setOpenModalBaru}
+                    onSuccess={() => {
+                        setOpenModalBaru(false);
+                        router.reload({ only: ['pengajuanKlaim', 'success', 'error'] }); // reload data table saja
+                    }}
+                />
             </div>
         </AppLayout>
     );

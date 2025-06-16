@@ -4,6 +4,7 @@ namespace App\Models\Pendaftaran;
 
 use App\Models\Layanan\OrderResep;
 use App\Models\Layanan\PasienPulang;
+use App\Models\Master\Dokter;
 use App\Models\Master\Pegawai;
 use App\Models\Master\Ruangan;
 use App\Models\Pembayaran\GabungTagihan;
@@ -121,7 +122,7 @@ class Kunjungan extends Model
 
     public function dokterDPJP()
     {
-        return $this->hasOne(Pegawai::class, 'ID', 'DPJP');
+        return $this->hasOne(Dokter::class, 'ID', 'DPJP');
     }
 
     public function tagihanPendaftaran()

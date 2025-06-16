@@ -29,6 +29,7 @@ use App\Models\Pembayaran\PembayaranTagihan;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Kunjungan;
 use App\Models\Pendaftaran\Pendaftaran;
+use App\Models\Pendaftaran\Penjamin;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -134,7 +135,7 @@ class BridgeDataController extends Controller
             'kunjunganPasien.pendaftaranPasien.diagnosaPasien.namaDiagnosa',
             'kunjunganPasien.pendaftaranPasien.prosedurPasien',
             'kunjunganPasien.pendaftaranPasien.penjamin.jenisPenjamin',
-            'kunjunganPasien.dokterDPJP',
+            'kunjunganPasien.dokterDPJP.pegawai',
             'kunjunganPasien.rpp',
             'kunjunganPasien.keluhanUtama',
             'kunjunganPasien.tandaVital',
@@ -154,95 +155,102 @@ class BridgeDataController extends Controller
                 return $kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 3;
             });
 
+        $kunjunganPasien = [];
         if (!$kunjunganRawatInap) {
-            if (request()->expectsJson() || request()->ajax()) {
-                return response()->json([
-                    'error' => 'Tidak ada data kunjungan rawat inap yang ditemukan untuk pendaftaran ini.',
-                ], 404);
-            }
-            return redirect()->back()->with([
-                'error' => 'Tidak ada data kunjungan rawat inap yang ditemukan untuk pendaftaran ini.',
-            ]);
+            $kunjunganPasien = $pendaftaran->kunjunganPasien
+                ->first(function ($kunjungan) {
+                    return $kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 1;
+                });
+        } else {
+            $kunjunganPasien = $kunjunganRawatInap;
         }
 
-        $hasilKonsultasi = $kunjunganRawatInap->permintaanKonsul
+
+        $hasilKonsultasi = $kunjunganPasien->permintaanKonsul
             ->flatMap(function ($konsul) {
                 return $konsul->jawabanKonsul ? $konsul->jawabanKonsul->pluck('JAWABAN') : collect();
             })
             ->map(function ($jawaban) {
                 return strip_tags(html_entity_decode($jawaban));
             })
-            ->implode(', ') ?: 'Tidak ada data hasil konsultasi';
-
-                    dd($hasilKonsultasi);
+            ->implode(', ') ?: [];
 
 
-        $diagnosaUtama = $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
-            ? $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
-                ->flatMap(function ($diagnosa) {
-                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
-                })->implode(', ')
+        $diagnosaUtama = $kunjunganPasien->pendaftaranPasien->diagnosaPasien
+            ? $kunjunganPasien->pendaftaranPasien->diagnosaPasien
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
+            })->implode(', ')
             : 'Tidak ada data diagnosa';
 
-        $icd10DiagnosaUtama = $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
-            ? $kunjunganRawatInap->pendaftaranPasien->diagnosaPasien
-                ->flatMap(function ($diagnosa) {
-                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
-                })->implode(', ')
+        $icd10DiagnosaUtama = $kunjunganPasien->pendaftaranPasien->diagnosaPasien
+            ? $kunjunganPasien->pendaftaranPasien->diagnosaPasien
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
+            })->implode(', ')
             : 'Tidak ada data diagnosa';
 
-        $jenisKelamin = $kunjunganRawatInap->pendaftaranPasien->pasien->JENIS_KELAMIN === 1
+        $jenisKelamin = $kunjunganPasien->pendaftaranPasien->pasien->JENIS_KELAMIN === 1
             ? 'Laki-laki'
-            : ($kunjunganRawatInap->pendaftaranPasien->pasien->JENIS_KELAMIN === 2
+            : ($kunjunganPasien->pendaftaranPasien->pasien->JENIS_KELAMIN === 2
                 ? 'Perempuan'
                 : 'Tidak ada data jenis kelamin');
 
-        $terapiPulang = $kunjunganRawatInap->orderResepPulang
-            ? $kunjunganRawatInap->orderResepPulang
-                ->flatMap(function ($orderResep) {
-                    return $orderResep->orderResepDetil
-                        ? $orderResep->orderResepDetil->map(function ($resep) {
-                            return [
-                                'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
-                                'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
-                                'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
-                            ];
-                        })
-                        : collect();
-                })
-                ->toArray()
+        $terapiPulang = $kunjunganPasien->orderResepPulang
+            ? $kunjunganPasien->orderResepPulang
+            ->flatMap(function ($orderResep) {
+                return $orderResep->orderResepDetil
+                    ? $orderResep->orderResepDetil->map(function ($resep) {
+                        return [
+                            'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
+                            'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
+                            'jumlah' => $resep->JUMLAH ?? 'Tidak ada data jumlah',
+                            'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
+                        ];
+                    })
+                    : collect();
+            })
+            ->toArray()
             : [];
 
+        $gelarDepanDokter = $kunjunganPasien->dokterDPJP->pegawai->GELAR_DEPAN != null
+            ? $kunjunganPasien->dokterDPJP->pegawai->GELAR_DEPAN . '.'
+            : '';
+        $gelarBelakangDokter = $kunjunganPasien->dokterDPJP->pegawai->GELAR_BELAKANG != null
+            ? ',' . $kunjunganPasien->dokterDPJP->pegawai->GELAR_BELAKANG
+            : '';
+        $getNamaDokter = $gelarDepanDokter . $kunjunganPasien->dokterDPJP->pegawai->NAMA . $gelarBelakangDokter;
+
         $resumeMedis = [
-            'nama_pasien' => $kunjunganRawatInap->pendaftaranPasien->pasien->NAMA ?? 'Tidak ada data nama pasien',
-            'no_rm' => $kunjunganRawatInap->pendaftaranPasien->pasien->NORM ?? 'Tidak ada data nomor rekam medis',
+            'nama_pasien' => $kunjunganPasien->pendaftaranPasien->pasien->NAMA ?? 'Tidak ada data nama pasien',
+            'no_rm' => $kunjunganPasien->pendaftaranPasien->pasien->NORM ?? 'Tidak ada data nomor rekam medis',
             'ruang_rawat_terakhir' => $kunjunganUGD->ruangan->DESKRIPSI ?? 'Tidak ada data ruang rawat',
             'jenis_kelamin' => $jenisKelamin,
-            'tanggal_lahir' => $kunjunganRawatInap->pendaftaranPasien->pasien->TANGGAL_LAHIR ?? 'Tidak ada data tanggal lahir',
-            'tanggal_masuk' => $kunjunganRawatInap->MASUK ?? 'Tidak ada data tanggal masuk',
-            'tanggal_keluar' => $kunjunganRawatInap->KELUAR ?? 'Tidak ada data tanggal keluar',
+            'tanggal_lahir' => $kunjunganPasien->pendaftaranPasien->pasien->TANGGAL_LAHIR ?? 'Tidak ada data tanggal lahir',
+            'tanggal_masuk' => $kunjunganPasien->MASUK ?? 'Tidak ada data tanggal masuk',
+            'tanggal_keluar' => $kunjunganPasien->KELUAR ?? 'Tidak ada data tanggal keluar',
             'ruang_rawat_terakhir' => $kunjunganUGD->ruangan->DESKRIPSI ?? 'Tidak ada data ruang rawat',
-            'penjamin' => $kunjunganRawatInap->pendaftaranPasien->penjamin->jenisPenjamin->DESKRIPSI ?? 'Tidak ada data penjamin',
-            'indikasi_rawat_inap' => $kunjunganRawatInap->pendaftaranPasien->resumeMedis->INDIKASI_RAWAT_INAP ?? 'Tidak ada data indikasi rawat inap',
-            'riwayat_penyakit_sekarang' => $kunjunganRawatInap->keluhanUtama->DESKRIPSI ?? 'Tidak ada data riwayat penyakit sekarang',
-            'riwayat_penyakit_dahulu' => $kunjunganRawatInap->rpp->DESKRIPSI ?? 'Tidak ada data ringkasan penyakit dahulu',
-            'pemeriksaan_fisik' => $kunjunganRawatInap->pemeriksaanFisik->DESKRIPSI ?? 'Tidak ada data pemeriksaan fisik',
-            'hasil_konsultasi' => $hasilKonsultasi,
+            'penjamin' => $kunjunganPasien->pendaftaranPasien->penjamin->jenisPenjamin->DESKRIPSI ?? 'Tidak ada data penjamin',
+            'indikasi_rawat_inap' => $kunjunganPasien->pendaftaranPasien->resumeMedis->INDIKASI_RAWAT_INAP ?? 'Tidak ada data indikasi rawat inap',
+            'riwayat_penyakit_sekarang' => $kunjunganPasien->keluhanUtama->DESKRIPSI ?? 'Tidak ada data riwayat penyakit sekarang',
+            'riwayat_penyakit_dahulu' => $kunjunganPasien->rpp->DESKRIPSI ?? 'Tidak ada data ringkasan penyakit dahulu',
+            'pemeriksaan_fisik' => $kunjunganPasien->pemeriksaanFisik->DESKRIPSI ?? 'Tidak ada data pemeriksaan fisik',
+            'hasil_konsultasi' => $hasilKonsultasi ?? [],
             'diagnosa_utama' => $diagnosaUtama,
             'icd_10_diagnosa_utama' => $icd10DiagnosaUtama,
-            'prosedur_utama' => $kunjunganRawatInap->pendaftaranPasien->prosedurPasien->pluck('TINDAKAN')->implode(', ') ?? 'Tidak ada data prosedur',
-            'icd_9_prosedur_utama' => $kunjunganRawatInap->pendaftaranPasien->prosedurPasien->pluck('KODE')->implode(', ') ?? 'Tidak ada data prosedur',
-            'keadaan_pulang' => $kunjunganRawatInap->pasienPulang->keadaanPulang->DESKRIPSI ?? 'Tidak ada data keadaan pulang',
-            'cara_pulang' => $kunjunganRawatInap->pasienPulang->caraPulang->DESKRIPSI ?? 'Tidak ada data cara pulang',
-            'tekanan_darah' => $kunjunganRawatInap->tandaVital->SISTOLIK . "/" . $kunjunganRawatInap->tandaVital->DISTOLIK ?? 'Tidak ada data tekanan darah',
-            'nadi' => $kunjunganRawatInap->tandaVital->FREKUENSI_NADI ?? 'Tidak ada data nadi',
-            'suhu' => $kunjunganRawatInap->tandaVital->SUHU ?? 'Tidak ada data suhu',
-            'pernafasan' => $kunjunganRawatInap->tandaVital->FREKUENSI_NAFAS ?? 'Tidak ada data pernafasan',
-            'kesadaran' => $kunjunganRawatInap->tandaVital->tingkatKesadaran->DESKRIPSI ?? 'Tidak ada data kesadaran',
-            'skala_nyeri' => $kunjunganRawatInap->tandaVital->SKALA_NYERI ?? 'Tidak ada data skala nyeri',
+            'prosedur_utama' => $kunjunganPasien->pendaftaranPasien->prosedurPasien->pluck('TINDAKAN')->implode(', ') ?? 'Tidak ada data prosedur',
+            'icd_9_prosedur_utama' => $kunjunganPasien->pendaftaranPasien->prosedurPasien->pluck('KODE')->implode(', ') ?? 'Tidak ada data prosedur',
+            'keadaan_pulang' => $kunjunganPasien->pasienPulang->keadaanPulang->DESKRIPSI ?? 'Tidak ada data keadaan pulang',
+            'cara_pulang' => $kunjunganPasien->pasienPulang->caraPulang->DESKRIPSI ?? 'Tidak ada data cara pulang',
+            'tekanan_darah' => $kunjunganPasien->tandaVital->SISTOLIK . "/" . $kunjunganPasien->tandaVital->DISTOLIK ?? 'Tidak ada data tekanan darah',
+            'nadi' => $kunjunganPasien->tandaVital->FREKUENSI_NADI ?? 'Tidak ada data nadi',
+            'suhu' => $kunjunganPasien->tandaVital->SUHU ?? 'Tidak ada data suhu',
+            'pernafasan' => $kunjunganPasien->tandaVital->FREKUENSI_NAFAS ?? 'Tidak ada data pernafasan',
+            'kesadaran' => $kunjunganPasien->tandaVital->tingkatKesadaran->DESKRIPSI ?? 'Tidak ada data kesadaran',
+            'skala_nyeri' => $kunjunganPasien->tandaVital->SKALA_NYERI ?? 'Tidak ada data skala nyeri',
             'terapi_pulang' => $terapiPulang,
-            'nama_dokter' => $kunjunganRawatInap->dokterDPJP->GELAR_DEPAN . '.' . $kunjunganRawatInap->dokterDPJP->NAMA . '' . $kunjunganRawatInap->dokterDPJP->GELAR_BELAKANG ?? 'Tidak ada data nama dokter',
-            'nip_dokter' => $kunjunganRawatInap->dokterDPJP->NIP ?? 'Tidak ada data NIP dokter',
+            'nama_dokter' => $getNamaDokter,
+            'nip_dokter' => $kunjunganPasien->dokterDPJP->pegawai->NIP ?? 'Tidak ada data NIP dokter',
 
         ];
 
@@ -437,9 +445,9 @@ class BridgeDataController extends Controller
 
         $getDiagnosaPasien = $kunjunganUGD->pendaftaranPasien->diagnosaPasien
             ? $kunjunganUGD->pendaftaranPasien->diagnosaPasien
-                ->flatMap(function ($diagnosa) {
-                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
-                })->implode(', ')
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
+            })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $riwayatKeluarga = [];
@@ -996,17 +1004,14 @@ class BridgeDataController extends Controller
 
     public function previewTagihan($nomor_pendaftaran)
     {
+        // dd('Preview Tagihan untuk nomor pendaftaran: ' . $nomor_pendaftaran);
         $pengajuanKlaim = PengajuanKlaim::where('id', $nomor_pendaftaran)->first();
-        $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
         $dataPasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
-        $tanggalMasuk = $resumeMedis->tanggal_masuk ?? 'Tidak ada data tanggal masuk';
-        $tanggalKeluar = $resumeMedis->tanggal_keluar ?? 'Tidak ada data tanggal keluar';
-        $ruangan = $resumeMedis->ruang_rawat ?? 'Tidak ada data ruang rawat';
-        $penjamin = $resumeMedis->penjamin ?? 'Tidak ada data penjamin';
         $dataTagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
             ->where('STATUS', '!=', 0)
             ->where('UTAMA', 1)
             ->first();
+
         $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
             ->with('pegawai')
             ->first();
@@ -1015,6 +1020,17 @@ class BridgeDataController extends Controller
                 $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas'
             )
         );
+        $pendaftaranPasien = Pendaftaran::where('NOMOR', $dataTagihanPendaftaran->PENDAFTARAN)->first();
+        $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
+        $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
+        $dataKunjungan = Kunjungan::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
+        $klasifikasiKunjungan = null;
+        if ($dataKunjungan && $dataKunjungan->ruangan && in_array($dataKunjungan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
+            $klasifikasiKunjungan = $dataKunjungan;
+        }
+        $penjaminPasien = Penjamin::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
+        $ruangan = $klasifikasiKunjungan->ruangan->DESKRIPSI ?? 'Tidak ada data ruangan';
+        $penjamin = $penjaminPasien->JENIS == 1 ? 'Umum' : 'BPJS';
         $rincianTagihan = RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)
             ->with([
                 'tarifAdministrasi.ruangan',
@@ -1108,9 +1124,6 @@ class BridgeDataController extends Controller
 
     public function previewLaboratorium(PengajuanKlaim $pengajuanKlaim)
     {
-        if ($pengajuanKlaim->laboratorium == 0) {
-            return response()->json(['message' => 'Tidak ada data laboratorium untuk pengajuan klaim ini']);
-        }
         $pasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
         $dataLaboratorium = Laboratorium::where('pengajuan_klaim_id', $pengajuanKlaim->id)
             ->with('hasilLaboratorium.parameterTindakanLab')

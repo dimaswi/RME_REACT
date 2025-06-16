@@ -153,11 +153,12 @@ class EditDataController extends Controller
                 [
                     'nomor_kunjungan_rawat_inap' => $resumeData['nomor_kunjungan_rawat_inap'] ?? null,
                     'nomor_kunjungan_igd'        => $resumeData['nomor_kunjungan_igd'] ?? null,
+                    'nomor_kunjungan_poli'        => $resumeData['nomor_kunjungan_poli'] ?? null,
                     'id_pengajuan_klaim'      => $resumeData['id_pengajuan_klaim'] ?? null,
                     'nama_pasien'             => $resumeData['nama_pasien'] ?? null,
                     'no_rm'                   => $resumeData['no_rm'] ?? null,
                     'tanggal_lahir'           => $resumeData['tanggal_lahir'] ?? null,
-                    'jenis_kelamin'           => $resumeData['jenis_kelamin'] ?? null,
+                    'jenis_kelamin'           => $resumeData['jenis_kelamin'] == 1 ? 'Laki-Laki' : 'Perempuan',
                     'ruang_rawat'             => $resumeData['ruang_rawat'] ?? null,
                     'penjamin'                => $resumeData['penjamin'] ?? null,
                     'indikasi_rawat_inap'     => $resumeData['indikasi_rawat_inap'] ?? null,

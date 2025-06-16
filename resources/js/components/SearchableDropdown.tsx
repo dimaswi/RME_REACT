@@ -91,7 +91,7 @@ export default function SearchableDropdown({
             </div>
             {open && !disabled && createPortal(
                 <div
-                    className="fixed z-[9999] mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+                    className="absolute z-[9999] mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
                     style={(() => {
                         if (!ref.current) return {};
                         const rect = ref.current.getBoundingClientRect();

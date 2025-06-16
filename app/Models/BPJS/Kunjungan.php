@@ -3,6 +3,7 @@
 namespace App\Models\BPJS;
 
 use App\Models\Master\PPK;
+use App\Models\Pendaftaran\Penjamin;
 use Illuminate\Database\Eloquent\Model;
 
 class Kunjungan extends Model
@@ -89,5 +90,10 @@ class Kunjungan extends Model
     public function dataPeserta()
     {
         return $this->belongsTo(Peserta::class, 'noKartu', 'noKartu');
+    }
+
+    public function penjaminPendaftaran()
+    {
+        return $this->hasOne(Penjamin::class, 'NOMOR', 'noSEP');
     }
 }

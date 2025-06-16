@@ -23,6 +23,7 @@ class PengajuanKlaim extends Model
         'petugas',
         'request',
         'tanggal_pengajuan',
+        'jenis_perawatan',
         'edit',
         'pengkajian_awal',
         'triage',

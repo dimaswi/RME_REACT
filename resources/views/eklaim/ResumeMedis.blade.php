@@ -182,9 +182,14 @@
             </td>
             <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
                 <ol>
-                    @foreach ($resumeMedis['hasil_konsultasi'] as $terapi)
-                        <li>Pertanyaan : {{ $terapi['pertanyaan'] }} - Jawaban : {{ preg_replace('/(&nbsp;|[^\pL\pN\s.,:;!?()\/-]+)/u', '', strip_tags($terapi['jawaban'])) }}</li>
-                    @endforeach
+                    @if (count($resumeMedis['hasil_konsultasi']) > 0)
+                        {{-- Loop through hasil_konsultasi and display each item --}}
+                        @foreach ($resumeMedis['hasil_konsultasi'] as $konsultasi)
+                            <li>{{ $konsultasi['nama_dokter'] }} - {{ $konsultasi['spesialis'] }}: {{ $konsultasi['hasil'] }}</li>
+                        @endforeach
+                    @else
+                        <li>Tidak ada hasil konsultasi</li>
+                    @endif
                 </ol>
             </td>
         </tr>

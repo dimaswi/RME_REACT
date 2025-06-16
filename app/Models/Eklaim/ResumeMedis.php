@@ -13,6 +13,7 @@ class ResumeMedis extends Model
     protected $fillable = [
         'nomor_kunjungan_rawat_inap',
         'nomor_kunjungan_igd',
+        'nomor_kunjungan_poli',
         'id_pengajuan_klaim',
         'nama_pasien',
         'no_rm',

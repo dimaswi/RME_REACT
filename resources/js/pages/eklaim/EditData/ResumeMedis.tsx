@@ -1,21 +1,20 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import AppLayout from "@/layouts/app-layout";
-import { BreadcrumbItem } from "@/types";
-import { Head, router, usePage } from "@inertiajs/react";
-import { Home } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import PengkajianAwal from "./PengkajianAwal";
-import axios from "axios";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import Triage from "./Triage";
-import CPPT from "./CPPT";
-import SearchableDropdown from "@/components/SearchableDropdown";
-
+import SearchableDropdown from '@/components/SearchableDropdown';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
+import { Home } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import CPPT from './CPPT';
+import PengkajianAwal from './PengkajianAwal';
+import Triage from './Triage';
 
 export default function EditResumeMedis() {
     const imageBase64 = usePage().props.imageBase64;
@@ -28,22 +27,16 @@ export default function EditResumeMedis() {
     const filteredKunjungan = (() => {
         // Jika mode edit, ambil dari data edit
         if (dataKlaim.edit === 1 && dataKlaim.resume_medis) {
-            return Array.isArray(dataKlaim.resume_medis)
-                ? dataKlaim.resume_medis
-                : [dataKlaim.resume_medis];
+            return Array.isArray(dataKlaim.resume_medis) ? dataKlaim.resume_medis : [dataKlaim.resume_medis];
         }
         // Jika bukan edit, ambil dari data asli
         if (dataKlaim.penjamin) {
             const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
                 ? dataKlaim.penjamin.kunjungan_pasien
                 : dataKlaim.penjamin.kunjungan_pasien
-                    ? [dataKlaim.penjamin.kunjungan_pasien]
-                    : [];
-            return kunjunganPasienArr.filter(
-                (k: any) =>
-                    k?.ruangan &&
-                    [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
-            );
+                  ? [dataKlaim.penjamin.kunjungan_pasien]
+                  : [];
+            return kunjunganPasienArr.filter((k: any) => k?.ruangan && [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN)));
         }
         return [];
     })();
@@ -53,146 +46,138 @@ export default function EditResumeMedis() {
 
         if (dataKlaim.edit === 1 && dataKlaim.resume_medis) {
             // Jika array, ambil elemen pertama; jika object, langsung pakai
-            sumberData = Array.isArray(dataKlaim.resume_medis)
-                ? dataKlaim.resume_medis[0]
-                : dataKlaim.resume_medis;
+            sumberData = Array.isArray(dataKlaim.resume_medis) ? dataKlaim.resume_medis[0] : dataKlaim.resume_medis;
         } else if (dataKlaim.penjamin) {
             const kunjunganPasienArr = Array.isArray(dataKlaim.penjamin.kunjungan_pasien)
                 ? dataKlaim.penjamin.kunjungan_pasien
                 : dataKlaim.penjamin.kunjungan_pasien
-                    ? [dataKlaim.penjamin.kunjungan_pasien]
-                    : [];
-            sumberData = kunjunganPasienArr.find(
-                (k: any) =>
-                    k?.ruangan &&
-                    [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN))
-            );
-
+                  ? [dataKlaim.penjamin.kunjungan_pasien]
+                  : [];
+            sumberData = kunjunganPasienArr.find((k: any) => k?.ruangan && [1, 3, 17].includes(Number(k.ruangan.JENIS_KUNJUNGAN)));
         }
 
         if (dataKlaim.edit === 1) {
-            setNomorKunjunganIGD(sumberData.nomor_kunjungan_igd)
+            setNomorKunjunganIGD(sumberData.nomor_kunjungan_igd);
             setNomorKunjunganRawatInap(sumberData.nomor_kunjungan_rawat_inap);
+            setNomorKunjunganPoli(sumberData.nomor_kunjungan_poli ?? null);
         } else {
             // Jika bukan mode edit, ambil nomor_kunjungan dari sumberData
-            setNomorKunjunganRawatInap(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).NOMOR);
-            setNomorKunjunganIGD(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3).tagihan_pendaftaran.gabung_tagihan.kunjungan_pasien.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2).NOMOR);
+            const rawatInap = dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 3);
+            const igd = rawatInap?.tagihan_pendaftaran?.gabung_tagihan?.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 2);
+            setNomorKunjunganRawatInap(rawatInap?.NOMOR ?? null);
+            setNomorKunjunganPoli(dataKlaim.penjamin.kunjungan_pasien?.find?.((kp: any) => kp?.ruangan?.JENIS_KUNJUNGAN === 1).NOMOR ?? null);
+            setNomorKunjunganIGD(igd?.NOMOR ?? null);
         }
 
         if (!sumberData) return;
         setIdResumeMedis(sumberData.id_resume_medis ?? null);
-        setNamaPasien(sumberData.nama_pasien ?? sumberData.pendaftaran_pasien?.pasien?.NAMA ?? "");
-        setNoRM(sumberData.no_rm ?? sumberData.pendaftaran_pasien?.pasien?.NORM ?? "");
-        setTanggalLahir(sumberData.tanggal_lahir ?? sumberData.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? "");
+        setNamaPasien(sumberData.nama_pasien ?? sumberData.pendaftaran_pasien?.pasien?.NAMA ?? '');
+        setNoRM(sumberData.no_rm ?? sumberData.pendaftaran_pasien?.pasien?.NORM ?? '');
+        setTanggalLahir(sumberData.tanggal_lahir ?? sumberData.pendaftaran_pasien?.pasien?.TANGGAL_LAHIR ?? '');
         setJenisKelamin(sumberData.jenis_kelamin ?? sumberData.pendaftaran_pasien?.pasien?.JENIS_KELAMIN ?? null);
-        setRuangRawat(sumberData.ruang_rawat ?? sumberData.ruangan?.DESKRIPSI ?? "");
-        setIndikasiRawatInap(sumberData.indikasi_rawat_inap ?? sumberData.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? "");
-        setPenjamin(sumberData.penjamin ?? sumberData.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? "");
-        setTanggalMasuk(sumberData.tanggal_masuk ?? sumberData.pendaftaran_pasien?.TANGGAL ?? "");
-        setTanggalKeluar(sumberData.tanggal_keluar ?? sumberData.KELUAR ?? "");
+        setRuangRawat(sumberData.ruang_rawat ?? sumberData.ruangan?.DESKRIPSI ?? '');
+        setIndikasiRawatInap(sumberData.indikasi_rawat_inap ?? sumberData.pendaftaran_pasien?.resume_medis?.INDIKASI_RAWAT_INAP ?? '');
+        setPenjamin(sumberData.penjamin ?? sumberData.penjamin_pasien?.jenis_penjamin?.DESKRIPSI ?? '');
+        setTanggalMasuk(sumberData.tanggal_masuk ?? sumberData.pendaftaran_pasien?.TANGGAL ?? '');
+        setTanggalKeluar(sumberData.tanggal_keluar ?? sumberData.KELUAR ?? '');
         setLamaDirawat(
             sumberData.lama_dirawat ??
-            handleLamaDirawat(
-                sumberData.tanggal_masuk ?? sumberData.pendaftaran_pasien?.TANGGAL,
-                sumberData.tanggal_keluar ?? sumberData.KELUAR
-            )
+                handleLamaDirawat(sumberData.tanggal_masuk ?? sumberData.pendaftaran_pasien?.TANGGAL, sumberData.tanggal_keluar ?? sumberData.KELUAR),
         );
-        setRiwayatPenyakitSekarang(sumberData.riwayat_penyakit_sekarang ?? sumberData.anamnesis_pasien?.DESKRIPSI ?? "");
-        setRiwayatPenyakitLalu(sumberData.riwayat_penyakit_lalu ?? sumberData.rpp?.DESKRIPSI ?? "");
-        setPemeriksaanFisik(sumberData.pemeriksaan_fisik.DESKRIPSI ?? sumberData.pemeriksaan_fisik ?? "");
-        setDiagnosaUtama(
-            sumberData.diagnosa_utama ??
-            sumberData.diagnosa_pasien?.find?.((d: any) => d.UTAMA === 1)?.DIAGNOSA ??
-            ""
+        setRiwayatPenyakitSekarang(sumberData.riwayat_penyakit_sekarang ?? sumberData.anamnesis_pasien?.DESKRIPSI ?? '');
+        setRiwayatPenyakitLalu(sumberData.riwayat_penyakit_lalu ?? sumberData.rpp?.DESKRIPSI ?? '');
+        setPemeriksaanFisik(
+            sumberData.pemeriksaan_fisik
+                ? typeof sumberData.pemeriksaan_fisik === 'object'
+                    ? (sumberData.pemeriksaan_fisik.DESKRIPSI ?? null)
+                    : sumberData.pemeriksaan_fisik
+                : null,
         );
-        setIcd10(
-            sumberData.icd10_utama ??
-            sumberData.diagnosa_pasien?.find?.((d: any) => d.UTAMA === 1)?.KODE ??
-            ""
-        );
-        setTindakanProsedur(
-            sumberData.tindakan_prosedur ??
-            sumberData.prosedur_pasien?.map?.((p: any) => p.TINDAKAN).join(", ") ??
-            ""
-        );
-        setIcd9(
-            sumberData.icd9_utama ??
-            sumberData.prosedur_pasien?.map?.((p: any) => p.KODE).join(", ") ??
-            ""
-        );
+        setDiagnosaUtama(sumberData.diagnosa_utama ?? sumberData.diagnosa_pasien?.find?.((d: any) => d.UTAMA === 1)?.DIAGNOSA ?? '');
+        setIcd10(sumberData.icd10_utama ?? sumberData.diagnosa_pasien?.find?.((d: any) => d.UTAMA === 1)?.KODE ?? '');
+        setTindakanProsedur(sumberData.tindakan_prosedur ?? sumberData.prosedur_pasien?.map?.((p: any) => p.TINDAKAN).join(', ') ?? '');
+        setIcd9(sumberData.icd9_utama ?? sumberData.prosedur_pasien?.map?.((p: any) => p.KODE).join(', ') ?? '');
         setDiagnosaSekunder(
             sumberData.diagnosa_sekunder ??
-            sumberData.diagnosa_pasien?.filter?.((d: any) => d.UTAMA === 2).map((d: any) => d.DIAGNOSA).join(", ") ??
-            ""
+                sumberData.diagnosa_pasien
+                    ?.filter?.((d: any) => d.UTAMA === 2)
+                    .map((d: any) => d.DIAGNOSA)
+                    .join(', ') ??
+                '',
         );
         setIcd10Sekunder(
             sumberData.icd10_sekunder ??
-            sumberData.diagnosa_pasien?.filter?.((d: any) => d.UTAMA === 2).map((d: any) => d.KODE).join(", ") ??
-            ""
+                sumberData.diagnosa_pasien
+                    ?.filter?.((d: any) => d.UTAMA === 2)
+                    .map((d: any) => d.KODE)
+                    .join(', ') ??
+                '',
         );
         setTindakanProsedurSekunder(
             sumberData.tindakan_prosedur_sekunder ??
-            sumberData.prosedur_pasien?.filter?.((p: any) => p.UTAMA === 2).map((p: any) => p.TINDAKAN).join(", ") ??
-            ""
+                sumberData.prosedur_pasien
+                    ?.filter?.((p: any) => p.UTAMA === 2)
+                    .map((p: any) => p.TINDAKAN)
+                    .join(', ') ??
+                '',
         );
         setIcd9Sekunder(
             sumberData.icd9_sekunder ??
-            sumberData.prosedur_pasien?.filter?.((p: any) => p.UTAMA === 2).map((p: any) => p.KODE).join(", ") ??
-            ""
+                sumberData.prosedur_pasien
+                    ?.filter?.((p: any) => p.UTAMA === 2)
+                    .map((p: any) => p.KODE)
+                    .join(', ') ??
+                '',
         );
-        setRiwayatAlergi(
-            sumberData.riwayat_alergi?.map?.((a: any) => a.DESKRIPSI).join(", ") ??
-            sumberData.riwayat_alergi ??
-            ""
-        );
-        setKeadaanPulang(sumberData.keadaan_pulang ?? sumberData.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? "");
-        setCaraPulang(sumberData.cara_pulang ?? sumberData.pasien_pulang?.cara_pulang?.DESKRIPSI ?? "");
-        setPoliTujuan(sumberData.intruksi_tindak_lanjut?.poli_tujuan ?? sumberData.jadwal_kontrol?.ruangan?.DESKRIPSI ?? "");
-        setTanggalKontrol(sumberData.intruksi_tindak_lanjut?.tanggal ?? sumberData.jadwal_kontrol?.TANGGAL ?? "");
-        setJamKontrol(sumberData.intruksi_tindak_lanjut?.jam ?? sumberData.jadwal_kontrol?.JAM ?? "");
-        setNoSuratBPJS(sumberData.intruksi_tindak_lanjut?.nomor_bpjs ?? sumberData.jadwal_kontrol?.NOMOR_REFERENSI ?? "");
+        setRiwayatAlergi(sumberData.riwayat_alergi?.map?.((a: any) => a.DESKRIPSI).join(', ') ?? sumberData.riwayat_alergi ?? '');
+        setKeadaanPulang(sumberData.keadaan_pulang ?? sumberData.pasien_pulang?.keadaan_pulang?.DESKRIPSI ?? '');
+        setCaraPulang(sumberData.cara_pulang ?? sumberData.pasien_pulang?.cara_pulang?.DESKRIPSI ?? '');
+        setPoliTujuan(sumberData.intruksi_tindak_lanjut?.poli_tujuan ?? sumberData.jadwal_kontrol?.ruangan?.DESKRIPSI ?? '');
+        setTanggalKontrol(sumberData.intruksi_tindak_lanjut?.tanggal ?? sumberData.jadwal_kontrol?.TANGGAL ?? '');
+        setJamKontrol(sumberData.intruksi_tindak_lanjut?.jam ?? sumberData.jadwal_kontrol?.JAM ?? '');
+        setNoSuratBPJS(sumberData.intruksi_tindak_lanjut?.nomor_bpjs ?? sumberData.jadwal_kontrol?.NOMOR_REFERENSI ?? '');
 
         setPermintaanKonsul(
             Array.isArray(sumberData.permintaan_konsul)
                 ? sumberData.permintaan_konsul.map((item: any) => ({
-                    permintaan: item.PERMINTAAN_TINDAKAN || item.pertanyaan || "",
-                    jawaban: item.jawaban_konsul?.JAWABAN || item.jawaban || "",
-                }))
-                : []
+                      permintaan: item.PERMINTAAN_TINDAKAN || item.pertanyaan || '',
+                      jawaban: item.jawaban_konsul?.JAWABAN || item.jawaban || '',
+                  }))
+                : [],
         );
         setTerapiPulang(
             Array.isArray(sumberData.terapi_pulang)
                 ? sumberData.terapi_pulang.map((detil: any) => ({
-                    namaObat: detil.nama_obat || "",
-                    jumlah: detil.jumlah || "",
-                    frekuensi: detil.frekuensi || "",
-                    caraPemberian: detil.cara_pemberian || "",
-                }))
+                      namaObat: detil.nama_obat || '',
+                      jumlah: detil.jumlah || '',
+                      frekuensi: detil.frekuensi || '',
+                      caraPemberian: detil.cara_pemberian || '',
+                  }))
                 : Array.isArray(sumberData.order_resep)
-                    ? sumberData.order_resep
+                  ? sumberData.order_resep
                         .filter((resep: any) => resep.RESEP_PASIEN_PULANG === 1)
                         .flatMap((resep: any) =>
                             Array.isArray(resep.order_resep_detil)
                                 ? resep.order_resep_detil.map((detil: any) => ({
-                                    namaObat: detil.namaObat || detil.nama_obat?.NAMA || detil.NAMA || "",
-                                    jumlah: detil.jumlah || detil.JUMLAH || "",
-                                    frekuensi: detil.frekuensi || detil.frekuensi_obat?.FREKUENSI || "",
-                                    caraPemberian: detil.caraPemberian || detil.cara_pakai?.DESKRIPSI || "",
-                                }))
-                                : []
+                                      namaObat: detil.namaObat || detil.nama_obat?.NAMA || detil.NAMA || '',
+                                      jumlah: detil.jumlah || detil.JUMLAH || '',
+                                      frekuensi: detil.frekuensi || detil.frekuensi_obat?.FREKUENSI || '',
+                                      caraPemberian: detil.caraPemberian || detil.cara_pakai?.DESKRIPSI || '',
+                                  }))
+                                : [],
                         )
-                    : []
+                  : [],
         );
         if (sumberData.dokter) {
             // Data edit: nama_dokter sudah satu string
             setNamaDokter(sumberData.dokter);
-            setGelarDepanDokter(""); // Kosongkan agar tidak double
-            setGelarBelakangDokter("");
+            setGelarDepanDokter(''); // Kosongkan agar tidak double
+            setGelarBelakangDokter('');
         } else {
             // Data asli: field terpisah
-            setNamaDokter(sumberData.dokter_d_p_j_p?.NAMA || "");
-            setGelarDepanDokter(sumberData.dokter_d_p_j_p?.GELAR_DEPAN ? sumberData.dokter_d_p_j_p.GELAR_DEPAN + "." : "");
-            setGelarBelakangDokter(sumberData.dokter_d_p_j_p?.GELAR_BELAKANG || "");
+            setNamaDokter(sumberData.dokter_d_p_j_p?.NAMA || '');
+            setGelarDepanDokter(sumberData.dokter_d_p_j_p?.GELAR_DEPAN ? sumberData.dokter_d_p_j_p.GELAR_DEPAN + '.' : '');
+            setGelarBelakangDokter(sumberData.dokter_d_p_j_p?.GELAR_BELAKANG || '');
         }
         setDokumenPengkajianAwalLoaded(dataKlaim.pengkajian_awal || false);
         setDokumenTriageLoaded(dataKlaim.triage || false);
@@ -200,19 +185,16 @@ export default function EditResumeMedis() {
     }, [dataKlaim]);
 
     function formatTanggalIndo(tgl: string) {
-        if (!tgl) return "-";
-        const bulan = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-        ];
-        const [tahun, bulanIdx, tanggal] = tgl.split("-");
+        if (!tgl) return '-';
+        const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const [tahun, bulanIdx, tanggal] = tgl.split('-');
         if (!tahun || !bulanIdx || !tanggal) return tgl;
         return `${parseInt(tanggal)} ${bulan[parseInt(bulanIdx, 10) - 1]} ${tahun}`;
     }
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: <Home className="inline mr-1" />,
+            title: <Home className="mr-1 inline" />,
             href: route('eklaim.klaim.index'),
         },
         {
@@ -226,8 +208,8 @@ export default function EditResumeMedis() {
         {
             title: 'Edit Data Resume Medis',
             href: '#',
-        }
-    ]
+        },
+    ];
 
     const [idResumeMedis, setIdResumeMedis] = useState<number | null>(null);
     const [namaPasien, setNamaPasien] = useState<string | null>(null);
@@ -263,6 +245,7 @@ export default function EditResumeMedis() {
     const [gelarBelakangDokter, setGelarBelakangDokter] = useState<string | null>(null);
     const [namaDokter, setNamaDokter] = useState<string | null>(null);
     const [nomorKunjunganRawatInap, setNomorKunjunganRawatInap] = useState<string | null>(null);
+    const [nomorKunjunganPoli, setNomorKunjunganPoli] = useState<string | null>(null);
     const [nomorKunjunganIGD, setNomorKunjunganIGD] = useState<string | null>(null);
     const [terapiPulang, setTerapiPulang] = useState<{ namaObat: string; jumlah: string; frekuensi: string; caraPemberian: string }[]>([]);
     const [dokumenPengkajianAwalLoaded, setDokumenPengkajianAwalLoaded] = useState<any>(false);
@@ -272,6 +255,7 @@ export default function EditResumeMedis() {
     const dataResumeMedis = {
         nomor_kunjungan_rawat_inap: nomorKunjunganRawatInap || null,
         nomor_kunjungan_igd: nomorKunjunganIGD || null,
+        nomor_kunjungan_poli: nomorKunjunganPoli || null,
         id_resume_medis: idResumeMedis || null,
         id_pengajuan_klaim: dataKlaim.id,
         nama_pasien: namaPasien || null,
@@ -298,7 +282,7 @@ export default function EditResumeMedis() {
         riwayat_alergi: riwayatAlergi || null,
         keadaan_pulang: keadaanPulang || null,
         cara_pulang: caraPulang || null,
-        dokter: gelarDepanDokter + " " + namaDokter + " " + gelarBelakangDokter || null,
+        dokter: gelarDepanDokter + ' ' + namaDokter + ' ' + gelarBelakangDokter || null,
         permintaan_konsul: permintaanKonsul || null,
         terapi_pulang: terapiPulang || null,
         instruksi_tindak_lanjut: {
@@ -319,20 +303,20 @@ export default function EditResumeMedis() {
             masuk.setHours(0, 0, 0, 0);
             keluar.setHours(0, 0, 0, 0);
             if (masuk > keluar) {
-                toast.error("Tanggal masuk tidak boleh lebih besar dari tanggal keluar.");
-                return "";
+                toast.error('Tanggal masuk tidak boleh lebih besar dari tanggal keluar.');
+                return '';
             }
             const diffDays = (keluar.getTime() - masuk.getTime()) / (1000 * 60 * 60 * 24) + 1;
             return `${diffDays} hari`;
         }
-        return "";
+        return '';
     }
 
     const handleAddKonsul = () => {
-        setPermintaanKonsul([...permintaanKonsul, { permintaan: "", jawaban: "" }]);
+        setPermintaanKonsul([...permintaanKonsul, { permintaan: '', jawaban: '' }]);
     };
 
-    const handleUpdateKonsul = (index: number, field: "permintaan" | "jawaban", value: string) => {
+    const handleUpdateKonsul = (index: number, field: 'permintaan' | 'jawaban', value: string) => {
         const updatedKonsul = [...permintaanKonsul];
         updatedKonsul[index][field] = value;
         setPermintaanKonsul(updatedKonsul);
@@ -349,15 +333,15 @@ export default function EditResumeMedis() {
 
         // Validasi jika konsulData kosong
         if (!konsulData || konsulData.length === 0) {
-            toast.error("Data permintaan konsul tidak tersedia.");
+            toast.error('Data permintaan konsul tidak tersedia.');
             return;
         }
 
-        toast.success("Data permintaan konsul berhasil dimuat.");
+        toast.success('Data permintaan konsul berhasil dimuat.');
 
         const konsulList = konsulData.map((item: any) => {
-            const permintaan = item.PERMINTAAN_TINDAKAN || "";
-            const jawaban = item.jawaban_konsul?.JAWABAN || "";
+            const permintaan = item.PERMINTAAN_TINDAKAN || '';
+            const jawaban = item.jawaban_konsul?.JAWABAN || '';
 
             // Tampilkan toast jika jawaban kosong
             if (!jawaban) {
@@ -371,14 +355,11 @@ export default function EditResumeMedis() {
     };
 
     function stripHtmlTags(html: string): string {
-        return html.replace(/<\/?[^>]+(>|$)/g, ""); // Hapus semua tag HTML
+        return html.replace(/<\/?[^>]+(>|$)/g, ''); // Hapus semua tag HTML
     }
 
     const handleAddTerapi = () => {
-        setTerapiPulang([
-            ...terapiPulang,
-            { namaObat: "", jumlah: "", frekuensi: "", caraPemberian: "" },
-        ]);
+        setTerapiPulang([...terapiPulang, { namaObat: '', jumlah: '', frekuensi: '', caraPemberian: '' }]);
     };
 
     const handleRemoveTerapi = (index: number) => {
@@ -386,11 +367,7 @@ export default function EditResumeMedis() {
         setTerapiPulang(updatedTerapi);
     };
 
-    const handleUpdateTerapi = (
-        index: number,
-        field: "namaObat" | "jumlah" | "frekuensi" | "caraPemberian",
-        value: string
-    ) => {
+    const handleUpdateTerapi = (index: number, field: 'namaObat' | 'jumlah' | 'frekuensi' | 'caraPemberian', value: string) => {
         const updatedTerapi = [...terapiPulang];
         updatedTerapi[index][field] = value;
         setTerapiPulang(updatedTerapi);
@@ -415,15 +392,17 @@ export default function EditResumeMedis() {
 
     const handleSave = async () => {
         try {
-            const response = await axios.post(route("eklaim.editData.storeResumeMedis"),
+            const response = await axios.post(
+                route('eklaim.editData.storeResumeMedis'),
                 {
                     jenisSave: dataKlaim.edit,
                     resumeMedis: dataResumeMedis,
                     pengkajianAwal: dokumenPengkajianAwal,
                     triage: dokumenTriage,
                     cppt: dokumenCPPT,
-
-                }, { headers: { 'Content-Type': 'application/json' } });
+                },
+                { headers: { 'Content-Type': 'application/json' } },
+            );
             if (response.data.success) {
                 toast.success(response.data.success);
                 window.location.reload(); // Reload halaman setelah sukses
@@ -436,9 +415,9 @@ export default function EditResumeMedis() {
             } else if (error.response && error.response.data && error.response.data.message) {
                 toast.error(error.response.data.message);
             } else {
-                toast.error("Terjadi kesalahan saat menyimpan data.");
+                toast.error('Terjadi kesalahan saat menyimpan data.');
             }
-            console.error("Error saving data:", error);
+            console.error('Error saving data:', error);
         }
     };
 
@@ -446,7 +425,7 @@ export default function EditResumeMedis() {
 
     const handleSearchObat = async (keyword: string) => {
         try {
-            const res = await axios.get(route("getNamaObat"), { params: { q: keyword } });
+            const res = await axios.get(route('getNamaObat'), { params: { q: keyword } });
             setObatOptions(res.data);
         } catch {
             setObatOptions([]);
@@ -475,136 +454,136 @@ export default function EditResumeMedis() {
                         <ul className="list-disc">
                             {filteredKunjungan.map((k: any, idx: number) => (
                                 <>
-                                    <table style={{ fontFamily: "halvetica, sans-serif", width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
+                                    <table
+                                        style={{
+                                            fontFamily: 'halvetica, sans-serif',
+                                            width: '100%',
+                                            borderCollapse: 'collapse',
+                                            border: '1px solid #000',
+                                        }}
+                                    >
                                         <tbody>
                                             <tr>
                                                 <td colSpan={2}>
                                                     {/* Gunakan data Base64 untuk menampilkan gambar */}
                                                     <center>
-                                                        <img
-                                                            src={imageBase64}
-                                                            alt="Logo Klinik"
-                                                            style={{ width: 50, height: 50 }}
-                                                        />
+                                                        <img src={imageBase64} alt="Logo Klinik" style={{ width: 50, height: 50 }} />
                                                     </center>
                                                 </td>
                                                 <td colSpan={4}>
-                                                    <div style={{ lineHeight: "1.2" }}>
-                                                        <h3 style={{ fontSize: 20, textAlign: "left", }}>
+                                                    <div style={{ lineHeight: '1.2' }}>
+                                                        <h3 style={{ fontSize: 20, textAlign: 'left' }}>
                                                             KLINIK RAWAT INAP UTAMA MUHAMMADIYAH KEDUNGADEM
                                                         </h3>
-                                                        <p style={{ fontSize: 12, textAlign: "left", }}>
+                                                        <p style={{ fontSize: 12, textAlign: 'left' }}>
                                                             Jl. PUK Desa Drokilo. Kec. Kedungadem Kab. Bojonegoro <br />
                                                             Email : klinik.muh.kedungadem@gmail.com | WA : 082242244646 <br />
                                                         </p>
                                                     </div>
                                                 </td>
-                                                {
-                                                    dataKlaim.resume_medis && (
-                                                        <td>
-                                                            <div className="flex items-center gap-4 mb-4">
-                                                                <Label htmlFor="mode-switch" className=" text-base">
-                                                                    Asli
-                                                                </Label>
-                                                                <Switch
-                                                                    id="mode-switch"
-                                                                    checked={dataKlaim.edit === 1}
-                                                                    onCheckedChange={async (checked) => {
-                                                                        try {
-                                                                            await router.get(
-                                                                                route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }),
-                                                                                {},
-                                                                                {
-                                                                                    preserveScroll: true,
-                                                                                    preserveState: false,
-                                                                                }
-                                                                            );
-                                                                        } catch (error) {
-                                                                            toast.error("Gagal switch mode data.");
-                                                                            console.error("Error switching mode:", error);
-                                                                        }
-                                                                    }}
-                                                                    className="scale-150" // Membesarkan switch
-                                                                />
-                                                                <span className="ml-2 text-lg">
-                                                                    Edit
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                    )
-                                                }
+                                                {dataKlaim.resume_medis && (
+                                                    <td>
+                                                        <div className="mb-4 flex items-center gap-4">
+                                                            <Label htmlFor="mode-switch" className="text-base">
+                                                                Asli
+                                                            </Label>
+                                                            <Switch
+                                                                id="mode-switch"
+                                                                checked={dataKlaim.edit === 1}
+                                                                onCheckedChange={async (checked) => {
+                                                                    try {
+                                                                        await router.get(
+                                                                            route('eklaim.klaim.switchEdit', { pengajuanKlaim: dataKlaim.id }),
+                                                                            {},
+                                                                            {
+                                                                                preserveScroll: true,
+                                                                                preserveState: false,
+                                                                            },
+                                                                        );
+                                                                    } catch (error) {
+                                                                        toast.error('Gagal switch mode data.');
+                                                                        console.error('Error switching mode:', error);
+                                                                    }
+                                                                }}
+                                                                className="scale-150" // Membesarkan switch
+                                                            />
+                                                            <span className="ml-2 text-lg">Edit</span>
+                                                        </div>
+                                                    </td>
+                                                )}
                                             </tr>
-                                            <tr style={{ background: "black", color: "white", textAlign: "center" }}>
+                                            <tr style={{ background: 'black', color: 'white', textAlign: 'center' }}>
                                                 <td colSpan={8}>
                                                     <h3 style={{ fontSize: 16 }}>RINGKASAN PULANG</h3>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <table style={{ fontFamily: "halvetica, sans-serif", width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
+                                    <table
+                                        style={{
+                                            fontFamily: 'halvetica, sans-serif',
+                                            width: '100%',
+                                            borderCollapse: 'collapse',
+                                            border: '1px solid #000',
+                                        }}
+                                    >
                                         <tbody>
                                             <tr>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Nama Pasien :</strong>
                                                     <br />
-                                                    {namaPasien || "Tidak ada nama"}
+                                                    {namaPasien || 'Tidak ada nama'}
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>No. RM :</strong>
                                                     <br />
-                                                    {noRM || "Tidak ada No. RM"}
+                                                    {noRM || 'Tidak ada No. RM'}
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Tanggal Lahir :</strong>
                                                     <br />
-                                                    {tanggalLahir
-                                                        ? formatTanggalIndo(tanggalLahir)
-                                                        : "Tidak ada tanggal lahir"}
+                                                    {tanggalLahir ? formatTanggalIndo(tanggalLahir) : 'Tidak ada tanggal lahir'}
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Jenis Kelamin :</strong>
                                                     <br />
-                                                    {jenisKelamin === 1
-                                                        ? "Laki-laki"
-                                                        : jenisKelamin === 2
-                                                            ? "Perempuan"
-                                                            : jenisKelamin}
+                                                    {jenisKelamin === 1 ? 'Laki-laki' : jenisKelamin === 2 ? 'Perempuan' : jenisKelamin}
                                                 </td>
                                             </tr>
 
@@ -613,21 +592,21 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Tanggal Masuk :</strong>
                                                     <br />
-                                                    <div className="flex items-center space-x-2 mt-2 px-3 pb-4">
+                                                    <div className="mt-2 flex items-center space-x-2 px-3 pb-4">
                                                         <Input
                                                             type="dateTime-local"
-                                                            value={tanggalMasuk || ""}
+                                                            value={tanggalMasuk || ''}
                                                             onChange={(e) => setTanggalMasuk(e.target.value)}
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                         {/* <Button
                                                             variant="outline"
@@ -647,21 +626,21 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Tanggal Keluar :</strong>
                                                     <br />
-                                                    <div className="flex items-center space-x-2 mt-2 px-3 pb-4">
+                                                    <div className="mt-2 flex items-center space-x-2 px-3 pb-4">
                                                         <Input
                                                             type="dateTime-local"
-                                                            value={tanggalKeluar || ""}
+                                                            value={tanggalKeluar || ''}
                                                             onChange={(e) => setTanggalKeluar(e.target.value)}
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
 
                                                         {/* <Button
@@ -682,22 +661,22 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Lama Dirawat:</strong>
                                                     <br />
-                                                    <div className="flex items-center space-x-2 mt-2 px-3 pb-4">
+                                                    <div className="mt-2 flex items-center space-x-2 px-3 pb-4">
                                                         <Input
                                                             type="text"
-                                                            value={lamaDirawat || ""}
+                                                            value={lamaDirawat || ''}
                                                             readOnly
                                                             placeholder="Lama dirawat"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                         <Button
                                                             variant="outline"
@@ -713,7 +692,7 @@ export default function EditResumeMedis() {
 
                                                                     // Validasi jika tanggal masuk lebih besar dari tanggal keluar
                                                                     if (masuk > keluar) {
-                                                                        toast.error("Tanggal masuk tidak boleh lebih besar dari tanggal keluar.");
+                                                                        toast.error('Tanggal masuk tidak boleh lebih besar dari tanggal keluar.');
                                                                         return;
                                                                     }
 
@@ -723,10 +702,12 @@ export default function EditResumeMedis() {
                                                                     // Set hasil lama dirawat
                                                                     setLamaDirawat(`${diffDays} hari`);
                                                                 } else {
-                                                                    toast.error("Tanggal masuk dan keluar harus diisi untuk menghitung lama dirawat.");
+                                                                    toast.error(
+                                                                        'Tanggal masuk dan keluar harus diisi untuk menghitung lama dirawat.',
+                                                                    );
                                                                 }
                                                             }}
-                                                            className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
+                                                            className="rounded-md border border-gray-300 bg-blue-500 p-2 text-white hover:bg-blue-600"
                                                         >
                                                             Hitung
                                                         </Button>
@@ -735,16 +716,16 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Ruang Rawat :</strong>
                                                     <br />
-                                                    {ruangRawat || "Tidak ada Ruang Rawat"}
+                                                    {ruangRawat || 'Tidak ada Ruang Rawat'}
                                                 </td>
                                             </tr>
 
@@ -752,30 +733,30 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={4}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Penjamin :</strong>
                                                     <br />
-                                                    {penjamin || "Tidak ada Penjamin"}
+                                                    {penjamin || 'Tidak ada Penjamin'}
                                                 </td>
                                                 <td
                                                     colSpan={4}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Indikasi Rawat Inap :</strong>
                                                     <br />
-                                                    {indikasiRawatInap || "Tidak ada Indikasi Rawat Inap"}
+                                                    {indikasiRawatInap || 'Tidak ada Indikasi Rawat Inap'}
                                                 </td>
                                             </tr>
 
@@ -784,11 +765,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Riwayat Penyakit :</strong>
@@ -796,28 +777,29 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
-                                                    }}>
-                                                    <div className="px-2 flex flex-col space-y-2">
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
+                                                    }}
+                                                >
+                                                    <div className="flex flex-col space-y-2 px-2">
                                                         <strong>Riwayat Penyakit Sekarang :</strong>
                                                         <Textarea
-                                                            value={riwayatPenyakitSekarang || ""}
+                                                            value={riwayatPenyakitSekarang || ''}
                                                             onChange={(e) => setRiwayatPenyakitSekarang(e.target.value)}
                                                             placeholder="Masukkan riwayat penyakit sekarang"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
-                                                    <div className="py-4 px-2 flex flex-col space-y-2">
+                                                    <div className="flex flex-col space-y-2 px-2 py-4">
                                                         <strong>Riwayat Penyakit Lalu :</strong>
                                                         <Textarea
-                                                            value={riwayatPenyakitLalu || ""}
+                                                            value={riwayatPenyakitLalu || ''}
                                                             onChange={(e) => setRiwayatPenyakitLalu(e.target.value)}
                                                             placeholder="Masukkan riwayat penyakit lalu"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
@@ -828,11 +810,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Pemeriksaan Fisik :</strong>
@@ -840,19 +822,19 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 flex flex-col space-y-2">
+                                                    <div className="flex flex-col space-y-2 px-2 py-4">
                                                         <Textarea
-                                                            value={pemeriksaanFisik || ""}
+                                                            value={pemeriksaanFisik || ''}
                                                             onChange={(e) => setPemeriksaanFisik(e.target.value)}
                                                             placeholder="Masukkan pemeriksaan fisik"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
@@ -863,11 +845,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Hasil Konsultasi :</strong>
@@ -875,39 +857,39 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "top",
-                                                        height: "auto",
-                                                        width: "20%",
-                                                        border: "1px solid #000",
+                                                        verticalAlign: 'top',
+                                                        height: 'auto',
+                                                        width: '20%',
+                                                        border: '1px solid #000',
                                                         paddingLeft: 5,
                                                     }}
                                                 >
                                                     <div className="py-2">
                                                         {/* Render semua permintaan konsul */}
                                                         {permintaanKonsul.length === 0 ? (
-                                                            <div className="text-gray-400 italic px-2 pb-2">Belum ada permintaan konsul.</div>
+                                                            <div className="px-2 pb-2 text-gray-400 italic">Belum ada permintaan konsul.</div>
                                                         ) : (
                                                             permintaanKonsul.map((konsul, index) => (
                                                                 <div key={index} className="px-2">
-                                                                    <div className="flex items-center justify-between mb-2 gap-2">
+                                                                    <div className="mb-2 flex items-center justify-between gap-2">
                                                                         <Input
                                                                             type="text"
                                                                             value={konsul.permintaan}
-                                                                            onChange={(e) => handleUpdateKonsul(index, "permintaan", e.target.value)}
+                                                                            onChange={(e) => handleUpdateKonsul(index, 'permintaan', e.target.value)}
                                                                             placeholder="Masukkan permintaan konsul"
-                                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                                         />
                                                                         <Input
                                                                             type="text"
                                                                             value={stripHtmlTags(konsul.jawaban)}
-                                                                            onChange={(e) => handleUpdateKonsul(index, "jawaban", e.target.value)}
+                                                                            onChange={(e) => handleUpdateKonsul(index, 'jawaban', e.target.value)}
                                                                             placeholder="Masukkan jawaban konsul"
-                                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                                         />
                                                                         <Button
                                                                             variant="outline"
                                                                             onClick={() => handleRemoveKonsul(index)}
-                                                                            className="border border-gray-300 rounded-md p-2 bg-red-500 text-white hover:bg-red-600"
+                                                                            className="rounded-md border border-gray-300 bg-red-500 p-2 text-white hover:bg-red-600"
                                                                         >
                                                                             Hapus
                                                                         </Button>
@@ -921,14 +903,14 @@ export default function EditResumeMedis() {
                                                             <Button
                                                                 variant="outline"
                                                                 onClick={handleAddKonsul}
-                                                                className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
+                                                                className="rounded-md border border-gray-300 bg-blue-500 p-2 text-white hover:bg-blue-600"
                                                             >
                                                                 Tambah Konsul
                                                             </Button>
                                                             <Button
                                                                 variant="outline"
                                                                 onClick={handleLoadKonsul}
-                                                                className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
+                                                                className="rounded-md border border-gray-300 bg-blue-500 p-2 text-white hover:bg-blue-600"
                                                             >
                                                                 Load
                                                             </Button>
@@ -942,11 +924,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "40%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '40%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Diagnosa Utama</strong>
@@ -954,11 +936,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>ICD 10</strong>
@@ -966,11 +948,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "40%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '40%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Tindakan/Prosedur</strong>
@@ -978,11 +960,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>ICD 9</strong>
@@ -992,94 +974,93 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 flex gap-2 space-y-2">
+                                                    <div className="flex gap-2 space-y-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={diagnosaUtama || ""}
+                                                            value={diagnosaUtama || ''}
                                                             onChange={(e) => setDiagnosaUtama(e.target.value)}
                                                             placeholder="Masukkan diagnosa utama"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2">
+                                                    <div className="gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={icd10 || ""}
+                                                            value={icd10 || ''}
                                                             onChange={(e) => setIcd10(e.target.value)}
                                                             placeholder="Masukkan ICD 10"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 flex space-y-2 gap-2">
+                                                    <div className="flex gap-2 space-y-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={tindakanProsedur || ""}
+                                                            value={tindakanProsedur || ''}
                                                             onChange={(e) => setTindakanProsedur(e.target.value)}
                                                             placeholder="Prosedur Pasien"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2">
+                                                    <div className="gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={icd9 || ""}
+                                                            value={icd9 || ''}
                                                             onChange={(e) => setIcd9(e.target.value)}
                                                             placeholder="Masukkan ICD 9"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
-
                                             </tr>
                                             <tr>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "40%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '40%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Diagnosa Sekunder</strong>
@@ -1087,11 +1068,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>ICD 10</strong>
@@ -1099,11 +1080,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "40%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '40%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Tindakan/Prosedur</strong>
@@ -1111,11 +1092,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>ICD 9</strong>
@@ -1125,80 +1106,80 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 flex gap-2 space-y-2">
+                                                    <div className="flex gap-2 space-y-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={diagnosaSekunder || ""}
+                                                            value={diagnosaSekunder || ''}
                                                             onChange={(e) => setDiagnosaSekunder(e.target.value)}
                                                             placeholder="Masukkan diagnosa sekunder"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2">
+                                                    <div className="gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={icd10Sekunder || ""}
+                                                            value={icd10Sekunder || ''}
                                                             onChange={(e) => setIcd10Sekunder(e.target.value)}
                                                             placeholder="Masukkan ICD 10"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 flex space-y-2 gap-2">
+                                                    <div className="flex gap-2 space-y-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={tindakanProsedurSekunder || ""}
+                                                            value={tindakanProsedurSekunder || ''}
                                                             onChange={(e) => setTindakanProsedurSekunder(e.target.value)}
                                                             placeholder="Prosedur Pasien"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2">
+                                                    <div className="gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={icd9Sekunder || ""}
+                                                            value={icd9Sekunder || ''}
                                                             onChange={(e) => setIcd9Sekunder(e.target.value)}
                                                             placeholder="Masukkan ICD 9"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
@@ -1209,11 +1190,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Riwayat Alergi</strong>
@@ -1221,20 +1202,20 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 flex">
+                                                    <div className="flex gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={riwayatAlergi || ""}
+                                                            value={riwayatAlergi || ''}
                                                             onChange={(e) => setRiwayatAlergi(e.target.value)}
                                                             placeholder="Masukkan riwayat alergi"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
@@ -1245,11 +1226,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Keadaan Pulang</strong>
@@ -1257,20 +1238,20 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 flex">
+                                                    <div className="flex gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={keadaanPulang || ""}
+                                                            value={keadaanPulang || ''}
                                                             onChange={(e) => setKeadaanPulang(e.target.value)}
                                                             placeholder="Masukkan keadaan pulang"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
@@ -1279,11 +1260,11 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Cara Pulang</strong>
@@ -1291,20 +1272,20 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "top",
+                                                        verticalAlign: 'top',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '5%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 flex">
+                                                    <div className="flex gap-2 px-2 py-4">
                                                         <Input
                                                             type="text"
-                                                            value={caraPulang || ""}
+                                                            value={caraPulang || ''}
                                                             onChange={(e) => setCaraPulang(e.target.value)}
                                                             placeholder="Masukkan cara pulang"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </td>
@@ -1315,12 +1296,12 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={8}
                                                     style={{
-                                                        verticalAlign: "middle",
-                                                        textAlign: "center",
+                                                        verticalAlign: 'middle',
+                                                        textAlign: 'center',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     <strong>Terapi Pulang</strong>
@@ -1330,24 +1311,24 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
-                                                        textAlign: "center",
+                                                        verticalAlign: 'middle',
+                                                        textAlign: 'center',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     Nama Obat
                                                 </td>
                                                 <td
                                                     style={{
-                                                        verticalAlign: "middle",
-                                                        textAlign: "center",
+                                                        verticalAlign: 'middle',
+                                                        textAlign: 'center',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     Jumlah
@@ -1355,12 +1336,12 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
-                                                        textAlign: "center",
+                                                        verticalAlign: 'middle',
+                                                        textAlign: 'center',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     Frekuensi
@@ -1368,12 +1349,12 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
-                                                        textAlign: "center",
+                                                        verticalAlign: 'middle',
+                                                        textAlign: 'center',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
-                                                        paddingLeft: 5
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 5,
                                                     }}
                                                 >
                                                     Cara Pemberian
@@ -1386,10 +1367,10 @@ export default function EditResumeMedis() {
                                                     <td
                                                         colSpan={2}
                                                         style={{
-                                                            verticalAlign: "middle",
+                                                            verticalAlign: 'middle',
                                                             height: 70,
-                                                            width: "20%",
-                                                            border: "1px solid #000",
+                                                            width: '20%',
+                                                            border: '1px solid #000',
                                                             paddingLeft: 10,
                                                             paddingRight: 10,
                                                         }}
@@ -1397,19 +1378,19 @@ export default function EditResumeMedis() {
                                                         <SearchableDropdown
                                                             data={getObatDropdownData(terapi.namaObat, obatOptions)}
                                                             value={terapi.namaObat}
-                                                            setValue={(val: string) => handleUpdateTerapi(index, "namaObat", val)}
+                                                            setValue={(val: string) => handleUpdateTerapi(index, 'namaObat', val)}
                                                             placeholder="Cari nama obat"
-                                                            getOptionLabel={(item) => item?.DESKRIPSI ?? ""}
-                                                            getOptionValue={(item) => item?.DESKRIPSI ?? ""}
+                                                            getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
+                                                            getOptionValue={(item) => item?.DESKRIPSI ?? ''}
                                                             onSearch={handleSearchObat}
                                                         />
                                                     </td>
                                                     <td
                                                         style={{
-                                                            verticalAlign: "middle",
+                                                            verticalAlign: 'middle',
                                                             height: 70,
-                                                            width: "20%",
-                                                            border: "1px solid #000",
+                                                            width: '20%',
+                                                            border: '1px solid #000',
                                                             paddingLeft: 10,
                                                             paddingRight: 10,
                                                         }}
@@ -1417,20 +1398,18 @@ export default function EditResumeMedis() {
                                                         <Input
                                                             type="number"
                                                             value={Number(terapi.jumlah)}
-                                                            onChange={(e) =>
-                                                                handleUpdateTerapi(index, "jumlah", e.target.value)
-                                                            }
+                                                            onChange={(e) => handleUpdateTerapi(index, 'jumlah', e.target.value)}
                                                             placeholder="Masukkan jumlah"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </td>
                                                     <td
                                                         colSpan={2}
                                                         style={{
-                                                            verticalAlign: "middle",
+                                                            verticalAlign: 'middle',
                                                             height: 70,
-                                                            width: "20%",
-                                                            border: "1px solid #000",
+                                                            width: '20%',
+                                                            border: '1px solid #000',
                                                             paddingLeft: 10,
                                                             paddingRight: 10,
                                                         }}
@@ -1438,20 +1417,18 @@ export default function EditResumeMedis() {
                                                         <Input
                                                             type="text"
                                                             value={terapi.frekuensi}
-                                                            onChange={(e) =>
-                                                                handleUpdateTerapi(index, "frekuensi", e.target.value)
-                                                            }
+                                                            onChange={(e) => handleUpdateTerapi(index, 'frekuensi', e.target.value)}
                                                             placeholder="Masukkan frekuensi"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </td>
                                                     <td
                                                         colSpan={2}
                                                         style={{
-                                                            verticalAlign: "middle",
+                                                            verticalAlign: 'middle',
                                                             height: 70,
-                                                            width: "20%",
-                                                            border: "1px solid #000",
+                                                            width: '20%',
+                                                            border: '1px solid #000',
                                                             paddingLeft: 10,
                                                             paddingRight: 10,
                                                         }}
@@ -1459,28 +1436,26 @@ export default function EditResumeMedis() {
                                                         <Input
                                                             type="text"
                                                             value={terapi.caraPemberian}
-                                                            onChange={(e) =>
-                                                                handleUpdateTerapi(index, "caraPemberian", e.target.value)
-                                                            }
+                                                            onChange={(e) => handleUpdateTerapi(index, 'caraPemberian', e.target.value)}
                                                             placeholder="Masukkan cara pemberian"
-                                                            className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                                            className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                                         />
                                                     </td>
                                                     <td
                                                         style={{
-                                                            verticalAlign: "middle",
+                                                            verticalAlign: 'middle',
                                                             height: 70,
-                                                            width: "20%",
-                                                            border: "1px solid #000",
+                                                            width: '20%',
+                                                            border: '1px solid #000',
                                                             paddingLeft: 10,
                                                             paddingRight: 10,
                                                         }}
                                                     >
-                                                        <div className="flex items-center h-full gap-2">
+                                                        <div className="flex h-full items-center gap-2">
                                                             <Button
                                                                 variant="outline"
                                                                 onClick={() => handleAddTerapi(index)}
-                                                                className="border border-gray-300 rounded-md p-2 bg-green-500 text-white hover:bg-green-600"
+                                                                className="rounded-md border border-gray-300 bg-green-500 p-2 text-white hover:bg-green-600"
                                                             >
                                                                 Tambah
                                                             </Button>
@@ -1495,15 +1470,16 @@ export default function EditResumeMedis() {
                                                                     </Button>
                                                                 )
                                                             } */}
-                                                            {terapiPulang.length > 1 && index > 0 && ( // Tampilkan tombol Hapus hanya jika lebih dari satu item
-                                                                <Button
-                                                                    variant="outline"
-                                                                    onClick={() => handleRemoveTerapi(index)}
-                                                                    className="border border-gray-300 rounded-md p-2 bg-red-500 text-white hover:bg-red-600"
-                                                                >
-                                                                    Hapus
-                                                                </Button>
-                                                            )}
+                                                            {terapiPulang.length > 1 &&
+                                                                index > 0 && ( // Tampilkan tombol Hapus hanya jika lebih dari satu item
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        onClick={() => handleRemoveTerapi(index)}
+                                                                        className="rounded-md border border-gray-300 bg-red-500 p-2 text-white hover:bg-red-600"
+                                                                    >
+                                                                        Hapus
+                                                                    </Button>
+                                                                )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -1511,36 +1487,38 @@ export default function EditResumeMedis() {
 
                                             {/* Intruksi Tidak Lanjut */}
                                             <tr>
-                                                <td colSpan={2}
+                                                <td
+                                                    colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
+                                                        width: '20%',
+                                                        border: '1px solid #000',
                                                         paddingLeft: 5,
                                                         paddingRight: 5,
-                                                    }}>
+                                                    }}
+                                                >
                                                     <strong>Intruksi Tindak Lanjut</strong>
                                                 </td>
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        width: "5%",
-                                                        border: "1px solid #000",
+                                                        width: '5%',
+                                                        border: '1px solid #000',
                                                         paddingLeft: 5,
                                                         paddingRight: 5,
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2">
-                                                        <strong>Poli Tujuan :</strong> {poliTujuan ?? "Tidak ada"}
+                                                    <div className="gap-2 px-2 py-4">
+                                                        <strong>Poli Tujuan :</strong> {poliTujuan ?? 'Tidak ada'}
                                                         <br />
-                                                        <strong>Tanggal :</strong> {tanggalKontrol ?? "Tidak ada"}
+                                                        <strong>Tanggal :</strong> {tanggalKontrol ?? 'Tidak ada'}
                                                         <br />
-                                                        <strong>Jam :</strong> {jamKontrol ?? "Tidak ada"}
+                                                        <strong>Jam :</strong> {jamKontrol ?? 'Tidak ada'}
                                                         <br />
-                                                        <strong>No Surat BPJS :</strong> {noSuratBPJS ?? "Tidak ada"}
+                                                        <strong>No Surat BPJS :</strong> {noSuratBPJS ?? 'Tidak ada'}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1548,21 +1526,22 @@ export default function EditResumeMedis() {
                                             {/* Tambahan Dokumen Lainnya */}
                                             <tr
                                                 style={{
-                                                    verticalAlign: "middle",
+                                                    verticalAlign: 'middle',
                                                     height: 70,
-                                                    width: "20%",
-                                                    border: "1px solid #000",
+                                                    width: '20%',
+                                                    border: '1px solid #000',
                                                     paddingLeft: 5,
                                                     paddingRight: 5,
-                                                }}>
+                                                }}
+                                            >
                                                 <td
                                                     colSpan={8}
                                                     style={{
-                                                        verticalAlign: "middle",
-                                                        textAlign: "center",
+                                                        verticalAlign: 'middle',
+                                                        textAlign: 'center',
                                                         height: 70,
-                                                        width: "20%",
-                                                        border: "1px solid #000",
+                                                        width: '20%',
+                                                        border: '1px solid #000',
                                                         paddingLeft: 5,
                                                         paddingRight: 5,
                                                     }}
@@ -1574,31 +1553,30 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        border: "1px solid #000",
+                                                        border: '1px solid #000',
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 text-center">
-                                                        Pengkajian Awal
-                                                    </div>
+                                                    <div className="gap-2 px-2 py-4 text-center">Pengkajian Awal</div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        border: "1px solid #000",
+                                                        border: '1px solid #000',
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                    <div className="gap-2 px-2 py-4 text-center">
                                                         <Checkbox
                                                             className="h-8 w-8"
                                                             checked={dokumenPengkajianAwalLoaded}
                                                             onCheckedChange={(checked) => {
                                                                 setDokumenPengkajianAwalLoaded(checked);
                                                                 if (!checked) setDokumenPengkajianAwal(false);
-                                                            }} />
+                                                            }}
+                                                        />
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1607,24 +1585,22 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        border: "1px solid #000",
+                                                        border: '1px solid #000',
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 text-center">
-                                                        Triage
-                                                    </div>
+                                                    <div className="gap-2 px-2 py-4 text-center">Triage</div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        border: "1px solid #000",
+                                                        border: '1px solid #000',
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                    <div className="gap-2 px-2 py-4 text-center">
                                                         <Checkbox
                                                             className="h-8 w-8"
                                                             checked={dokumenTriageLoaded}
@@ -1641,24 +1617,22 @@ export default function EditResumeMedis() {
                                                 <td
                                                     colSpan={6}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        border: "1px solid #000",
+                                                        border: '1px solid #000',
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 text-center">
-                                                        CPPT
-                                                    </div>
+                                                    <div className="gap-2 px-2 py-4 text-center">CPPT</div>
                                                 </td>
                                                 <td
                                                     colSpan={2}
                                                     style={{
-                                                        verticalAlign: "middle",
+                                                        verticalAlign: 'middle',
                                                         height: 70,
-                                                        border: "1px solid #000",
+                                                        border: '1px solid #000',
                                                     }}
                                                 >
-                                                    <div className="px-2 py-4 gap-2 text-center">
+                                                    <div className="gap-2 px-2 py-4 text-center">
                                                         <Checkbox
                                                             className="h-8 w-8"
                                                             checked={dokumenCPPTLoaded}
@@ -1670,62 +1644,54 @@ export default function EditResumeMedis() {
                                                     </div>
                                                 </td>
                                             </tr>
-
                                         </tbody>
                                     </table>
 
-                                    {
-                                        dokumenPengkajianAwalLoaded && (
-                                            <div>
-                                                <PengkajianAwal
-                                                    imageBase64={imageBase64}
-                                                    onChange={handlePengkajianAwalChange}
-                                                    nomorKunjungan={nomorKunjunganIGD}
-                                                    mode={dataKlaim.edit}
-                                                />
-                                            </div>
-                                        )
-                                    }
+                                    {dokumenPengkajianAwalLoaded && (
+                                        <div>
+                                            <PengkajianAwal
+                                                imageBase64={imageBase64}
+                                                onChange={handlePengkajianAwalChange}
+                                                nomorKunjungan={nomorKunjunganIGD}
+                                                mode={dataKlaim.edit}
+                                            />
+                                        </div>
+                                    )}
 
-                                    {
-                                        dokumenTriageLoaded && (
-                                            <div>
-                                                <Triage
-                                                    imageBase64={imageBase64}
-                                                    onChange={handleTriageChange}
-                                                    nomorKunjungan={nomorKunjunganIGD}
-                                                    mode={dataKlaim.edit}
-                                                />
-                                            </div>
-                                        )
-                                    }
+                                    {dokumenTriageLoaded && (
+                                        <div>
+                                            <Triage
+                                                imageBase64={imageBase64}
+                                                onChange={handleTriageChange}
+                                                nomorKunjungan={nomorKunjunganIGD}
+                                                mode={dataKlaim.edit}
+                                            />
+                                        </div>
+                                    )}
 
-                                    {
-                                        dokumenCPPTLoaded && (
-                                            <div>
-                                                <CPPT
-                                                    imageBase64={imageBase64}
-                                                    onChange={handleCPPTChange}
-                                                    nomorKunjungan={nomorKunjunganRawatInap}
-                                                    mode={dataKlaim.edit}
-                                                />
-                                            </div>
-                                        )
-                                    }
+                                    {dokumenCPPTLoaded && (
+                                        <div>
+                                            <CPPT
+                                                imageBase64={imageBase64}
+                                                onChange={handleCPPTChange}
+                                                nomorKunjungan={nomorKunjunganRawatInap}
+                                                mode={dataKlaim.edit}
+                                            />
+                                        </div>
+                                    )}
 
                                     <div>
-                                        <div className="flex justify-end mt-4">
+                                        <div className="mt-4 flex justify-end">
                                             <Button
                                                 type="submit"
                                                 variant="outline"
                                                 onClick={handleSave}
-                                                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                                                className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                                             >
                                                 Simpan
                                             </Button>
                                         </div>
                                     </div>
-
 
                                     {/* {
                                         gabungTagihan != null ? (
@@ -1752,10 +1718,9 @@ export default function EditResumeMedis() {
                                 </>
                             ))}
                         </ul>
-
                     )}
-                </div >
+                </div>
             </div>
-        </AppLayout >
-    )
+        </AppLayout>
+    );
 }
