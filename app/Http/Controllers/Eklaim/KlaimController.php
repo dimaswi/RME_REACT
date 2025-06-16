@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\BPJS\Kunjungan;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
+use App\Models\Master\Dokter;
 use App\Models\Master\Pasien;
+use App\Models\Pembayaran\Tagihan;
+use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Pendaftaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,13 +84,13 @@ class KlaimController extends Controller
             'method' => 'new_claim'
         ];
 
-        $data =  [
+        $data = [
             "nomor_kartu" => $request->input('nomor_kartu'),
             "nomor_sep" => $request->input('nomor_sep'),
-            "nomor_rm" => (string)$request->input('nomor_rm'),
+            "nomor_rm" => (string) $request->input('nomor_rm'),
             "nama_pasien" => $request->input('nama_pasien'),
             "tgl_lahir" => $request->input('tgl_lahir'),
-            "gender" => (string)$request->input('gender'),
+            "gender" => (string) $request->input('gender'),
         ];
 
         // Init Klaim Controller
@@ -171,7 +174,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string)$pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
             "nomor_kartu" => json_decode($pengajuanKlaim->request)->nomor_kartu,
             "tgl_masuk" => "2023-01-25 12:55:00",
             "tgl_pulang" => "2023-01-31 09:55:00",
@@ -359,7 +362,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string)$pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
@@ -438,11 +441,11 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_kartu" => (string)$request->input('nomor_kartu'),
-            "nomor_rm" => (string)$request->input('nomor_rm'),
-            "nama_pasien" => (string)$request->input('nama_pasien'),
-            "tgl_lahir" => (string)$request->input('tgl_lahir'),
-            "gender" => (string)$request->input('gender'),
+            "nomor_kartu" => (string) $request->input('nomor_kartu'),
+            "nomor_rm" => (string) $request->input('nomor_rm'),
+            "nama_pasien" => (string) $request->input('nama_pasien'),
+            "tgl_lahir" => (string) $request->input('tgl_lahir'),
+            "gender" => (string) $request->input('gender'),
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
@@ -476,7 +479,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_kartu" => (string)$pasien->NORM,
+            "nomor_kartu" => (string) $pasien->NORM,
             "coder_nik" => "3522133010010003",
         ];
 
@@ -556,6 +559,36 @@ class KlaimController extends Controller
         ]);
     }
 
+    public function loadDataKlaim(PengajuanKlaim $pengajuanKlaim)
+    {
+        $data = $pengajuanKlaim->load([
+            'pendaftaranPoli.kunjunganPasien.ruangan' => function ($query) {
+                $query->where('JENIS_KUNJUNGAN', 1);
+            },
+        ]);
+
+        $dokter = Dokter::with('pegawai')->get();
+
+        $data->dokter = $dokter->map(function ($item) {
+            $gelarDepan = $item->pegawai->GELAR_DEPAN ? $item->pegawai->GELAR_DEPAN . '.' : '';
+            $gelarBelakang = $item->pegawai->GELAR_BELAKANG ? ',' . $item->pegawai->GELAR_BELAKANG : '';
+            return [
+                'NIP' => $item->NIP,
+                'NAMA' => $gelarDepan . $item->pegawai->NAMA . $gelarBelakang,
+            ];
+        });
+
+        $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN',  $pengajuanKlaim->nomor_pendaftaran)
+            ->first();
+
+        $tagihan = Tagihan::where('ID', $tagihanPendaftaran->TAGIHAN)
+            ->first();
+
+        $data->tagihan = $tagihan;
+
+        return response()->json($data);
+    }
+
     public function getDataKlaim(PengajuanKlaim $pengajuanKlaim)
     {
         $metadata = [
@@ -563,7 +596,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string)$pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();

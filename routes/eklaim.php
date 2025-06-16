@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::get('previewPengkajianAwalEdit/{pendaftaran}', [BridgeDataController::class, 'previewPengkajianAwalEdit'])->name('previewPengkajianAwalEdit');
     Route::get('previewTriageEdit/{pendaftaran}', [BridgeDataController::class, 'previewTriageEdit'])->name('previewTriageEdit');
     Route::get('previewCPPTEdit/{pendaftaran}', [BridgeDataController::class, 'previewCPPTEdit'])->name('previewCPPTEdit');
+    Route::get('eklaim/get/pengajuan-klaim/{pengajuanKlaim}', [KlaimController::class, 'loadDataKlaim'])->name('eklaim.loadDataKlaim');
 });
 
 Route::middleware('auth')->group(function () {

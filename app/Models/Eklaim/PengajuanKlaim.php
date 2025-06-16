@@ -40,4 +40,9 @@ class PengajuanKlaim extends Model
     {
         return $this->hasOne(ResumeMedis::class, 'id_pengajuan_klaim', 'id');
     }
+
+    public function pendaftaranPoli()
+    {
+        return $this->hasOne(Pendaftaran::class, 'NOMOR', 'nomor_pendaftaran');
+    }
 }

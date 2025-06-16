@@ -335,6 +335,7 @@ export default function ListPengajuan() {
                                                         item={item}
                                                         formatTanggal={formatTanggal}
                                                         getStatusBadge={getStatusBadge}
+                                                        expanded={openRow === item.id}
                                                     />
                                                 </TableCell>
                                             </TableRow>
