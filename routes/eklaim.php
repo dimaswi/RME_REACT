@@ -15,6 +15,7 @@ Route::middleware('auth')->group(function () {
     Route::post('eklaim/klaim/{pengajuanKlaim}/edit', [KlaimController::class, 'editUlangKlaim'])->name('eklaim.klaim.editUlangKlaim');
     Route::get('eklaim/klaim/{pengajuanKlaim}/detailKlaim', [KlaimController::class, 'getDataKlaim'])->name('eklaim.klaim.getDataKlaim');
     Route::get('eklaim/klaim/{pengajuanKlaim}/statusKlaim', [KlaimController::class, 'getStatusKlaim'])->name('eklaim.klaim.getStatusKlaim');
+    Route::post('eklaim/klaim/update-klaim/{pengajuanKlaim}', [KlaimController::class, 'updateDataKlaim'])->name('eklaim.updateDataKlaim');
     Route::get('/api/pasien/search', [KlaimController::class, 'searchRekamMedis']);
     Route::get('/api/kunjungan/sep/search/{nomorKartu}', [KlaimController::class, 'searchDataSEP']);
 });

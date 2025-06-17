@@ -176,145 +176,121 @@ class KlaimController extends Controller
         $data = [
             "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
             "nomor_kartu" => json_decode($pengajuanKlaim->request)->nomor_kartu,
-            "tgl_masuk" => "2023-01-25 12:55:00",
-            "tgl_pulang" => "2023-01-31 09:55:00",
-            "cara_masuk" => "gp",
-            "jenis_rawat" => "1",
-            "kelas_rawat" => "1",
-            "adl_sub_acute" => "15",
-            "adl_chronic" => "12",
-            "icu_indikator" => "1",
-            "icu_los" => "2",
-            "ventilator_hour" => "5",
+            "tgl_masuk" => $request->input('tanggal_masuk'),
+            "tgl_pulang" => $request->input('tanggal_pulang'),
+            "cara_masuk" => $request->input('cara_masuk'),
+            "jenis_rawat" => $request->input('jenis_rawat'),
+            "kelas_rawat" => $request->input('kelas_rawat'),
+            "adl_sub_acute" => $request->input('adl_sub_acute'),
+            "adl_chronic" => $request->input('adl_chronic'),
+            "icu_indikator" => $request->input('icu_indikator'),
+            "icu_los" => $request->input('icu_los'),
+            "ventilator_hour" => $request->input('ventilator_hour'),
             "ventilator" => [
-                "use_ind" => "1",
-                "start_dttm" => "2023-01-26 12:55:00",
-                "stop_dttm" => "2023-01-26 17:50:00"
+                "use_ind" => $request->input('ventilator.use_ind'),
+                "start_dttm" => $request->input('ventilator.start_dttm'),
+                "stop_dttm" => $request->input('ventilator.stop_dttm')
             ],
-            "upgrade_class_ind" => "1",
-            "upgrade_class_class" => "vip",
-            "upgrade_class_los" => "5",
-            "upgrade_class_payor" => "peserta",
-            "add_payment_pct" => "35",
-            "birth_weight" => "0",
-            "sistole" => 120,
-            "diastole" => 70,
-            "discharge_status" => "1",
-            "diagnosa" => "S71.0#A00.1",
-            "procedure" => "81.52#88.38#86.22",
-            "diagnosa_inagrouper" => "S71.0#A00.1",
-            "procedure_inagrouper" => "81.52#88.38#86.22+3#86.22",
+            "upgrade_class_ind" => $request->input('upgrade_class_ind'),
+            "upgrade_class_class" => $request->input('upgrade_class_class'),
+            "upgrade_class_los" => $request->input('upgrade_class_los'),
+            "upgrade_class_payor" => $request->input('upgrade_class_payor'),
+            "add_payment_pct" => $request->input('add_payment_pct'),
+            "birth_weight" => $request->input('birth_weight'),
+            "sistole" => $request->input('sistole'),
+            "diastole" => $request->input('diastole'),
+            "discharge_status" => $request->input('discharge_status'),
+            "diagnosa" => $request->input('diagnosa'),
+            "procedure" => $request->input('procedure'),
+            "diagnosa_inagrouper" => $request->input('diagnosa_inagrouper'),
+            "procedure_inagrouper" => $request->input('procedure_inagrouper'),
             "tarif_rs" => [
-                "prosedur_non_bedah" => "300000",
-                "prosedur_bedah" => "20000000",
-                "tenaga_ahli" => "200000",
-                "keperawatan" => "80000",
-                "penunjang" => "1000000",
-                "radiologi" => "500000",
-                "laboratorium" => "600000",
-                "pelayanan_darah" => "150000",
-                "rehabilitasi" => "100000",
-                "kamar" => "6000000",
-                "rawat_intensif" => "2500000",
-                "obat" => "100000",
-                "obat_kronis" => "1000000",
-                "obat_kemoterapi" => "5000000",
-                "alkes" => "500000",
-                "bmhp" => "400000",
-                "sewa_alat" => "210000"
+                "prosedur_non_bedah" => $request->input('tarif_rs.prosedur_non_bedah'),
+                "prosedur_bedah" => $request->input('tarif_rs.prosedur_bedah'),
+                "tenaga_ahli" => $request->input('tarif_rs.tenaga_ahli'),
+                "keperawatan" => $request->input('tarif_rs.keperawatan'),
+                "penunjang" => $request->input('tarif_rs.penunjang'),
+                "radiologi" => $request->input('tarif_rs.radiologi'),
+                "laboratorium" => $request->input('tarif_rs.laboratorium'),
+                "pelayanan_darah" => $request->input('tarif_rs.pelayanan_darah'),
+                "rehabilitasi" => $request->input('tarif_rs.rehabilitasi'),
+                "kamar" => $request->input('tarif_rs.kamar'),
+                "rawat_intensif" => $request->input('tarif_rs.rawat_intensif'),
+                "obat" => $request->input('tarif_rs.obat'),
+                "obat_kronis" => $request->input('tarif_rs.obat_kronis'),
+                "obat_kemoterapi" => $request->input('tarif_rs.obat_kemoterapi'),
+                "alkes" => $request->input('tarif_rs.alkes'),
+                "bmhp" => $request->input('tarif_rs.bmhp'),
+                "sewa_alat" => $request->input('tarif_rs.sewa_alat')
             ],
-            "pemulasaraan_jenazah" => "1",
-            "kantong_jenazah" => "1",
-            "peti_jenazah" => "1",
-            "plastik_erat" => "1",
-            "desinfektan_jenazah" => "1",
-            "mobil_jenazah" => "0",
-            "desinfektan_mobil_jenazah" => "0",
-            "covid19_status_cd" => "1",
-            "nomor_kartu_t" => "nik",
-            "episodes" => "1;12#2;3#6;5",
-            "covid19_cc_ind" => "1",
-            "covid19_rs_darurat_ind" => "1",
-            "covid19_co_insidense_ind" => "1",
+            "pemulasaraan_jenazah" => $request->input('pemulasaraan_jenazah'),
+            "kantong_jenazah" => $request->input('kantong_jenazah'),
+            "peti_jenazah" => $request->input('peti_jenazah'),
+            "plastik_erat" => $request->input('plastik_erat'),
+            "desinfektan_jenazah" => $request->input('desinfektan_jenazah'),
+            "mobil_jenazah" => $request->input('mobil_jenazah'),
+            "desinfektan_mobil_jenazah" => $request->input('desinfektan_mobil_jenazah'),
+            "covid19_status_cd" => $request->input('covid19_status_cd'),
+            "nomor_kartu_t" => $request->input('nomor_kartu_t'),
+            "episodes" => $request->input('episodes'),
+            "covid19_cc_ind" => $request->input('covid19_cc_ind'),
+            "covid19_rs_darurat_ind" => $request->input('covid19_rs_darurat_ind'),
+            "covid19_co_insidense_ind" => $request->input('covid19_co_insidense_ind'),
             "covid19_penunjang_pengurang" => [
-                "lab_asam_laktat" => "1",
-                "lab_procalcitonin" => "1",
-                "lab_crp" => "1",
-                "lab_kultur" => "1",
-                "lab_d_dimer" => "1",
-                "lab_pt" => "1",
-                "lab_aptt" => "1",
-                "lab_waktu_pendarahan" => "1",
-                "lab_anti_hiv" => "1",
-                "lab_analisa_gas" => "1",
-                "lab_albumin" => "1",
-                "rad_thorax_ap_pa" => "0"
+                "lab_asam_laktat" => $request->input('covid19_penunjang_pengurang.lab_asam_laktat'),
+                "lab_procalcitonin" => $request->input('covid19_penunjang_pengurang.lab_procalcitonin'),
+                "lab_crp" => $request->input('covid19_penunjang_pengurang.lab_crp'),
+                "lab_kultur" => $request->input('covid19_penunjang_pengurang.lab_kultur'),
+                "lab_d_dimer" => $request->input('covid19_penunjang_pengurang.lab_d_dimer'),
+                "lab_pt" => $request->input('covid19_penunjang_pengurang.lab_pt'),
+                "lab_aptt" => $request->input('covid19_penunjang_pengurang.lab_aptt'),
+                "lab_waktu_pendarahan" => $request->input('covid19_penunjang_pengurang.lab_waktu_pendarahan'),
+                "lab_anti_hiv" => $request->input('covid19_penunjang_pengurang.lab_anti_hiv'),
+                "lab_analisa_gas" => $request->input('covid19_penunjang_pengurang.lab_analisa_gas'),
+                "lab_albumin" => $request->input('covid19_penunjang_pengurang.lab_albumin'),
+                "rad_thorax_ap_pa" => $request->input('covid19_penunjang_pengurang.rad_thorax_ap_pa')
             ],
-            "terapi_konvalesen" => "1000000",
-            "akses_naat" => "C",
-            "isoman_ind" => "0",
-            "bayi_lahir_status_cd" => 1,
-            "dializer_single_use" => 0,
-            "kantong_darah" => 1,
-            "alteplase_ind" => 0,
+            "terapi_konvalesen" => $request->input('terapi_konvalesen'),
+            "akses_naat" => $request->input('akses_naat'),
+            "isoman_ind" => $request->input('isoman_ind'),
+            "bayi_lahir_status_cd" => $request->input('bayi_lahir_status_cd'),
+            "dializer_single_use" => $request->input('dializer_single_use'),
+            "kantong_darah" => $request->input('kantong_darah'),
+            "alteplase_ind" => $request->input('alteplase_ind'),
             "apgar" => [
                 "menit_1" => [
-                    "appearance" => 1,
-                    "pulse" => 2,
-                    "grimace" => 1,
-                    "activity" => 1,
-                    "respiration" => 1
+                    "appearance" => $request->input('apgar.menit_1.appearance'),
+                    "pulse" => $request->input('apgar.menit_1.pulse'),
+                    "grimace" => $request->input('apgar.menit_1.grimace'),
+                    "activity" => $request->input('apgar.menit_1.activity'),
+                    "respiration" => $request->input('apgar.menit_1.respiration')
                 ],
                 "menit_5" => [
-                    "appearance" => 2,
-                    "pulse" => 2,
-                    "grimace" => 2,
-                    "activity" => 2,
-                    "respiration" => 2
+                    "appearance" => $request->input('apgar.menit_5.appearance'),
+                    "pulse" => $request->input('apgar.menit_5.pulse'),
+                    "grimace" => $request->input('apgar.menit_5.grimace'),
+                    "activity" => $request->input('apgar.menit_5.activity'),
+                    "respiration" => $request->input('apgar.menit_5.respiration')
                 ]
             ],
             "persalinan" => [
-                "usia_kehamilan" => "22",
-                "gravida" => "2",
-                "partus" => "4",
-                "abortus" => "2",
-                "onset_kontraksi" => "induksi",
-                "delivery" => [
-                    [
-                        "delivery_sequence" => "1",
-                        "delivery_method" => "vaginal",
-                        "delivery_dttm" => "2023-01-21 17:01:33",
-                        "letak_janin" => "kepala",
-                        "kondisi" => "livebirth",
-                        "use_manual" => "1",
-                        "use_forcep" => "0",
-                        "use_vacuum" => "1",
-                        "shk_spesimen_ambil" => "ya",
-                        "shk_lokasi" => "tumit",
-                        "shk_spesimen_dttm" => "2023-01-21 18:11:33"
-                    ],
-                    [
-                        "delivery_sequence" => "2",
-                        "delivery_method" => "vaginal",
-                        "delivery_dttm" => "2023-01-21 17:03:49",
-                        "letak_janin" => "lintang",
-                        "kondisi" => "livebirth",
-                        "use_manual" => "1",
-                        "use_forcep" => "0",
-                        "use_vacuum" => "0",
-                        "shk_spesimen_ambil" => "tidak",
-                        "shk_alasan" => "akses-sulit"
-                    ]
-                ]
+                "usia_kehamilan" => $request->input('persalinan.usia_kehamilan'),
+                "gravida" => $request->input('persalinan.gravida'),
+                "partus" => $request->input('persalinan.partus'),
+                "abortus" => $request->input('persalinan.abortus'),
+                "onset_kontraksi" => $request->input('persalinan.onset_kontraksi'),
+                "delivery" => $request->input('persalinan.delivery'), // <-- array of delivery
             ],
-            "tarif_poli_eks" => "100000",
-            "nama_dokter" => "RUDY, DR",
-            "kode_tarif" => "AP",
-            "payor_id" => "3",
-            "payor_cd" => "JKN",
-            "cob_cd" => "0001",
-            "coder_nik" => "123123123123"
+            "tarif_poli_eks" => $request->input('tarif_poli_eks'),
+            "nama_dokter" => $request->input('nama_dokter'),
+            "kode_tarif" => $request->input('kode_tarif'),
+            "payor_id" => $request->input('payor_id'),
+            "payor_cd" => $request->input('payor_cd'),
+            "cob_cd" => $request->input('cob_cd'),
+            "coder_nik" => $request->input('coder_nik'),
         ];
+
+        dd($data);
     }
 
     public function hapusDataKlaim(PengajuanKlaim $pengajuanKlaim)
@@ -567,16 +543,27 @@ class KlaimController extends Controller
             },
         ]);
 
-        $dokter = Dokter::with('pegawai')->get();
+        // dd($data->pendaftaranPoli->kunjunganPasien[0]['DPJP']);
 
-        $data->dokter = $dokter->map(function ($item) {
-            $gelarDepan = $item->pegawai->GELAR_DEPAN ? $item->pegawai->GELAR_DEPAN . '.' : '';
-            $gelarBelakang = $item->pegawai->GELAR_BELAKANG ? ',' . $item->pegawai->GELAR_BELAKANG : '';
-            return [
-                'NIP' => $item->NIP,
-                'NAMA' => $gelarDepan . $item->pegawai->NAMA . $gelarBelakang,
-            ];
-        });
+        $dokter = Dokter::with('pegawai')->where('ID', $data->pendaftaranPoli->kunjunganPasien[0]['DPJP'])->first();
+
+        // dd($dokter->pegawai->NAMA);
+
+        // $data->dokter = $dokter->map(function ($item) {
+        //     $gelarDepan = $item->pegawai->GELAR_DEPAN ? $item->pegawai->GELAR_DEPAN . '.' : '';
+        //     $gelarBelakang = $item->pegawai->GELAR_BELAKANG ? ',' . $item->pegawai->GELAR_BELAKANG : '';
+        //     return [
+        //         'NIP' => $item->NIP,
+        //         'NAMA' => $gelarDepan . $item->pegawai->NAMA . $gelarBelakang,
+        //     ];
+        // });
+
+        $gelarDepan = $dokter->pegawai->GELAR_DEPAN ? $dokter->pegawai->GELAR_DEPAN . '.' : '';
+        $gelarBelakang = $dokter->pegawai->GELAR_BELAKANG ? ',' . $dokter->pegawai->GELAR_BELAKANG : '';
+        $data->dokter = [
+            'NIP' => $dokter->pegawai->NIP,
+            'NAMA' => $gelarDepan . $dokter->pegawai->NAMA . $gelarBelakang,
+        ];
 
         $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN',  $pengajuanKlaim->nomor_pendaftaran)
             ->first();
@@ -585,6 +572,7 @@ class KlaimController extends Controller
             ->first();
 
         $data->tagihan = $tagihan;
+        
 
         return response()->json($data);
     }
