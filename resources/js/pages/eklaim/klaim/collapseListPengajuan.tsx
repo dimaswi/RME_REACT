@@ -457,35 +457,35 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         onset_kontraksi: klaimData.persalinan.onset_kontraksi || '',
                         delivery: Array.isArray(klaimData.delivery)
                             ? klaimData.delivery.map((d: any) => ({
-                                  delivery_sequence: d.delivery_sequence || '',
-                                  delivery_method: d.delivery_method || '',
-                                  delivery_dttm: d.delivery_dttm || '',
-                                  letak_janin: d.letak_janin || '',
-                                  kondisi: d.kondisi || '',
-                                  use_manual: d.use_manual || '',
-                                  use_forcep: d.use_forcep || '',
-                                  use_vacuum: d.use_vacuum || '',
-                                  shk_spesimen_ambil: d.shk_spesimen_ambil || '',
-                                  shk_lokasi: d.shk_lokasi || '',
-                                  shk_spesimen_dttm: d.shk_spesimen_dttm || '',
-                                  shk_alasan: d.shk_alasan || '',
-                              }))
+                                delivery_sequence: d.delivery_sequence || '',
+                                delivery_method: d.delivery_method || '',
+                                delivery_dttm: d.delivery_dttm || '',
+                                letak_janin: d.letak_janin || '',
+                                kondisi: d.kondisi || '',
+                                use_manual: d.use_manual || '',
+                                use_forcep: d.use_forcep || '',
+                                use_vacuum: d.use_vacuum || '',
+                                shk_spesimen_ambil: d.shk_spesimen_ambil || '',
+                                shk_lokasi: d.shk_lokasi || '',
+                                shk_spesimen_dttm: d.shk_spesimen_dttm || '',
+                                shk_alasan: d.shk_alasan || '',
+                            }))
                             : [
-                                  {
-                                      delivery_sequence: '',
-                                      delivery_method: '',
-                                      delivery_dttm: '',
-                                      letak_janin: '',
-                                      kondisi: '',
-                                      use_manual: '',
-                                      use_forcep: '',
-                                      use_vacuum: '',
-                                      shk_spesimen_ambil: '',
-                                      shk_lokasi: '',
-                                      shk_spesimen_dttm: '',
-                                      shk_alasan: '',
-                                  },
-                              ],
+                                {
+                                    delivery_sequence: '',
+                                    delivery_method: '',
+                                    delivery_dttm: '',
+                                    letak_janin: '',
+                                    kondisi: '',
+                                    use_manual: '',
+                                    use_forcep: '',
+                                    use_vacuum: '',
+                                    shk_spesimen_ambil: '',
+                                    shk_lokasi: '',
+                                    shk_spesimen_dttm: '',
+                                    shk_alasan: '',
+                                },
+                            ],
                     });
                 } else {
                     setShowPersalinan(false);
@@ -688,10 +688,11 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     return (
         <>
             {loadingKunjungan ? (
-                <div className="flex items-center gap-2 px-4 py-2">
-                    <Loader className="h-6 w-6 animate-spin text-gray-500" />
-                    <span>Mengambil Data ...</span>
+                <div className="p-8 text-center text-gray-500 font-semibold">
+                    <Loader className="animate-spin h-6 w-6 inline-block mr-2" />
+                    Loading data klaim...
                 </div>
+
             ) : (
                 <>
                     <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
@@ -1504,7 +1505,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                             { ID: 'CP', DESKRIPSI: 'RS KELAS C PEMERINTAH' },
                                             { ID: 'CS', DESKRIPSI: 'RS KELAS C SWASTA' },
                                             { ID: 'DP', DESKRIPSI: 'RS KELAS D PEMERINTAH' },
-                                                                                       { ID: 'DS', DESKRIPSI: 'RS KELAS D SWASTA' },
+                                            { ID: 'DS', DESKRIPSI: 'RS KELAS D SWASTA' },
                                             { ID: 'RSCM', DESKRIPSI: 'RSUPN CIPTO MANGUNKUSUMO' },
                                             { ID: 'RSJP', DESKRIPSI: 'RSJPD HARAPAN KITA' },
                                             { ID: 'RSD', DESKRIPSI: 'KANKER DHARMAIS' },

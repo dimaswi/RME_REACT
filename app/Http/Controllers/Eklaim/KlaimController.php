@@ -5,6 +5,13 @@ namespace App\Http\Controllers\Eklaim;
 use App\Http\Controllers\Controller;
 use App\Models\BPJS\Kunjungan;
 use App\Models\Eklaim\DataKlaim;
+use App\Models\Eklaim\GrouperOne;
+use App\Models\Eklaim\GrouperOneCBG;
+use App\Models\Eklaim\GrouperOneChronic;
+use App\Models\Eklaim\GrouperOneInagrouper;
+use App\Models\Eklaim\GrouperOneSpecialCMG;
+use App\Models\Eklaim\GrouperOneSubAcute;
+use App\Models\Eklaim\GrouperOneTarif;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Master\Dokter;
@@ -542,6 +549,9 @@ class KlaimController extends Controller
                 'request' => json_encode($data),
                 'response' => json_encode($send),
             ]);
+
+            
+
             DB::connection('eklaim')->commit();
             return response()->json([
                 'status' => 'error',
@@ -847,6 +857,19 @@ class KlaimController extends Controller
             'kunjungan' => $data,
             'from' => 'kunjungan'
         ]);
+    }
+
+    public function loadDataGroupOne(PengajuanKlaim $pengajuanKlaim)
+    {
+        $data = $pengajuanKlaim;
+        $data->grouperone = GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->with('cbg')->first();
+        $data->grouperOneChronic = GrouperOneChronic::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperOneSubAcute = GrouperOneSubAcute::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperOneInagrouper = GrouperOneInagrouper::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperOneTarif = GrouperOneTarif::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperOneSpecialCmg = GrouperOneSpecialCMG::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+
+        return response()->json($data);
     }
 
     public function getDataKlaim(PengajuanKlaim $pengajuanKlaim)

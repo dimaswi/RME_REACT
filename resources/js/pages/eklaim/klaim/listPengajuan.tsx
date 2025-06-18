@@ -14,6 +14,7 @@ import { AlignJustify, CalendarIcon, Check, Home, Pencil, Trash } from 'lucide-r
 import React, { useState } from 'react';
 import ModalBuatPengajuanBaru from './ModalBuatPengajuanBaru';
 import PengajuanKlaimCollapse from './collapseListPengajuan';
+import GroupingOneCollapse from './collapsibleGroupingOne';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -331,22 +332,22 @@ export default function ListPengajuan() {
                                         {openRow === item.id && (
                                             <TableRow>
                                                 <TableCell colSpan={6} className="bg-gray-50">
-                                                    {item.status === 1 && (
-                                                        <PengajuanKlaimCollapse
-                                                            item={item}
-                                                            formatTanggal={formatTanggal}
-                                                            getStatusBadge={getStatusBadge}
-                                                            expanded={openRow === item.id}
-                                                        />
-                                                    )}
+                                                    {
+                                                        item.status === 1 && (
+                                                            <PengajuanKlaimCollapse
+                                                                item={item}
+                                                                formatTanggal={formatTanggal}
+                                                                getStatusBadge={getStatusBadge}
+                                                                expanded={openRow === item.id}
+                                                            />
+                                                        )
+                                                    }
 
                                                     {
                                                         item.status === 2 && (
-                                                            <div className="p-4">
-                                                                <p className="text-sm text-gray-600">
-                                                                    Groupper
-                                                                </p>
-                                                            </div>
+                                                            <GroupingOneCollapse
+                                                                pengajuanKlaim={item}
+                                                            />
                                                         )
                                                     }
                                                 </TableCell>

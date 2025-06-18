@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::post('eklaim/klaim/update-klaim/{pengajuanKlaim}', [KlaimController::class, 'updateDataKlaim'])->name('eklaim.updateDataKlaim');
     Route::get('/api/pasien/search', [KlaimController::class, 'searchRekamMedis']);
     Route::get('/api/kunjungan/sep/search/{nomorKartu}', [KlaimController::class, 'searchDataSEP']);
+    Route::get('eklaim/klaim/grouper/one/{pengajuanKlaim}', [KlaimController::class, 'loadDataGroupOne'])->name('eklaim.klaim.loadDataGroupOne');
 });
 
 Route::middleware('auth')->group(function () {
