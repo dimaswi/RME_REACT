@@ -62,9 +62,13 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const [kodeTarifRumahSAkit, setKodeTarifRumahSAkit] = useState('DS');
     const [tarifPoliEks, setTarifPoliEks] = useState(Number(''));
     const [payorCd, setPayorCd] = useState('');
+    const [payorId, setPayorId] = useState('');
+    const [payor, setPayor] = useState<{ ID: string; DESKRIPSI: string }>({ ID: '00003', DESKRIPSI: 'JKN' });
     const [cobCd, setCobCd] = useState('');
     const [dokterPoliEksekutif, setDokterPoliEksekutif] = useState('');
     const [kodeTarifRsPoliEksekutif, setKodeTarifRsPoliEksekutif] = useState('DS');
+    const [sistole, setSistole] = useState('');
+    const [diastole, setDiastole] = useState('');
 
     // --- Persalinan State ---
     const [persalinan, setPersalinan] = useState({
@@ -128,6 +132,24 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
         }));
     };
 
+    // --- APGAR State ---
+    const [apgar, setApgar] = useState({
+        menit_1: {
+            appearance: '',
+            pulse: '',
+            grimace: '',
+            activity: '',
+            respiration: '',
+        },
+        menit_5: {
+            appearance: '',
+            pulse: '',
+            grimace: '',
+            activity: '',
+            respiration: '',
+        },
+    });
+
     // --- Diagnosa & Procedure Modal State ---
     const [showDiagnosaModal, setShowDiagnosaModal] = useState(false);
     const [showProcedureModal, setShowProcedureModal] = useState(false);
@@ -137,6 +159,9 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const [procedureOptions, setProcedureOptions] = useState<any[]>([]);
     const [procedureSearch, setProcedureSearch] = useState('');
     const [selectedProcedure, setSelectedProcedure] = useState<any[]>([]);
+
+    // --- Show Persalinan ---
+    const [showPersalinan, setShowPersalinan] = useState(false);
 
     // --- Dropdown Options ---
     const caraMasukOptions = [
@@ -178,6 +203,89 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
         { ID: 'peserta', DESKRIPSI: 'Peserta' },
         { ID: 'pemberi_kerja', DESKRIPSI: 'Pemberi Kerja' },
         { ID: 'asuransi_tambahan', DESKRIPSI: 'Asuransi Tambahan' },
+    ];
+
+    const cobOptions = [
+        { ID: '0001', DESKRIPSI: 'MANDIRI INHEALTH' },
+        { ID: '0005', DESKRIPSI: 'ASURANSI SINAR MAS' },
+        { ID: '0006', DESKRIPSI: 'ASURANSI TUGU MANDIRI' },
+        { ID: '0007', DESKRIPSI: 'ASURANSI MITRA MAPARYA' },
+        { ID: '0008', DESKRIPSI: 'ASURANSI AXA MANDIRI FINANSIAL SERVICE' },
+        { ID: '0009', DESKRIPSI: 'ASURANSI AXA FINANSIAL INDONESIA' },
+        { ID: '0010', DESKRIPSI: 'LIPPO GENERAL INSURANCE' },
+        { ID: '0011', DESKRIPSI: 'ARTHAGRAHA GENERAL INSURANCE' },
+        { ID: '0012', DESKRIPSI: 'TUGU PRATAMA INDONESIA' },
+        { ID: '0013', DESKRIPSI: 'ASURANSI BINA DANA ARTA' },
+        { ID: '0014', DESKRIPSI: 'ASURANSI JIWA SINAR MAS MSIG' },
+        { ID: '0015', DESKRIPSI: 'AVRIST ASSURANCE' },
+        { ID: '0016', DESKRIPSI: 'ASURANSI JIWA SRAYA' },
+        { ID: '0017', DESKRIPSI: 'ASURANSI JIWA CENTRAL ASIA RAYA' },
+        { ID: '0018', DESKRIPSI: 'ASURANSI TAKAFUL KELUARGA' },
+        { ID: '0019', DESKRIPSI: 'ASURANSI JIWA GENERALI INDONESIA' },
+        { ID: '0020', DESKRIPSI: 'ASURANSI ASTRA BUANA' },
+        { ID: '0021', DESKRIPSI: 'ASURANSI UMUM MEGA' },
+        { ID: '0022', DESKRIPSI: 'ASURANSI MULTI ARTHA GUNA' },
+        { ID: '0023', DESKRIPSI: 'ASURANSI AIA INDONESIA' },
+        { ID: '0024', DESKRIPSI: 'ASURANSI JIWA EQUITY LIFE INDONESIA' },
+        { ID: '0025', DESKRIPSI: 'ASURANSI JIWA RECAPITAL' },
+        { ID: '0026', DESKRIPSI: 'GREAT EASTERN LIFE INDONESIA' },
+        { ID: '0027', DESKRIPSI: 'ASURANSI ADISARANA WANARATHA' },
+        { ID: '0028', DESKRIPSI: 'ASURANSI JIWA BRINGIN JIWA SEJAHTERA' },
+        { ID: '0029', DESKRIPSI: 'BOSOWA ASURANSI' },
+        { ID: '0030', DESKRIPSI: 'MNC LIFE ASSURANCE' },
+        { ID: '0031', DESKRIPSI: 'ASURANSI AVIVA INDONESIA' },
+        { ID: '0032', DESKRIPSI: 'ASURANSI CENTRAL ASIA RAYA' },
+        { ID: '0033', DESKRIPSI: 'ASURANSI ALLIANZ LIFE INDONESIA' },
+        { ID: '0034', DESKRIPSI: 'ASURANSI BINTANG' },
+        { ID: '0035', DESKRIPSI: 'TOKIO MARINE LIFE INSURANCE INDONESIA' },
+        { ID: '0036', DESKRIPSI: 'MALACCA TRUST WUWUNGAN' },
+        { ID: '0037', DESKRIPSI: 'ASURANSI JASA INDONESIA' },
+        { ID: '0038', DESKRIPSI: 'ASURANSI JIWA MANULIFE INDONESIA' },
+        { ID: '0039', DESKRIPSI: 'ASURANSI BANGUN ASKRIDA' },
+        { ID: '0040', DESKRIPSI: 'ASURANSI JIWA SEQUIS FINANCIAL' },
+        { ID: '0041', DESKRIPSI: 'ASURANSI AXA INDONESIA' },
+        { ID: '0042', DESKRIPSI: 'BNI LIFE' },
+        { ID: '0043', DESKRIPSI: 'ACE LIFE INSURANCE' },
+        { ID: '0044', DESKRIPSI: 'CITRA INTERNATIONAL UNDERWRITERS' },
+        { ID: '0045', DESKRIPSI: 'ASURANSI RELIANCE INDONESIA' },
+        { ID: '0046', DESKRIPSI: 'HANWHA LIFE INSURANCE INDONESIA' },
+        { ID: '0047', DESKRIPSI: 'ASURANSI DAYIN MITRA' },
+        { ID: '0048', DESKRIPSI: 'ASURANSI ADIRA DINAMIKA' },
+        { ID: '0049', DESKRIPSI: 'PAN PASIFIC INSURANCE' },
+        { ID: '0050', DESKRIPSI: 'ASURANSI SAMSUNG TUGU' },
+        { ID: '0051', DESKRIPSI: 'ASURANSI UMUM BUMI PUTERA MUDA 1967' },
+        { ID: '0052', DESKRIPSI: 'ASURANSI JIWA KRESNA' },
+        { ID: '0053', DESKRIPSI: 'ASURANSI RAMAYANA' },
+        { ID: '0054', DESKRIPSI: 'VICTORIA INSURANCE' },
+        { ID: '0055', DESKRIPSI: 'ASURANSI JIWA BERSAMA BUMIPUTERA 1912' },
+        { ID: '0056', DESKRIPSI: 'FWD LIFE INDONESIA' },
+        { ID: '0057', DESKRIPSI: 'ASURANSI TAKAFUL KELUARGA' },
+        { ID: '0058', DESKRIPSI: 'ASURANSI TUGU KRESNA PRATAMA' },
+        { ID: '0059', DESKRIPSI: 'SOMPO INSURANCE' },
+    ];
+
+    const dokterOptions = [
+        { ID: 'DR ISMANOE SPB', DESKRIPSI: 'DR ISMANOE SPB' },
+        { ID: 'DR. ACHMAD SYAFI,I', DESKRIPSI: 'DR. ACHMAD SYAFI,I' },
+        { ID: 'dr. AHMAD MUSTAFID ALWI', DESKRIPSI: 'dr. AHMAD MUSTAFID ALWI' },
+        { ID: "dr. Ahmad Syafi'I", DESKRIPSI: "dr. Ahmad Syafi'I" },
+        { ID: 'dr. AKHMAD IKHWAN BAIDLOWI, Sp.OG', DESKRIPSI: 'dr. AKHMAD IKHWAN BAIDLOWI, Sp.OG' },
+        { ID: 'dr. ARIF RANANDA', DESKRIPSI: 'dr. ARIF RANANDA' },
+        { ID: 'dr. Avif Irkhami Sativa', DESKRIPSI: 'dr. Avif Irkhami Sativa' },
+        { ID: 'dr. DAVID SETYO BUDI', DESKRIPSI: 'dr. DAVID SETYO BUDI' },
+        { ID: 'dr. DZULFIKRI AULIA AKBAR', DESKRIPSI: 'dr. DZULFIKRI AULIA AKBAR' },
+        { ID: 'dr. Eka Pradana Frendy Afriyan', DESKRIPSI: 'dr. Eka Pradana Frendy Afriyan' },
+        { ID: 'DR. FRENDY', DESKRIPSI: 'DR. FRENDY' },
+        { ID: 'dr. GAGAK ISMANOE, Sp.B', DESKRIPSI: 'dr. GAGAK ISMANOE, Sp.B' },
+        { ID: 'dr. ILHAM MUNANDAR, Sp.PD', DESKRIPSI: 'dr. ILHAM MUNANDAR, Sp.PD' },
+        { ID: 'dr. Muqqodar Thayyib, Sp.PD', DESKRIPSI: 'dr. Muqqodar Thayyib, Sp.PD' },
+        { ID: 'dr. SUHASTA NOVA, Sp.A', DESKRIPSI: 'dr. SUHASTA NOVA, Sp.A' },
+        { ID: 'dr. YUSRON ABDURROHMAN', DESKRIPSI: 'dr. YUSRON ABDURROHMAN' },
+        { ID: 'dr.. SUHASTA NOVA, Sp.A', DESKRIPSI: 'dr.. SUHASTA NOVA, Sp.A' },
+        { ID: 'dr.M.Thayyib SpPD', DESKRIPSI: 'dr.M.Thayyib SpPD' },
+        { ID: 'dr Ilham munandar, Sp.PD', DESKRIPSI: 'dr Ilham munandar, Sp.PD' },
+        { ID: 'dr. Akhmad Ikhwan Baidlowi, Sp.OG noname', DESKRIPSI: 'dr. Akhmad Ikhwan Baidlowi, Sp.OG noname' },
+        { ID: 'dr Suhasta nova', DESKRIPSI: 'dr Suhasta nova' },
     ];
 
     // --- Utility ---
@@ -247,6 +355,146 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const fetchDataKunjungan = async () => {
         setLoadingKunjungan(true);
         try {
+            // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
+            const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
+            const klaimData = klaimRes.data;
+
+            if (klaimData && klaimData.klaimData) {
+                // Jika data klaim sudah ada di database, set state dari klaimData
+                setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
+                setCaraMasuk(klaimData.klaimData.cara_masuk || '');
+                setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
+                setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
+                setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
+                setSistole(klaimData.klaimData.sistole || '');
+                setDiastole(klaimData.klaimData.diastole || '');
+                setNamaDokter(klaimData.klaimData.nama_dokter || '');
+                setKodeTarifRumahSAkit(klaimData.klaimData.kode_tarif || 'DS');
+                setTarifPoliEks(Number(klaimData.klaimData.tarif_poli_eks) || 0);
+                setPayor({ ID: klaimData.klaimData.payor_id || '00003', DESKRIPSI: klaimData.klaimData.payor_cd || 'JKN' });
+                setCobCd(klaimData.klaimData.cob_cd || '');
+
+                // Diagnosa & Procedure (parsing value1+2#value2 ke array)
+                function klaimStringToArray(str: string) {
+                    if (!str || str === '#') return [];
+                    const result: string[] = [];
+                    const parts = str.split('#');
+                    for (const part of parts) {
+                        const match = part.match(/^(.+)\+(\d+)$/);
+                        if (match) {
+                            const val = match[1];
+                            const count = parseInt(match[2], 10);
+                            for (let i = 0; i < count; i++) result.push(val);
+                        } else {
+                            result.push(part);
+                        }
+                    }
+                    return result;
+                }
+                setSelectedDiagnosa(
+                    klaimStringToArray(klaimData.klaimData.diagnosa).map((id: string) => ({
+                        id,
+                        description: '', // Anda bisa fetch deskripsi jika perlu
+                    }))
+                );
+                setSelectedProcedure(
+                    klaimStringToArray(klaimData.klaimData.procedure).map((id: string) => ({
+                        id,
+                        description: '', // Anda bisa fetch deskripsi jika perlu
+                    }))
+                );
+
+                // Tarif RS
+                if (klaimData.tarif_rs) {
+                    setTarifProsedurNonBedah(Number(klaimData.tarif_rs.prosedur_non_bedah) || 0);
+                    setTarifProsedurBedah(Number(klaimData.tarif_rs.prosedur_bedah) || 0);
+                    setTarifKonsultasi(Number(klaimData.tarif_rs.konsultasi) || 0);
+                    setTarifTenagaAhli(Number(klaimData.tarif_rs.tenaga_ahli) || 0);
+                    setTarifKeperawatan(Number(klaimData.tarif_rs.keperawatan) || 0);
+                    setTarifPenunjang(Number(klaimData.tarif_rs.penunjang) || 0);
+                    setTarifRadiologi(Number(klaimData.tarif_rs.radiologi) || 0);
+                    setTarifLaboratorium(Number(klaimData.tarif_rs.laboratorium) || 0);
+                    setTarifPelayananDarah(Number(klaimData.tarif_rs.pelayanan_darah) || 0);
+                    setTarifRehabilitasi(Number(klaimData.tarif_rs.rehabilitasi) || 0);
+                    setTarifKamar(Number(klaimData.tarif_rs.kamar) || 0);
+                    setTarifRawatIntensif(Number(klaimData.tarif_rs.rawat_intensif) || 0);
+                    setTarifObat(Number(klaimData.tarif_rs.obat) || 0);
+                    setTarifObatKronis(Number(klaimData.tarif_rs.obat_kronis) || 0);
+                    setTarifObatKemoterapi(Number(klaimData.tarif_rs.obat_kemoterapi) || 0);
+                    setTarifAlkes(Number(klaimData.tarif_rs.alkes) || 0);
+                    setTarifBMHP(Number(klaimData.tarif_rs.bmhp) || 0);
+                    setTarifSewaAlat(Number(klaimData.tarif_rs.sewa_alat) || 0);
+                }
+
+                // Apgar
+                if (klaimData.apgar) {
+                    setApgar({
+                        menit_1: {
+                            appearance: klaimData.apgar.appearance_1 || '',
+                            pulse: klaimData.apgar.pulse_1 || '',
+                            grimace: klaimData.apgar.grimace_1 || '',
+                            activity: klaimData.apgar.activity_1 || '',
+                            respiration: klaimData.apgar.respiration_1 || '',
+                        },
+                        menit_5: {
+                            appearance: klaimData.apgar.appearance_5 || '',
+                            pulse: klaimData.apgar.pulse_5 || '',
+                            grimace: klaimData.apgar.grimace_5 || '',
+                            activity: klaimData.apgar.activity_5 || '',
+                            respiration: klaimData.apgar.respiration_5 || '',
+                        },
+                    });
+                }
+
+                // Persalinan & Delivery
+                if (klaimData.persalinan) {
+                    setShowPersalinan(true);
+                    setPersalinan({
+                        usia_kehamilan: klaimData.persalinan.usia_kehamilan || '',
+                        gravida: klaimData.persalinan.gravida || '',
+                        partus: klaimData.persalinan.partus || '',
+                        abortus: klaimData.persalinan.abortus || '',
+                        onset_kontraksi: klaimData.persalinan.onset_kontraksi || '',
+                        delivery: Array.isArray(klaimData.delivery)
+                            ? klaimData.delivery.map((d: any) => ({
+                                  delivery_sequence: d.delivery_sequence || '',
+                                  delivery_method: d.delivery_method || '',
+                                  delivery_dttm: d.delivery_dttm || '',
+                                  letak_janin: d.letak_janin || '',
+                                  kondisi: d.kondisi || '',
+                                  use_manual: d.use_manual || '',
+                                  use_forcep: d.use_forcep || '',
+                                  use_vacuum: d.use_vacuum || '',
+                                  shk_spesimen_ambil: d.shk_spesimen_ambil || '',
+                                  shk_lokasi: d.shk_lokasi || '',
+                                  shk_spesimen_dttm: d.shk_spesimen_dttm || '',
+                                  shk_alasan: d.shk_alasan || '',
+                              }))
+                            : [
+                                  {
+                                      delivery_sequence: '',
+                                      delivery_method: '',
+                                      delivery_dttm: '',
+                                      letak_janin: '',
+                                      kondisi: '',
+                                      use_manual: '',
+                                      use_forcep: '',
+                                      use_vacuum: '',
+                                      shk_spesimen_ambil: '',
+                                      shk_lokasi: '',
+                                      shk_spesimen_dttm: '',
+                                      shk_alasan: '',
+                                  },
+                              ],
+                    });
+                } else {
+                    setShowPersalinan(false);
+                }
+
+                return; // Stop di sini jika data klaim sudah ada
+            }
+
+            // Jika data klaim belum ada, fallback ke data kunjungan
             const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             setDataKunjungan(response.data);
             setJenisPerawatan(response.data.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.jenis_perawatan === 'IGD' ? '3' : '1');
@@ -277,7 +525,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             setTarifBMHP(Number(response.data.tagihan.BMHP) || 0);
             setTarifSewaAlat(Number(response.data.tagihan.SEWA_ALAT) || 0);
             setTarifKamar(Number(response.data.tagihan.AKOMODASI) || 0);
-            setNamaDokter(response.data.dokter.NAMA || '');
         } catch (error) {
             setDataKunjungan(null);
             console.error('Gagal mengambil data kunjungan:', error);
@@ -365,8 +612,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 upgrade_class_payor: upgradeKelasPayor,
                 add_payment_pct: paymentPct,
                 birth_weight: '', // isi jika ada
-                sistole: '', // isi jika ada
-                diastole: '', // isi jika ada
+                sistole: sistole, // isi jika ada
+                diastole: diastole, // isi jika ada
                 discharge_status: dataDischargeStatus,
                 diagnosa: selectedDiagnosa.map((d) => d.id),
                 procedure: selectedProcedure.map((p) => p.id),
@@ -391,6 +638,10 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     bmhp: tarifBMHP,
                     sewa_alat: tarifSewaAlat,
                 },
+                apgar: {
+                    menit_1: { ...apgar.menit_1 },
+                    menit_5: { ...apgar.menit_5 },
+                },
                 persalinan: {
                     usia_kehamilan: persalinan.usia_kehamilan,
                     gravida: persalinan.gravida,
@@ -401,11 +652,11 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 },
                 tarif_poli_eks: tarifPoliEks,
                 nama_dokter: namaDokter,
-                kode_tarif: kodeTarifRumahSAkit,
-                payor_id: dataPenjaminKlaim,
-                payor_cd: payorCd,
+                kode_tarif: kodeTarifRsPoliEksekutif,
+                payor_id: payor?.ID || '',
+                payor_cd: payor?.DESKRIPSI || '',
                 cob_cd: cobCd,
-                // coder_nik: '3522133010010003', // diisi di backend
+                coder_nik: '3522133010010003', // diisi di backend
             };
 
             await axios.post(`/eklaim/klaim/update-klaim/${item.id}`, payload);
@@ -416,6 +667,22 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             console.error(error);
         }
     };
+
+    // --- Handle Grouper ---
+    const handleGrouper = async () => {
+        try {
+            const response = await axios.get(`${item.id}/grouper/one`);
+            if (response.data && response.data.response) {
+                toast.success('Grouper berhasil dijalankan!');
+            } else {
+                toast.error('Gagal menjalankan grouper!');
+            }
+        } catch (error) {
+            toast.error('Gagal menjalankan grouper!');
+            console.error(error);
+        }
+    };
+
 
     // --- Render ---
     return (
@@ -431,7 +698,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         <tbody>
                             <tr>
                                 <td className="border px-4 py-2">Jenis Perawatan</td>
-                                <td className="relative px-4 py-2">
+                                <td colSpan={3} className="relative px-4 py-2">
                                     <SearchableDropdown
                                         data={jenisPerawatanOptions}
                                         value={jenisPerawatan}
@@ -441,7 +708,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                         getOptionValue={(item) => item.ID}
                                     />
                                 </td>
-                                <td colSpan={2} className="relative px-4 py-2">
+                                {/* <td colSpan={2} className="relative px-4 py-2">
                                     <SearchableDropdown
                                         data={[
                                             { ID: 3, DESKRIPSI: 'JKN' },
@@ -462,7 +729,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                         getOptionLabel={(item) => item.DESKRIPSI}
                                         getOptionValue={(item) => item.ID}
                                     />
-                                </td>
+                                </td> */}
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="w-1/8 border px-4 py-4">Tanggal Rawat</td>
@@ -542,15 +809,39 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                 </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
-                                <td className="w-1/8 border px-4 py-2">Dokter DPJP</td>
+                                <td className="w-1/8 border px-4 py-2">Sistole</td>
                                 <td className="relative w-3/8 px-4 py-2">
                                     <Input
-                                        id="namaDokter"
-                                        name="namaDokter"
+                                        id="sistole"
+                                        name="sistole"
                                         type="text"
-                                        placeholder="Masukkan Nama Dokter DPJP"
+                                        placeholder="Masukkan Nilai Sistole"
+                                        value={sistole}
+                                        onChange={(e) => setSistole(e.target.value)}
+                                    />
+                                </td>
+                                <td className="w-1/8 border px-4 py-2">Diastole</td>
+                                <td className="relative w-3/8 px-4 py-2">
+                                    <Input
+                                        id="diastole"
+                                        name="diastole"
+                                        type="text"
+                                        placeholder="Masukkan Nilai Diastole"
+                                        value={diastole}
+                                        onChange={(e) => setDiastole(e.target.value)}
+                                    />
+                                </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50">
+                                <td className="w-1/8 border px-4 py-2">Dokter DPJP</td>
+                                <td className="relative w-3/8 px-4 py-2">
+                                    <SearchableDropdown
+                                        data={dokterOptions}
                                         value={namaDokter}
-                                        onChange={(e) => setNamaDokter(e.target.value)}
+                                        setValue={setNamaDokter}
+                                        placeholder="Pilih Dokter DPJP"
+                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                        getOptionValue={(item) => item.ID}
                                     />
                                 </td>
                                 <td className="w-1/8 border px-4 py-2">Tarif Rumah Sakit</td>
@@ -1020,13 +1311,166 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                 </td>
                             </tr>
                             <tr>
-                                <td className="border px-4 py-2 font-semibold" colSpan={4}>
+                                <td className="border px-4 py-2 text-center font-semibold" colSpan={4}>
+                                    Apgar Score
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2 text-center font-semibold" colSpan={2}>
+                                    Menit 1
+                                </td>
+                                <td className="border px-4 py-2 text-center font-semibold" colSpan={2}>
+                                    Menit 5
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2">Appearance</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Appearance"
+                                        value={apgar.menit_1.appearance}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_1: { ...prev.menit_1, appearance: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                                <td className="border px-4 py-2">Appearance</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Appearance"
+                                        value={apgar.menit_5.appearance}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_5: { ...prev.menit_5, appearance: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2">Pulse</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Pulse"
+                                        value={apgar.menit_1.pulse}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_1: { ...prev.menit_1, pulse: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                                <td className="border px-4 py-2">Pulse</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Pulse"
+                                        value={apgar.menit_5.pulse}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_5: { ...prev.menit_5, pulse: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2">Grimace</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Grimace"
+                                        value={apgar.menit_1.grimace}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_1: { ...prev.menit_1, grimace: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                                <td className="border px-4 py-2">Grimace</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Grimace"
+                                        value={apgar.menit_5.grimace}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_5: { ...prev.menit_5, grimace: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2">Activity</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Activity"
+                                        value={apgar.menit_1.activity}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_1: { ...prev.menit_1, activity: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                                <td className="border px-4 py-2">Activity</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Activity"
+                                        value={apgar.menit_5.activity}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_5: { ...prev.menit_5, activity: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2">Respiration</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Respiration"
+                                        value={apgar.menit_1.respiration}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_1: { ...prev.menit_1, respiration: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                                <td className="border px-4 py-2">Respiration</td>
+                                <td className="border px-4 py-2">
+                                    <Input
+                                        placeholder="Respiration"
+                                        value={apgar.menit_5.respiration}
+                                        onChange={(e) =>
+                                            setApgar((prev) => ({
+                                                ...prev,
+                                                menit_5: { ...prev.menit_5, respiration: e.target.value },
+                                            }))
+                                        }
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border px-4 py-2 text-center font-semibold" colSpan={4}>
                                     Data Tambahan
                                 </td>
                             </tr>
                             <tr>
                                 <td className="border px-4 py-2">Tarif Poli Eks</td>
-                                <td className="border px-4 py-2">
+                                <td colSpan={3} className="border px-4 py-2">
                                     <Input
                                         placeholder="Tarif Poli Eks"
                                         value={formatRupiah(tarifPoliEks)}
@@ -1039,37 +1483,94 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                         }}
                                     />
                                 </td>
-                                <td className="border px-4 py-2">Nama Dokter Poli Eksekutif</td>
+                                {/* <td className="border px-4 py-2">Nama Dokter Poli Eksekutif</td>
                                 <td className="border px-4 py-2">
                                     <Input
                                         placeholder="Nama Dokter"
                                         value={dokterPoliEksekutif}
                                         onChange={(e) => setDokterPoliEksekutif(e.target.value)}
                                     />
-                                </td>
+                                </td> */}
                             </tr>
                             <tr>
                                 <td className="border px-4 py-2">Kode Tarif</td>
                                 <td className="border px-4 py-2">
-                                    <Input
-                                        placeholder="Kode Tarif"
-                                        value={kodeTarifRsPoliEksekutif}
-                                        onChange={(e) => setKodeTarifRsPoliEksekutif(e.target.value)}
+                                    <SearchableDropdown
+                                        data={[
+                                            { ID: 'AP', DESKRIPSI: 'RS KELAS A PEMERINTAH' },
+                                            { ID: 'AS', DESKRIPSI: 'RS KELAS A SWASTA' },
+                                            { ID: 'BP', DESKRIPSI: 'RS KELAS B PEMERINTAH' },
+                                            { ID: 'BS', DESKRIPSI: 'RS KELAS B SWASTA' },
+                                            { ID: 'CP', DESKRIPSI: 'RS KELAS C PEMERINTAH' },
+                                            { ID: 'CS', DESKRIPSI: 'RS KELAS C SWASTA' },
+                                            { ID: 'DP', DESKRIPSI: 'RS KELAS D PEMERINTAH' },
+                                                                                       { ID: 'DS', DESKRIPSI: 'RS KELAS D SWASTA' },
+                                            { ID: 'RSCM', DESKRIPSI: 'RSUPN CIPTO MANGUNKUSUMO' },
+                                            { ID: 'RSJP', DESKRIPSI: 'RSJPD HARAPAN KITA' },
+                                            { ID: 'RSD', DESKRIPSI: 'KANKER DHARMAIS' },
+                                            { ID: 'RSAB', DESKRIPSI: 'RSAB HARAPAN KITA' },
+                                        ]}
+                                        value={kodeTarifRumahSAkit}
+                                        setValue={setKodeTarifRumahSAkit}
+                                        placeholder="Pilih Tarif Rumah Sakit"
+                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                        getOptionValue={(item) => item.ID}
                                     />
                                 </td>
                                 <td className="border px-4 py-2">Payor ID</td>
                                 <td className="border px-4 py-2">
-                                    <Input placeholder="Payor ID" value={dataPenjaminKlaim} onChange={(e) => setDataPenjaminKlaim(e.target.value)} />
+                                    <SearchableDropdown
+                                        data={[
+                                            { ID: '00003', DESKRIPSI: 'JKN' },
+                                            { ID: '00071', DESKRIPSI: 'JAMINAN COVID - 19' },
+                                            { ID: '00072', DESKRIPSI: 'JAMINAN KIPI' },
+                                            { ID: '00073', DESKRIPSI: 'JAMINAN BAYI BARU LAHIR' },
+                                            { ID: '00074', DESKRIPSI: 'JAMINAN PERPANJANG MASA RAWAT' },
+                                            { ID: '00075', DESKRIPSI: 'JAMINAN CO-INSIDENSE' },
+                                            { ID: '00076', DESKRIPSI: 'JAMPERSAL' },
+                                            { ID: '00077', DESKRIPSI: 'JAMINAN PEMULIHAN KESEHATAN PRIORITAS' },
+                                            { ID: '00005', DESKRIPSI: 'JAMKESDA' },
+                                            { ID: '00006', DESKRIPSI: 'JAMKESOS' },
+                                            { ID: '00001', DESKRIPSI: 'PASIEN BAYAR' },
+                                        ]}
+                                        value={payor?.ID || ''}
+                                        setValue={(val) => {
+                                            const found = [
+                                                { ID: '00003', DESKRIPSI: 'JKN' },
+                                                { ID: '00071', DESKRIPSI: 'JAMINAN COVID - 19' },
+                                                { ID: '00072', DESKRIPSI: 'JAMINAN KIPI' },
+                                                { ID: '00073', DESKRIPSI: 'JAMINAN BAYI BARU LAHIR' },
+                                                { ID: '00074', DESKRIPSI: 'JAMINAN PERPANJANG MASA RAWAT' },
+                                                { ID: '00075', DESKRIPSI: 'JAMINAN CO-INSIDENSE' },
+                                                { ID: '00076', DESKRIPSI: 'JAMPERSAL' },
+                                                { ID: '00077', DESKRIPSI: 'JAMINAN PEMULIHAN KESEHATAN PRIORITAS' },
+                                                { ID: '00005', DESKRIPSI: 'JAMKESDA' },
+                                                { ID: '00006', DESKRIPSI: 'JAMKESOS' },
+                                                { ID: '00001', DESKRIPSI: 'PASIEN BAYAR' },
+                                            ].find((item) => item.ID === val);
+                                            setPayor(found || null);
+                                        }}
+                                        placeholder="Pilih Payor"
+                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                        getOptionValue={(item) => item.ID}
+                                    />
                                 </td>
                             </tr>
                             <tr>
                                 <td className="border px-4 py-2">Payor CD</td>
                                 <td className="border px-4 py-2">
-                                    <Input placeholder="Payor CD" value={payorCd} onChange={(e) => setPayorCd(e.target.value)} />
+                                    <Input placeholder="Payor CD" value={payor?.DESKRIPSI || ''} readOnly />
                                 </td>
-                                <td className="border px-4 py-2">COB CD</td>
+                                <td className="border px-4 py-2">COB</td>
                                 <td className="border px-4 py-2">
-                                    <Input placeholder="COB CD" value={cobCd} onChange={(e) => setCobCd(e.target.value)} />
+                                    <SearchableDropdown
+                                        data={cobOptions}
+                                        value={cobCd}
+                                        setValue={setCobCd}
+                                        placeholder="Pilih COB"
+                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                        getOptionValue={(item) => item.ID}
+                                    />
                                 </td>
                             </tr>
                             <tr>
@@ -1160,270 +1661,286 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                     <small className="text-red-500">* Pilih 2 kali jika procedure digunakan lebih dari sekali</small>
                                 </td>
                             </tr>
+                            <tr>
+                                <td className="border px-4 py-2 font-semibold" colSpan={4}>
+                                    <label className="flex items-center gap-2">
+                                        <input type="checkbox" checked={showPersalinan} onChange={(e) => setShowPersalinan(e.target.checked)} />
+                                        Data Persalinan
+                                    </label>
+                                </td>
+                            </tr>
 
                             {/* Data Persalinan */}
-                            <tr>
-                                <td className="border px-4 py-2 font-semibold" colSpan={4}>
-                                    Data Persalinan
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="border px-4 py-2">Usia Kehamilan</td>
-                                <td className="border px-4 py-2">
-                                    <Input
-                                        placeholder="Dalam Minggu"
-                                        type='number'
-                                        value={persalinan.usia_kehamilan}
-                                        onChange={(e) => setPersalinan((prev) => ({ ...prev, usia_kehamilan: e.target.value }))}
-                                    />
-                                </td>
-                                <td className="border px-4 py-2">Gravida</td>
-                                <td className="border px-4 py-2">
-                                    <Input
-                                        placeholder="Gravida"
-                                        type='number'
-                                        value={persalinan.gravida}
-                                        onChange={(e) => setPersalinan((prev) => ({ ...prev, gravida: e.target.value }))}
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="border px-4 py-2">Partus</td>
-                                <td className="border px-4 py-2">
-                                    <Input
-                                        placeholder="Partus"
-                                        type='number'
-                                        value={persalinan.partus}
-                                        onChange={(e) => setPersalinan((prev) => ({ ...prev, partus: e.target.value }))}
-                                    />
-                                </td>
-                                <td className="border px-4 py-2">Abortus</td>
-                                <td className="border px-4 py-2">
-                                    <Input
-                                        placeholder="Abortus"
-                                        type='number'
-                                        value={persalinan.abortus}
-                                        onChange={(e) => setPersalinan((prev) => ({ ...prev, abortus: e.target.value }))}
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="border px-4 py-2">Onset Kontraksi</td>
-                                <td className="border px-4 py-2" colSpan={3}>
-                                    <SearchableDropdown
-                                        data={[
-                                            { ID: 'spontan', DESKRIPSI: 'Spontan' },
-                                            { ID: 'induksi', DESKRIPSI: 'Induksi' },
-                                            { ID: 'non_spontan_non_induksi', DESKRIPSI: 'Non Spontan Non Induksi' },
-                                        ]}
-                                        value={persalinan.onset_kontraksi}
-                                        setValue={(value) => setPersalinan((prev) => ({ ...prev, onset_kontraksi: value }))}
-                                        placeholder="Pilih Onset Kontraksi"
-                                        getOptionLabel={(item) => item.DESKRIPSI}
-                                        getOptionValue={(item) => item.ID}
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="border px-4 py-2 font-semibold" colSpan={4}>
-                                    Delivery
-                                </td>
-                            </tr>
-                            {persalinan.delivery.map((item, idx) => (
-                                <React.Fragment key={idx}>
+                            {showPersalinan && (
+                                <>
                                     <tr>
-                                        <td className="border px-4 py-2">Sequence</td>
+                                        <td className="border px-4 py-2 text-center font-semibold" colSpan={4}>
+                                            Data Persalinan
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border px-4 py-2">Usia Kehamilan</td>
                                         <td className="border px-4 py-2">
                                             <Input
-                                                placeholder="Sequence"
-                                                type='number'
-                                                value={item.delivery_sequence}
-                                                onChange={(e) => updateDelivery(idx, 'delivery_sequence', e.target.value)}
+                                                placeholder="Dalam Minggu"
+                                                type="number"
+                                                value={persalinan.usia_kehamilan}
+                                                onChange={(e) => setPersalinan((prev) => ({ ...prev, usia_kehamilan: e.target.value }))}
                                             />
                                         </td>
-                                        <td className="border px-4 py-2">Method</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: 'vaginal', DESKRIPSI: 'Vaginal' },
-                                                    { ID: 'sc', DESKRIPSI: 'Caesar' },
-                                                ]}
-                                                value={item.delivery_method}
-                                                setValue={(value) => updateDelivery(idx, 'delivery_method', value)}
-                                                placeholder="Pilih Method"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className="border px-4 py-2">Tanggal & Jam</td>
+                                        <td className="border px-4 py-2">Gravida</td>
                                         <td className="border px-4 py-2">
                                             <Input
-                                                placeholder="Tanggal & Jam"
-                                                type="datetime-local"
-                                                value={item.delivery_dttm}
-                                                onChange={(e) => updateDelivery(idx, 'delivery_dttm', e.target.value)}
-                                            />
-                                        </td>
-                                        <td className="border px-4 py-2">Letak Janin</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: 'kepala', DESKRIPSI: 'Kepala' },
-                                                    { ID: 'sungsang', DESKRIPSI: 'Sungsang' },
-                                                    { ID: 'lintang', DESKRIPSI: 'Lintang' },
-                                                ]}
-                                                value={item.letak_janin}
-                                                setValue={(value) => updateDelivery(idx, 'letak_janin', value)}
-                                                placeholder="Pilih Letak Janin"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
+                                                placeholder="Gravida"
+                                                type="number"
+                                                value={persalinan.gravida}
+                                                onChange={(e) => setPersalinan((prev) => ({ ...prev, gravida: e.target.value }))}
                                             />
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className="border px-4 py-2">Kondisi</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: 'livebirth', DESKRIPSI: 'Live Birth' },
-                                                    { ID: 'stillbirth', DESKRIPSI: 'Still Birth' },
-                                                ]}
-                                                value={item.kondisi}
-                                                setValue={(value) => updateDelivery(idx, 'kondisi', value)}
-                                                placeholder="Pilih Kondisi"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                        <td className="border px-4 py-2">Manual</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: '1', DESKRIPSI: 'Iya' },
-                                                    { ID: '0', DESKRIPSI: 'Tidak' },
-                                                ]}
-                                                value={item.manual}
-                                                setValue={(value) => updateDelivery(idx, 'manual', value)}
-                                                placeholder="Pilih Manual"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className="border px-4 py-2">Forcep</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: '1', DESKRIPSI: 'Iya' },
-                                                    { ID: '0', DESKRIPSI: 'Tidak' },
-                                                ]}
-                                                value={item.use_forcep}
-                                                setValue={(value) => updateDelivery(idx, 'use_forcep', value)}
-                                                placeholder="Pilih Forsep"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                        <td className="border px-4 py-2">Vacuum</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: '1', DESKRIPSI: 'Iya' },
-                                                    { ID: '0', DESKRIPSI: 'Tidak' },
-                                                ]}
-                                                value={item.use_vacuum}
-                                                setValue={(value) => updateDelivery(idx, 'use_vacuum', value)}
-                                                placeholder="Pilih Vacuum"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className="border px-4 py-2">SHK Spesimen Ambil</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: 'ya', DESKRIPSI: 'Iya' },
-                                                    { ID: 'tidak', DESKRIPSI: 'Tidak' },
-                                                ]}
-                                                value={item.shk_spesimen_ambil}
-                                                setValue={(value) => updateDelivery(idx, 'shk_spesimen_ambil', value)}
-                                                placeholder="Pilih SHK Spesimen Ambil"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                        <td className="border px-4 py-2">SHK Lokasi</td>
-                                        <td className="border px-4 py-2">
-                                            <SearchableDropdown
-                                                data={[
-                                                    { ID: 'tumit', DESKRIPSI: 'Tumit' },
-                                                    { ID: 'vena', DESKRIPSI: 'Vena' },
-                                                ]}
-                                                value={item.shk_lokasi}
-                                                setValue={(value) => updateDelivery(idx, 'shk_lokasi', value)}
-                                                placeholder="Pilih SHK Lokasi"
-                                                getOptionLabel={(item) => item.DESKRIPSI}
-                                                getOptionValue={(item) => item.ID}
-                                            />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className="border px-4 py-2">Waktu Pengambilan SHK</td>
+                                        <td className="border px-4 py-2">Partus</td>
                                         <td className="border px-4 py-2">
                                             <Input
-                                                placeholder="Waktu Pengambilan SHK"
-                                                type="datetime-local"
-                                                value={item.shk_spesimen_dttm}
-                                                onChange={(e) => updateDelivery(idx, 'shk_spesimen_dttm', e.target.value)}
+                                                placeholder="Partus"
+                                                type="number"
+                                                value={persalinan.partus}
+                                                onChange={(e) => setPersalinan((prev) => ({ ...prev, partus: e.target.value }))}
                                             />
                                         </td>
-                                        <td className="border px-4 py-2">SHK Alasan</td>
+                                        <td className="border px-4 py-2">Abortus</td>
                                         <td className="border px-4 py-2">
+                                            <Input
+                                                placeholder="Abortus"
+                                                type="number"
+                                                value={persalinan.abortus}
+                                                onChange={(e) => setPersalinan((prev) => ({ ...prev, abortus: e.target.value }))}
+                                            />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border px-4 py-2">Onset Kontraksi</td>
+                                        <td className="border px-4 py-2" colSpan={3}>
                                             <SearchableDropdown
                                                 data={[
-                                                    { ID: "tidak-dapat", DESKRIPSI: 'Tidak Dapat' },
-                                                    { ID:  "akses-sulit", DESKRIPSI: 'Akses Sulit' },
+                                                    { ID: 'spontan', DESKRIPSI: 'Spontan' },
+                                                    { ID: 'induksi', DESKRIPSI: 'Induksi' },
+                                                    { ID: 'non_spontan_non_induksi', DESKRIPSI: 'Non Spontan Non Induksi' },
                                                 ]}
-                                                value={item.shk_alasan}
-                                                setValue={(value) => updateDelivery(idx, 'shk_alasan', value)}
-                                                placeholder="Pilih SHK Alasan"
+                                                value={persalinan.onset_kontraksi}
+                                                setValue={(value) => setPersalinan((prev) => ({ ...prev, onset_kontraksi: value }))}
+                                                placeholder="Pilih Onset Kontraksi"
                                                 getOptionLabel={(item) => item.DESKRIPSI}
                                                 getOptionValue={(item) => item.ID}
                                             />
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td className="border px-4 py-2 font-semibold" colSpan={4}>
+                                            Delivery
+                                        </td>
+                                    </tr>
+                                    {persalinan.delivery.map((item, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <tr>
+                                                <td className="border px-4 py-2">Sequence</td>
+                                                <td className="border px-4 py-2">
+                                                    <Input
+                                                        placeholder="Sequence"
+                                                        type="number"
+                                                        value={item.delivery_sequence}
+                                                        onChange={(e) => updateDelivery(idx, 'delivery_sequence', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-4 py-2">Method</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: 'vaginal', DESKRIPSI: 'Vaginal' },
+                                                            { ID: 'sc', DESKRIPSI: 'Caesar' },
+                                                        ]}
+                                                        value={item.delivery_method}
+                                                        setValue={(value) => updateDelivery(idx, 'delivery_method', value)}
+                                                        placeholder="Pilih Method"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border px-4 py-2">Tanggal & Jam</td>
+                                                <td className="border px-4 py-2">
+                                                    <Input
+                                                        placeholder="Tanggal & Jam"
+                                                        type="datetime-local"
+                                                        value={item.delivery_dttm}
+                                                        onChange={(e) => updateDelivery(idx, 'delivery_dttm', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-4 py-2">Letak Janin</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: 'kepala', DESKRIPSI: 'Kepala' },
+                                                            { ID: 'sungsang', DESKRIPSI: 'Sungsang' },
+                                                            { ID: 'lintang', DESKRIPSI: 'Lintang' },
+                                                        ]}
+                                                        value={item.letak_janin}
+                                                        setValue={(value) => updateDelivery(idx, 'letak_janin', value)}
+                                                        placeholder="Pilih Letak Janin"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border px-4 py-2">Kondisi</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: 'livebirth', DESKRIPSI: 'Live Birth' },
+                                                            { ID: 'stillbirth', DESKRIPSI: 'Still Birth' },
+                                                        ]}
+                                                        value={item.kondisi}
+                                                        setValue={(value) => updateDelivery(idx, 'kondisi', value)}
+                                                        placeholder="Pilih Kondisi"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                                <td className="border px-4 py-2">Manual</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: '1', DESKRIPSI: 'Iya' },
+                                                            { ID: '0', DESKRIPSI: 'Tidak' },
+                                                        ]}
+                                                        value={item.manual}
+                                                        setValue={(value) => updateDelivery(idx, 'manual', value)}
+                                                        placeholder="Pilih Manual"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border px-4 py-2">Forcep</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: '1', DESKRIPSI: 'Iya' },
+                                                            { ID: '0', DESKRIPSI: 'Tidak' },
+                                                        ]}
+                                                        value={item.use_forcep}
+                                                        setValue={(value) => updateDelivery(idx, 'use_forcep', value)}
+                                                        placeholder="Pilih Forsep"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                                <td className="border px-4 py-2">Vacuum</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: '1', DESKRIPSI: 'Iya' },
+                                                            { ID: '0', DESKRIPSI: 'Tidak' },
+                                                        ]}
+                                                        value={item.use_vacuum}
+                                                        setValue={(value) => updateDelivery(idx, 'use_vacuum', value)}
+                                                        placeholder="Pilih Vacuum"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border px-4 py-2">SHK Spesimen Ambil</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: 'ya', DESKRIPSI: 'Iya' },
+                                                            { ID: 'tidak', DESKRIPSI: 'Tidak' },
+                                                        ]}
+                                                        value={item.shk_spesimen_ambil}
+                                                        setValue={(value) => updateDelivery(idx, 'shk_spesimen_ambil', value)}
+                                                        placeholder="Pilih SHK Spesimen Ambil"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                                <td className="border px-4 py-2">SHK Lokasi</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: 'tumit', DESKRIPSI: 'Tumit' },
+                                                            { ID: 'vena', DESKRIPSI: 'Vena' },
+                                                        ]}
+                                                        value={item.shk_lokasi}
+                                                        setValue={(value) => updateDelivery(idx, 'shk_lokasi', value)}
+                                                        placeholder="Pilih SHK Lokasi"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border px-4 py-2">Waktu Pengambilan SHK</td>
+                                                <td className="border px-4 py-2">
+                                                    <Input
+                                                        placeholder="Waktu Pengambilan SHK"
+                                                        type="datetime-local"
+                                                        value={item.shk_spesimen_dttm}
+                                                        onChange={(e) => updateDelivery(idx, 'shk_spesimen_dttm', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-4 py-2">SHK Alasan</td>
+                                                <td className="border px-4 py-2">
+                                                    <SearchableDropdown
+                                                        data={[
+                                                            { ID: 'tidak-dapat', DESKRIPSI: 'Tidak Dapat' },
+                                                            { ID: 'akses-sulit', DESKRIPSI: 'Akses Sulit' },
+                                                        ]}
+                                                        value={item.shk_alasan}
+                                                        setValue={(value) => updateDelivery(idx, 'shk_alasan', value)}
+                                                        placeholder="Pilih SHK Alasan"
+                                                        getOptionLabel={(item) => item.DESKRIPSI}
+                                                        getOptionValue={(item) => item.ID}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td className="border px-4 py-2" colSpan={4}>
+                                                    <button
+                                                        type="button"
+                                                        className="mt-2 text-red-500"
+                                                        onClick={() => removeDelivery(idx)}
+                                                        disabled={persalinan.delivery.length === 1}
+                                                    >
+                                                        Hapus Delivery
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </React.Fragment>
+                                    ))}
                                     <tr>
                                         <td className="border px-4 py-2" colSpan={4}>
-                                            <button
-                                                type="button"
-                                                className="mt-2 text-red-500"
-                                                onClick={() => removeDelivery(idx)}
-                                                disabled={persalinan.delivery.length === 1}
-                                            >
-                                                Hapus Delivery
+                                            <button type="button" className="rounded bg-blue-500 px-2 py-1 text-white" onClick={addDelivery}>
+                                                Tambah Delivery
                                             </button>
                                         </td>
                                     </tr>
-                                </React.Fragment>
-                            ))}
-                            <tr>
-                                <td className="border px-4 py-2" colSpan={4}>
-                                    <button type="button" className="rounded bg-blue-500 px-2 py-1 text-white" onClick={addDelivery}>
-                                        Tambah Delivery
-                                    </button>
-                                </td>
-                            </tr>
+                                </>
+                            )}
                         </tbody>
                     </table>
                     <div>
                         <Button variant="outline" className="mt-4 bg-blue-500 text-white hover:bg-blue-600" onClick={handleSimpan}>
                             Simpan
                         </Button>
+                        <Button variant="outline" className="mt-4 bg-blue-500 text-white hover:bg-blue-600" onClick={handleGrouper}>
+                            Grouper
+                        </Button>
+
                     </div>
                     {/* Diagnosa & Procedure Modal */}
                     <DiagnosaModal

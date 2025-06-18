@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
 use App\Models\BPJS\Kunjungan;
+use App\Models\Eklaim\DataKlaim;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Master\Dokter;
@@ -173,11 +174,105 @@ class KlaimController extends Controller
             'nomor_sep' => $pengajuanKlaim->nomor_SEP,
         ];
 
+        // Diagnosa: jika ada duplikat, tambahkan +N pada value yang duplikat (hanya pada kemunculan terakhir)
+        $diagnosaArr = $request->input('diagnosa');
+        if (is_array($diagnosaArr)) {
+            $diagnosaCount = array_count_values($diagnosaArr);
+            $diagnosaResult = [];
+            $used = [];
+            foreach ($diagnosaArr as $val) {
+                if (!isset($used[$val])) $used[$val] = 0;
+                $used[$val]++;
+                if ($diagnosaCount[$val] > 1 && $used[$val] == $diagnosaCount[$val]) {
+                    // Hanya tambahkan +N pada kemunculan terakhir
+                    $diagnosaResult[] = $val . '+' . $diagnosaCount[$val];
+                } elseif ($diagnosaCount[$val] > 1) {
+                    // Lewati kemunculan sebelumnya
+                    continue;
+                } else {
+                    $diagnosaResult[] = $val;
+                }
+            }
+            $diagnosa = count($diagnosaResult) > 0 ? implode('#', $diagnosaResult) : '#';
+        } elseif (empty($diagnosaArr)) {
+            $diagnosa = '#';
+        } else {
+            $diagnosa = $diagnosaArr;
+        }
+
+        // Procedure: jika ada duplikat, tambahkan +N pada value yang duplikat (hanya pada kemunculan terakhir)
+        $procedureArr = $request->input('procedure');
+        if (is_array($procedureArr)) {
+            $procedureCount = array_count_values($procedureArr);
+            $procedureResult = [];
+            $usedProc = [];
+            foreach ($procedureArr as $val) {
+                if (!isset($usedProc[$val])) $usedProc[$val] = 0;
+                $usedProc[$val]++;
+                if ($procedureCount[$val] > 1 && $usedProc[$val] == $procedureCount[$val]) {
+                    $procedureResult[] = $val . '+' . $procedureCount[$val];
+                } elseif ($procedureCount[$val] > 1) {
+                    continue;
+                } else {
+                    $procedureResult[] = $val;
+                }
+            }
+            $procedure = count($procedureResult) > 0 ? implode('#', $procedureResult) : '#';
+        } elseif (empty($procedureArr)) {
+            $procedure = '#';
+        } else {
+            $procedure = $procedureArr;
+        }
+
+
+        // Persalinan: jika semua input kosong/null, set semua field null
+        $persalinanInput = $request->input('persalinan');
+        $isPersalinanKosong = true;
+        if (is_array($persalinanInput)) {
+            foreach (['usia_kehamilan', 'gravida', 'partus', 'abortus', 'onset_kontraksi'] as $field) {
+                if (!empty($persalinanInput[$field])) {
+                    $isPersalinanKosong = false;
+                    break;
+                }
+            }
+            // Cek delivery jika ada isian
+            if ($isPersalinanKosong && !empty($persalinanInput['delivery']) && is_array($persalinanInput['delivery'])) {
+                foreach ($persalinanInput['delivery'] as $delivery) {
+                    foreach ($delivery as $val) {
+                        if (!empty($val)) {
+                            $isPersalinanKosong = false;
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+
+        $persalinan = [
+            "usia_kehamilan" => null,
+            "gravida" => null,
+            "partus" => null,
+            "abortus" => null,
+            "onset_kontraksi" => null,
+            "delivery" => null,
+        ];
+
+        if (!$isPersalinanKosong && is_array($persalinanInput)) {
+            $persalinan = [
+                "usia_kehamilan" => $persalinanInput['usia_kehamilan'] ?? null,
+                "gravida" => $persalinanInput['gravida'] ?? null,
+                "partus" => $persalinanInput['partus'] ?? null,
+                "abortus" => $persalinanInput['abortus'] ?? null,
+                "onset_kontraksi" => $persalinanInput['onset_kontraksi'] ?? null,
+                "delivery" => !empty($persalinanInput['delivery']) ? $persalinanInput['delivery'] : null,
+            ];
+        }
+
         $data = [
             "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
             "nomor_kartu" => json_decode($pengajuanKlaim->request)->nomor_kartu,
-            "tgl_masuk" => $request->input('tanggal_masuk'),
-            "tgl_pulang" => $request->input('tanggal_pulang'),
+            "tgl_masuk" => $request->input('tgl_masuk'),
+            "tgl_pulang" => $request->input('tgl_pulang'),
             "cara_masuk" => $request->input('cara_masuk'),
             "jenis_rawat" => $request->input('jenis_rawat'),
             "kelas_rawat" => $request->input('kelas_rawat'),
@@ -200,13 +295,14 @@ class KlaimController extends Controller
             "sistole" => $request->input('sistole'),
             "diastole" => $request->input('diastole'),
             "discharge_status" => $request->input('discharge_status'),
-            "diagnosa" => $request->input('diagnosa'),
-            "procedure" => $request->input('procedure'),
+            "diagnosa" => $diagnosa,
+            "procedure" => $procedure,
             "diagnosa_inagrouper" => $request->input('diagnosa_inagrouper'),
             "procedure_inagrouper" => $request->input('procedure_inagrouper'),
             "tarif_rs" => [
                 "prosedur_non_bedah" => $request->input('tarif_rs.prosedur_non_bedah'),
                 "prosedur_bedah" => $request->input('tarif_rs.prosedur_bedah'),
+                "konsultasi" => $request->input('tarif_rs.konsultasi'),
                 "tenaga_ahli" => $request->input('tarif_rs.tenaga_ahli'),
                 "keperawatan" => $request->input('tarif_rs.keperawatan'),
                 "penunjang" => $request->input('tarif_rs.penunjang'),
@@ -273,14 +369,7 @@ class KlaimController extends Controller
                     "respiration" => $request->input('apgar.menit_5.respiration')
                 ]
             ],
-            "persalinan" => [
-                "usia_kehamilan" => $request->input('persalinan.usia_kehamilan'),
-                "gravida" => $request->input('persalinan.gravida'),
-                "partus" => $request->input('persalinan.partus'),
-                "abortus" => $request->input('persalinan.abortus'),
-                "onset_kontraksi" => $request->input('persalinan.onset_kontraksi'),
-                "delivery" => $request->input('persalinan.delivery'), // <-- array of delivery
-            ],
+            "persalinan" => $persalinan,
             "tarif_poli_eks" => $request->input('tarif_poli_eks'),
             "nama_dokter" => $request->input('nama_dokter'),
             "kode_tarif" => $request->input('kode_tarif'),
@@ -290,7 +379,186 @@ class KlaimController extends Controller
             "coder_nik" => $request->input('coder_nik'),
         ];
 
-        dd($data);
+        DB::beginTransaction();
+        try {
+            // Simpan data utama
+            $klaimData = DataKlaim::updateOrCreate(
+                ['pengajuan_klaim_id' => $pengajuanKlaim->id],
+                [
+                    'pengajuan_klaim_id' => $data['pengajuan_klaim_id'] ?? $pengajuanKlaim->id,
+                    'nomor_sep' => $data['nomor_sep'],
+                    'nomor_kartu' => $data['nomor_kartu'],
+                    'tgl_masuk' => $data['tgl_masuk'],
+                    'tgl_pulang' => $data['tgl_pulang'],
+                    'cara_masuk' => $data['cara_masuk'],
+                    'jenis_rawat' => $data['jenis_rawat'],
+                    'kelas_rawat' => $data['kelas_rawat'],
+                    'adl_sub_acute' => $data['adl_sub_acute'],
+                    'adl_chronic' => $data['adl_chronic'],
+                    'icu_indikator' => $data['icu_indikator'],
+                    'icu_los' => $data['icu_los'],
+                    'ventilator_hour' => $data['ventilator_hour'],
+                    'ventilator_use_ind' => $data['ventilator']['use_ind'] ?? null,
+                    'ventilator_start_dttm' => $data['ventilator']['start_dttm'] ?? null,
+                    'ventilator_stop_dttm' => $data['ventilator']['stop_dttm'] ?? null,
+                    'upgrade_class_ind' => $data['upgrade_class_ind'],
+                    'upgrade_class_class' => $data['upgrade_class_class'],
+                    'upgrade_class_los' => $data['upgrade_class_los'],
+                    'upgrade_class_payor' => $data['upgrade_class_payor'],
+                    'add_payment_pct' => $data['add_payment_pct'],
+                    'birth_weight' => $data['birth_weight'],
+                    'sistole' => $data['sistole'],
+                    'diastole' => $data['diastole'],
+                    'discharge_status' => $data['discharge_status'],
+                    'diagnosa' => $diagnosa,
+                    'procedure' => $procedure,
+                    'diagnosa_inagrouper' => $diagnosa,
+                    'procedure_inagrouper' => $procedure,
+                    'pemulasaraan_jenazah' => $data['pemulasaraan_jenazah'],
+                    'kantong_jenazah' => $data['kantong_jenazah'],
+                    'peti_jenazah' => $data['peti_jenazah'],
+                    'plastik_erat' => $data['plastik_erat'],
+                    'desinfektan_jenazah' => $data['desinfektan_jenazah'],
+                    'mobil_jenazah' => $data['mobil_jenazah'],
+                    'desinfektan_mobil_jenazah' => $data['desinfektan_mobil_jenazah'],
+                    'covid19_status_cd' => $data['covid19_status_cd'],
+                    'nomor_kartu_t' => $data['nomor_kartu_t'],
+                    'episodes' => $data['episodes'],
+                    'covid19_cc_ind' => $data['covid19_cc_ind'],
+                    'covid19_rs_darurat_ind' => $data['covid19_rs_darurat_ind'],
+                    'covid19_co_insidense_ind' => $data['covid19_co_insidense_ind'],
+                    'terapi_konvalesen' => $data['terapi_konvalesen'],
+                    'akses_naat' => $data['akses_naat'],
+                    'isoman_ind' => $data['isoman_ind'],
+                    'bayi_lahir_status_cd' => $data['bayi_lahir_status_cd'],
+                    'dializer_single_use' => $data['dializer_single_use'],
+                    'kantong_darah' => $data['kantong_darah'],
+                    'alteplase_ind' => $data['alteplase_ind'],
+                    'tarif_poli_eks' => $data['tarif_poli_eks'],
+                    'nama_dokter' => $data['nama_dokter'],
+                    'kode_tarif' => $data['kode_tarif'],
+                    'payor_id' => $data['payor_id'],
+                    'payor_cd' => $data['payor_cd'],
+                    'cob_cd' => $data['cob_cd'],
+                    'coder_nik' => $data['coder_nik'],
+                ]
+            );
+
+            // Simpan tarif_rs
+            if (!empty($data['tarif_rs'])) {
+                $klaimData->tarifRs()->updateOrCreate([], $data['tarif_rs']);
+            }
+
+            // Simpan persalinan & delivery
+            if (!empty($data['persalinan'])) {
+                $persalinan = $klaimData->persalinan()->updateOrCreate([], [
+                    'usia_kehamilan' => $data['persalinan']['usia_kehamilan'],
+                    'gravida' => $data['persalinan']['gravida'],
+                    'partus' => $data['persalinan']['partus'],
+                    'abortus' => $data['persalinan']['abortus'],
+                    'onset_kontraksi' => $data['persalinan']['onset_kontraksi'],
+                ]);
+                // Simpan delivery
+                if (!empty($data['persalinan']['delivery']) && is_array($data['persalinan']['delivery'])) {
+                    $persalinan->deliveries()->delete();
+                    foreach ($data['persalinan']['delivery'] as $delivery) {
+                        $persalinan->deliveries()->create($delivery);
+                    }
+                }
+            }
+
+            // Simpan apgar
+            if (!empty($data['apgar'])) {
+                $klaimData->apgar()->updateOrCreate([], [
+                    'appearance_1' => $data['apgar']['menit_1']['appearance'] ?? null,
+                    'pulse_1' => $data['apgar']['menit_1']['pulse'] ?? null,
+                    'grimace_1' => $data['apgar']['menit_1']['grimace'] ?? null,
+                    'activity_1' => $data['apgar']['menit_1']['activity'] ?? null,
+                    'respiration_1' => $data['apgar']['menit_1']['respiration'] ?? null,
+                    'appearance_5' => $data['apgar']['menit_5']['appearance'] ?? null,
+                    'pulse_5' => $data['apgar']['menit_5']['pulse'] ?? null,
+                    'grimace_5' => $data['apgar']['menit_5']['grimace'] ?? null,
+                    'activity_5' => $data['apgar']['menit_5']['activity'] ?? null,
+                    'respiration_5' => $data['apgar']['menit_5']['respiration'] ?? null,
+                ]);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
+
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengirim data klaim: ' . $send['metadata']['message']
+            ], 500);
+        }
+
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
+        DB::connection('eklaim')->commit();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data klaim berhasil diperbarui.'
+        ]);
+    }
+
+    public function groupStageOneKlaim(PengajuanKlaim $pengajuanKlaim)
+    {
+        $metadata = [
+            'method' => 'grouper',
+            'stage' => '1'
+        ];
+
+        $data = [
+            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
+        ];
+
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
+
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengirim data klaim: ' . $send['metadata']['message']
+            ], 500);
+        }
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data klaim berhasil dikirim digrouper.'
+        ]);
     }
 
     public function hapusDataKlaim(PengajuanKlaim $pengajuanKlaim)
@@ -537,27 +805,32 @@ class KlaimController extends Controller
 
     public function loadDataKlaim(PengajuanKlaim $pengajuanKlaim)
     {
+        // Ambil data klaim dari database jika sudah ada
+        $klaimData = \App\Models\Eklaim\DataKlaim::with([
+            'apgar',
+            'persalinan.deliveries',
+            'tarifRs'
+        ])->where('pengajuan_klaim_id', $pengajuanKlaim->id)->first();
+
+        if ($klaimData) {
+            return response()->json([
+                'klaimData' => $klaimData,
+                'apgar' => $klaimData->apgar,
+                'persalinan' => $klaimData->persalinan,
+                'delivery' => $klaimData->persalinan ? $klaimData->persalinan->deliveries : [],
+                'tarif_rs' => $klaimData->tarifRs,
+                'from' => 'db'
+            ]);
+        }
+
+        // Jika belum ada, fallback ke data kunjungan (seperti sebelumnya)
         $data = $pengajuanKlaim->load([
             'pendaftaranPoli.kunjunganPasien.ruangan' => function ($query) {
                 $query->where('JENIS_KUNJUNGAN', 1);
             },
         ]);
 
-        // dd($data->pendaftaranPoli->kunjunganPasien[0]['DPJP']);
-
-        $dokter = Dokter::with('pegawai')->where('ID', $data->pendaftaranPoli->kunjunganPasien[0]['DPJP'])->first();
-
-        // dd($dokter->pegawai->NAMA);
-
-        // $data->dokter = $dokter->map(function ($item) {
-        //     $gelarDepan = $item->pegawai->GELAR_DEPAN ? $item->pegawai->GELAR_DEPAN . '.' : '';
-        //     $gelarBelakang = $item->pegawai->GELAR_BELAKANG ? ',' . $item->pegawai->GELAR_BELAKANG : '';
-        //     return [
-        //         'NIP' => $item->NIP,
-        //         'NAMA' => $gelarDepan . $item->pegawai->NAMA . $gelarBelakang,
-        //     ];
-        // });
-
+        $dokter = \App\Models\Master\Dokter::with('pegawai')->where('ID', $data->pendaftaranPoli->kunjunganPasien[0]['DPJP'])->first();
         $gelarDepan = $dokter->pegawai->GELAR_DEPAN ? $dokter->pegawai->GELAR_DEPAN . '.' : '';
         $gelarBelakang = $dokter->pegawai->GELAR_BELAKANG ? ',' . $dokter->pegawai->GELAR_BELAKANG : '';
         $data->dokter = [
@@ -565,16 +838,15 @@ class KlaimController extends Controller
             'NAMA' => $gelarDepan . $dokter->pegawai->NAMA . $gelarBelakang,
         ];
 
-        $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN',  $pengajuanKlaim->nomor_pendaftaran)
-            ->first();
-
-        $tagihan = Tagihan::where('ID', $tagihanPendaftaran->TAGIHAN)
-            ->first();
-
+        $tagihanPendaftaran = \App\Models\Pembayaran\TagihanPendaftaran::where('PENDAFTARAN',  $pengajuanKlaim->nomor_pendaftaran)->first();
+        $tagihan = \App\Models\Pembayaran\Tagihan::where('ID', $tagihanPendaftaran->TAGIHAN)->first();
         $data->tagihan = $tagihan;
-        
 
-        return response()->json($data);
+        return response()->json([
+            'klaimData' => null,
+            'kunjungan' => $data,
+            'from' => 'kunjungan'
+        ]);
     }
 
     public function getDataKlaim(PengajuanKlaim $pengajuanKlaim)
