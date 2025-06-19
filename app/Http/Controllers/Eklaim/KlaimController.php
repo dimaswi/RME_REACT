@@ -9,7 +9,7 @@ use App\Models\Eklaim\GrouperOne;
 use App\Models\Eklaim\GrouperOneCBG;
 use App\Models\Eklaim\GrouperOneChronic;
 use App\Models\Eklaim\GrouperOneInagrouper;
-use App\Models\Eklaim\GrouperOneSpecialCMG;
+use App\Models\Eklaim\grouperOneSpecialCmgOption;
 use App\Models\Eklaim\GrouperOneSubAcute;
 use App\Models\Eklaim\GrouperOneTarif;
 use App\Models\Eklaim\LogKlaim;
@@ -91,10 +91,10 @@ class KlaimController extends Controller
         $metadata = [
             'method' => 'new_claim'
         ];
-
+        $klaimNumber = $this->generateClaimNumber();
         $data = [
             "nomor_kartu" => $request->input('nomor_kartu'),
-            "nomor_sep" => $request->input('nomor_sep'),
+            "nomor_sep" => $klaimNumber,
             "nomor_rm" => (string) $request->input('nomor_rm'),
             "nama_pasien" => $request->input('nama_pasien'),
             "tgl_lahir" => $request->input('tgl_lahir'),
@@ -102,18 +102,27 @@ class KlaimController extends Controller
         ];
 
         // Init Klaim Controller
-        $this->generateClaimNumber();
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
         $send = $inacbgController->sendToEklaim($metadata, $data);
 
-        // Check response Eklaim
-
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $data['nomor_sep'],
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengajukan klaim: ' . $send['metadata']['message']);
+        }
         DB::connection('eklaim')->beginTransaction();
         $pasien = Pasien::where('NORM', $data['nomor_rm'])->firstOrFail();
         $pengajuanKlaim = PengajuanKlaim::create([
             'NORM' => $pasien->NORM,
             'nomor_pendaftaran' => $request->input('nomor_pendaftaran'),
             'nomor_SEP' => $request->input('nomor_sep'),
+            'klaim_number' => $klaimNumber,
             'status' => 1,
             'jenis_perawatan' => $request->input('jenis_perawatan'),
             'petugas' => Auth::user()->nama,
@@ -138,40 +147,45 @@ class KlaimController extends Controller
             'method' => 'new_claim'
         ];
 
-        $data = json_decode($pengajuanKlaim->request);
+        $klaimNumber = $this->generateClaimNumber();
 
+        // Ubah request menjadi array
+        $requestData = json_decode($pengajuanKlaim->request, true);
+
+        // Ganti nomor_sep
+        $requestData['nomor_sep'] = $klaimNumber;
+
+        // Kirim ke eklaim
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $requestData);
 
-        $getClaimNumber = $this->generateClaimNumber();
-
-        if ($getClaimNumber != "Ok") {
-            return redirect()->back()->with('error', 'Gagal mengajukan ulang klaim: Gagal mendapatkan nomor klaim baru');
-        }
-
-        $send = $inacbgController->sendToEklaim($metadata, $data);
         if ($send['metadata']['code'] != 200) {
             DB::connection('eklaim')->beginTransaction();
             LogKlaim::create([
                 'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
                 'method' => json_encode($metadata),
-                'request' => $pengajuanKlaim->request,
+                'request' => json_encode($requestData),
                 'response' => json_encode($send),
             ]);
             DB::connection('eklaim')->commit();
-            return redirect()->back()->with('error', 'Gagal mengirim pengajuan klaim: ' . $send['metadata']['message']);
+            return redirect()->back()->with('error', 'Gagal mengajukan ulang klaim: ' . $send['metadata']['message']);
         }
+
         LogKlaim::create([
-            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'nomor_SEP' => $klaimNumber,
             'method' => json_encode($metadata),
-            'request' => $pengajuanKlaim->request,
+            'request' => json_encode($requestData),
             'response' => json_encode($send),
         ]);
 
+        // Update request dan nomor_SEP di database
         $pengajuanKlaim->update([
-            'status' => 1, // status 1 untuk klaim berhasil
+            'request' => json_encode($requestData),
+            'nomor_SEP' => $klaimNumber,
+            'status' => 1,
         ]);
         DB::connection('eklaim')->commit();
-        return redirect()->back()->with('success', 'Pengajuan klaim berhasil dibuat.');
+        return redirect()->back()->with('success', 'Pengajuan ulang klaim berhasil.');
     }
 
     public function updateDataKlaim(Request $request, PengajuanKlaim $pengajuanKlaim)
@@ -276,7 +290,7 @@ class KlaimController extends Controller
         }
 
         $data = [
-            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->klaim_number,
             "nomor_kartu" => json_decode($pengajuanKlaim->request)->nomor_kartu,
             "tgl_masuk" => $request->input('tgl_masuk'),
             "tgl_pulang" => $request->input('tgl_pulang'),
@@ -535,7 +549,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->klaim_number,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
@@ -549,15 +563,272 @@ class KlaimController extends Controller
                 'request' => json_encode($data),
                 'response' => json_encode($send),
             ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        }
 
-            
+        // Mulai simpan data ke database
+        DB::connection('eklaim')->beginTransaction();
+        try {
+            $response = $send['response'] ?? [];
+            // 1. Simpan GrouperOne (utama)
+            $grouperOne = \App\Models\Eklaim\GrouperOne::updateOrCreate(
+                [
+                    'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                    'kelas' => $response['kelas'] ?? null,
+                ],
+                [
+                    'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                    'kelas' => $response['kelas'] ?? null,
+                    'inacbg_version' => $response['inacbg_version'] ?? null,
+                ]
+            );
+
+            // 2. Simpan GrouperOneCBG
+            if (!empty($response['cbg'])) {
+                \App\Models\Eklaim\GrouperOneCBG::updateOrCreate(
+                    [
+                        'grouper_one_id' => $grouperOne->id,
+                        'code' => $response['cbg']['code'] ?? null,
+                    ],
+                    [
+                        'grouper_one_id' => $grouperOne->id,
+                        'code' => $response['cbg']['code'] ?? null,
+                        'description' => $response['cbg']['description'] ?? null,
+                        'base_tariff' => null, // Tidak ada di JSON
+                        'tariff' => $response['cbg']['tariff'] ?? null,
+                    ]
+                );
+            }
+
+            // 3. Simpan GrouperOneSubAcute
+            if (!empty($response['sub_acute'])) {
+                \App\Models\Eklaim\GrouperOneSubAcute::updateOrCreate(
+                    [
+                        'grouper_one_id' => $grouperOne->id,
+                        'code' => $response['sub_acute']['code'] ?? null,
+                    ],
+                    [
+                        'grouper_one_id' => $grouperOne->id,
+                        'code' => $response['sub_acute']['code'] ?? null,
+                        'description' => $response['sub_acute']['description'] ?? null,
+                        'tarif' => $response['sub_acute']['tariff'] ?? null,
+                    ]
+                );
+            }
+
+            // 4. Simpan GrouperOneChronic
+            if (!empty($response['chronic'])) {
+                \App\Models\Eklaim\GrouperOneChronic::updateOrCreate(
+                    [
+                        'grouper_one_id' => $grouperOne->id,
+                        'code' => $response['chronic']['code'] ?? null,
+                    ],
+                    [
+                        'grouper_one_id' => $grouperOne->id,
+                        'code' => $response['chronic']['code'] ?? null,
+                        'description' => $response['chronic']['description'] ?? null,
+                        'tarif' => $response['chronic']['tariff'] ?? null,
+                    ]
+                );
+            }
+
+            // 5. Simpan GrouperOneTarif (tarif_alt)
+            if (!empty($send['tarif_alt']) && is_array($send['tarif_alt'])) {
+                foreach ($send['tarif_alt'] as $tarif) {
+                    \App\Models\Eklaim\GrouperOneTarif::updateOrCreate(
+                        [
+                            'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                            'kelas' => $tarif['kelas'] ?? null,
+                        ],
+                        [
+                            'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                            'kelas' => $tarif['kelas'] ?? null,
+                            'tarif_inacbg' => $tarif['tarif_inacbg'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            // 6. Simpan grouperOneSpecialCmgOption (special_cmg_option)
+            if (!empty($send['special_cmg_option']) && is_array($send['special_cmg_option'])) {
+                foreach ($send['special_cmg_option'] as $cmg) {
+                    \App\Models\Eklaim\grouperOneSpecialCmgOption::updateOrCreate(
+                        [
+                            'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                            'code' => $cmg['code'] ?? null,
+                        ],
+                        [
+                            'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                            'code' => $cmg['code'] ?? null,
+                            'description' => $cmg['description'] ?? null,
+                            'type' => $cmg['type'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            // 7. Simpan GrouperOneInagrouper (response_inagrouper)
+            if (!empty($send['response_inagrouper'])) {
+                $inagrouper = $send['response_inagrouper'];
+                \App\Models\Eklaim\GrouperOneInagrouper::updateOrCreate(
+                    [
+                        'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                        'mdc_number' => $inagrouper['mdc_number'] ?? null,
+                    ],
+                    [
+                        'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                        'mdc_number' => $inagrouper['mdc_number'] ?? null,
+                        'mdc_description' => $inagrouper['mdc_description'] ?? null,
+                        'drg_code' => $inagrouper['drg_code'] ?? null,
+                        'drg_description' => $inagrouper['drg_description'] ?? null,
+                    ]
+                );
+            }
+
+            PengajuanKlaim::where('id', $pengajuanKlaim->id)->update([
+                'status' => 2, // status 2 untuk klaim sudah digrouper
+            ]);
 
             DB::connection('eklaim')->commit();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal mengirim data klaim: ' . $send['metadata']['message']
-            ], 500);
+
+            return redirect()->back()->with('success', 'Data berhasil digrouping');
+        } catch (\Exception $e) {
+            DB::connection('eklaim')->rollBack();
+            return redirect()->back()->with('error', 'Gagal menyimpan data grouper: ' . $e->getMessage());
         }
+
+        // // Logging sukses
+        // LogKlaim::create([
+        //     'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+        //     'method' => json_encode($metadata),
+        //     'request' => json_encode($data),
+        //     'response' => json_encode($send),
+        // ]);
+
+        // return redirect()->back()->with('success', 'Data berhasil digrouping');
+    }
+
+    public function groupStageTwoKlaim(PengajuanKlaim $pengajuanKlaim, Request $request)
+    {
+        $metadata = [
+            'method' => 'grouper',
+            'stage' => '2'
+        ];
+
+        $data = [
+            "nomor_sep" => (string) $pengajuanKlaim->klaim_number,
+            "special_cmg" => $request->input('special_cmg') ?? "#",
+        ];
+
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        }
+
+        try {
+            // Mulai simpan data ke database
+            DB::connection('eklaim')->beginTransaction();
+            $response = $send['response'] ?? [];
+            // 1. Update Data Pada GrouperOneCbg
+            if (!empty($response['cbg'])) {
+                $grouperOne = \App\Models\Eklaim\GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->first();
+                if ($grouperOne) {
+                    \App\Models\Eklaim\GrouperOneCBG::updateOrCreate(
+                        [
+                            'grouper_one_id' => $grouperOne->id,
+                            'code' => $response['cbg']['code'] ?? null,
+                        ],
+                        [
+                            'grouper_one_id' => $grouperOne->id,
+                            'code' => $response['cbg']['code'] ?? null,
+                            'description' => $response['cbg']['description'] ?? null,
+                            'base_tariff' => $response['cbg']['base_tariff'] ?? null,
+                            'tariff' => $response['cbg']['tariff'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            // 2. Simpan GrouperTwoSpecialCmg
+            if (!empty($response['special_cmg']) && is_array($response['special_cmg'])) {
+                $grouperOne = $grouperOne ?? \App\Models\Eklaim\GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->first();
+                foreach ($response['special_cmg'] as $cmg) {
+                    \App\Models\Eklaim\GrouperTwoSpecialCMG::updateOrCreate(
+                        [
+                            'grouper_one_id' => $grouperOne ? $grouperOne->id : null,
+                            'code' => $cmg['code'] ?? null,
+                        ],
+                        [
+                            'grouper_one_id' => $grouperOne ? $grouperOne->id : null,
+                            'code' => $cmg['code'] ?? null,
+                            'description' => $cmg['description'] ?? null,
+                            'type' => $cmg['type'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            // 3. Update GrouperOne kolom add_payment_amt
+            if (isset($response['add_payment_amt'])) {
+                $grouperOne = $grouperOne ?? \App\Models\Eklaim\GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->first();
+                if ($grouperOne) {
+                    $grouperOne->add_payment_amt = $response['add_payment_amt'];
+                    $grouperOne->save();
+                }
+            }
+
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('success', 'Data berhasil digrouping');
+        } catch (\Throwable $th) {
+            DB::connection('eklaim')->rollBack();
+            return redirect()->back()->with('error', 'Gagal menyimpan data grouper: ' . $th->getMessage());
+        }
+    }
+
+    public function groupStageFinalKlaim(PengajuanKlaim $pengajuanKlaim)
+    {
+        $metadata = [
+            'method' => 'claim_final',
+        ];
+
+        $data = [
+            'nomor_sep' => (string) $pengajuanKlaim->nomor_SEP,
+            'coder_nik' => "3522133010010003",
+        ];
+
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        }
+        PengajuanKlaim::where('id', $pengajuanKlaim->id)->update([
+            'status' => 3, // status 3 untuk klaim final
+        ]);
+
         LogKlaim::create([
             'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
             'method' => json_encode($metadata),
@@ -565,10 +836,8 @@ class KlaimController extends Controller
             'response' => json_encode($send),
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data klaim berhasil dikirim digrouper.'
-        ]);
+        DB::connection('eklaim')->commit();
+        return redirect()->back()->with('success', 'Data klaim berhasil dikirim untuk tahap final.');
     }
 
     public function hapusDataKlaim(PengajuanKlaim $pengajuanKlaim)
@@ -578,7 +847,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => $pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => $pengajuanKlaim->klaim_number,
             "coder_nik" => "3522133010010003"
         ];
 
@@ -593,7 +862,7 @@ class KlaimController extends Controller
                 'response' => json_encode($send),
             ]);
             DB::connection('eklaim')->commit();
-            return redirect()->back()->with('error', 'Gagal menghapus data klaim: ' . $send['metadata']['message']);
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
         }
         LogKlaim::create([
             'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
@@ -616,7 +885,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->klaim_number,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
@@ -630,7 +899,7 @@ class KlaimController extends Controller
                 'response' => json_encode($send),
             ]);
             DB::connection('eklaim')->commit();
-            return redirect()->back()->with('error', 'Gagal menghapus data klaim: ' . $send['metadata']['message']);
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
         }
         LogKlaim::create([
             'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
@@ -684,7 +953,7 @@ class KlaimController extends Controller
         ]);
         DB::connection('eklaim')->commit();
 
-        return "Ok";
+        return $send['response']['claim_number'] ?? "Not Ok";
     }
 
     public function updateDataPasien(Pasien $pasien, Request $request)
@@ -862,12 +1131,10 @@ class KlaimController extends Controller
     public function loadDataGroupOne(PengajuanKlaim $pengajuanKlaim)
     {
         $data = $pengajuanKlaim;
-        $data->grouperone = GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->with('cbg')->first();
-        $data->grouperOneChronic = GrouperOneChronic::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
-        $data->grouperOneSubAcute = GrouperOneSubAcute::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperone = GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->with(['cbg', 'subAcute', 'chronic', 'specialCmg'])->first();
         $data->grouperOneInagrouper = GrouperOneInagrouper::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
         $data->grouperOneTarif = GrouperOneTarif::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
-        $data->grouperOneSpecialCmg = GrouperOneSpecialCMG::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperOneSpecialCmgOption = grouperOneSpecialCmgOption::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
 
         return response()->json($data);
     }
@@ -879,7 +1146,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => (string) $pengajuanKlaim->klaim_number,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
@@ -917,7 +1184,7 @@ class KlaimController extends Controller
         ];
 
         $data = [
-            "nomor_sep" => $pengajuanKlaim->nomor_SEP,
+            "nomor_sep" => $pengajuanKlaim->klaim_number,
         ];
 
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();

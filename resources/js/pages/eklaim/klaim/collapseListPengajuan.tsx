@@ -2,8 +2,9 @@ import SearchableDropdown from '@/components/SearchableDropdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { router } from '@inertiajs/react';
 import axios from 'axios';
-import { Loader } from 'lucide-react';
+import { Loader, Save, Trash } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import DiagnosaModal from './DiagnosaModal';
@@ -69,6 +70,9 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const [kodeTarifRsPoliEksekutif, setKodeTarifRsPoliEksekutif] = useState('DS');
     const [sistole, setSistole] = useState('');
     const [diastole, setDiastole] = useState('');
+    const [loadingSimpan, setLoadingSimpan] = useState(false);
+    const [loadingGrouper, setLoadingGrouper] = useState(false);
+    const [loadingHapus, setLoadingHapus] = useState(false);
 
     // --- Persalinan State ---
     const [persalinan, setPersalinan] = useState({
@@ -358,7 +362,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             const klaimData = klaimRes.data;
-
             if (klaimData && klaimData.klaimData) {
                 // Jika data klaim sudah ada di database, set state dari klaimData
                 setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
@@ -395,13 +398,13 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     klaimStringToArray(klaimData.klaimData.diagnosa).map((id: string) => ({
                         id,
                         description: '', // Anda bisa fetch deskripsi jika perlu
-                    }))
+                    })),
                 );
                 setSelectedProcedure(
                     klaimStringToArray(klaimData.klaimData.procedure).map((id: string) => ({
                         id,
                         description: '', // Anda bisa fetch deskripsi jika perlu
-                    }))
+                    })),
                 );
 
                 // Tarif RS
@@ -457,35 +460,35 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         onset_kontraksi: klaimData.persalinan.onset_kontraksi || '',
                         delivery: Array.isArray(klaimData.delivery)
                             ? klaimData.delivery.map((d: any) => ({
-                                delivery_sequence: d.delivery_sequence || '',
-                                delivery_method: d.delivery_method || '',
-                                delivery_dttm: d.delivery_dttm || '',
-                                letak_janin: d.letak_janin || '',
-                                kondisi: d.kondisi || '',
-                                use_manual: d.use_manual || '',
-                                use_forcep: d.use_forcep || '',
-                                use_vacuum: d.use_vacuum || '',
-                                shk_spesimen_ambil: d.shk_spesimen_ambil || '',
-                                shk_lokasi: d.shk_lokasi || '',
-                                shk_spesimen_dttm: d.shk_spesimen_dttm || '',
-                                shk_alasan: d.shk_alasan || '',
-                            }))
+                                  delivery_sequence: d.delivery_sequence || '',
+                                  delivery_method: d.delivery_method || '',
+                                  delivery_dttm: d.delivery_dttm || '',
+                                  letak_janin: d.letak_janin || '',
+                                  kondisi: d.kondisi || '',
+                                  use_manual: d.use_manual || '',
+                                  use_forcep: d.use_forcep || '',
+                                  use_vacuum: d.use_vacuum || '',
+                                  shk_spesimen_ambil: d.shk_spesimen_ambil || '',
+                                  shk_lokasi: d.shk_lokasi || '',
+                                  shk_spesimen_dttm: d.shk_spesimen_dttm || '',
+                                  shk_alasan: d.shk_alasan || '',
+                              }))
                             : [
-                                {
-                                    delivery_sequence: '',
-                                    delivery_method: '',
-                                    delivery_dttm: '',
-                                    letak_janin: '',
-                                    kondisi: '',
-                                    use_manual: '',
-                                    use_forcep: '',
-                                    use_vacuum: '',
-                                    shk_spesimen_ambil: '',
-                                    shk_lokasi: '',
-                                    shk_spesimen_dttm: '',
-                                    shk_alasan: '',
-                                },
-                            ],
+                                  {
+                                      delivery_sequence: '',
+                                      delivery_method: '',
+                                      delivery_dttm: '',
+                                      letak_janin: '',
+                                      kondisi: '',
+                                      use_manual: '',
+                                      use_forcep: '',
+                                      use_vacuum: '',
+                                      shk_spesimen_ambil: '',
+                                      shk_lokasi: '',
+                                      shk_spesimen_dttm: '',
+                                      shk_alasan: '',
+                                  },
+                              ],
                     });
                 } else {
                     setShowPersalinan(false);
@@ -497,34 +500,34 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Jika data klaim belum ada, fallback ke data kunjungan
             const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             setDataKunjungan(response.data);
-            setJenisPerawatan(response.data.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.jenis_perawatan === 'IGD' ? '3' : '1');
-            setDataPenjaminKlaim('3');
-            const masuk = response.data.pendaftaran_poli.kunjungan_pasien[0].MASUK;
-            const keluar = response.data.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
+            setJenisPerawatan(response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1');
+            setDataPenjaminKlaim(3);
+            const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
+            const keluar = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
             setTanggalMasuk(masuk);
             setTanggalKeluar(keluar);
             setDataDischargeStatus('1');
             setLamaKunjungan(hitungLamaKunjungan(masuk, keluar));
-            setDataDokter(Array.isArray(response.data.dokter) ? response.data.dokter : []);
-            setTarifProsedurBedah(Number(response.data.tagihan.PROSEDUR_BEDAH) || 0);
-            setTarifProsedurNonBedah(Number(response.data.tagihan.PROSEDUR_NON_BEDAH) || 0);
-            setTarifKonsultasi(Number(response.data.tagihan.KONSULTASI) || 0);
-            setTarifTenagaAhli(Number(response.data.tagihan.TENAGA_AHLI) || 0);
-            setTarifKeperawatan(Number(response.data.tagihan.KEPERAWATAN) || 0);
-            setTarifPenunjang(Number(response.data.tagihan.PENUNJANG) || 0);
-            setTarifRadiologi(Number(response.data.tagihan.RADIOLOGI) || 0);
-            setTarifLaboratorium(Number(response.data.tagihan.LABORATORIUM) || 0);
-            setTarifPelayananDarah(Number(response.data.tagihan.PELAYANAN_DARAH) || 0);
-            setTarifRehabilitasi(Number(response.data.tagihan.REHABILITASI) || 0);
-            setTarifKamar(Number(response.data.tagihan.KAMAR) || 0);
-            setTarifRawatIntensif(Number(response.data.tagihan.RAWAT_INTENSIF) || 0);
-            setTarifObat(Number(response.data.tagihan.OBAT) || 0);
-            setTarifObatKronis(Number(response.data.tagihan.OBAT_KRONIS) || 0);
-            setTarifObatKemoterapi(Number(response.data.tagihan.OBAT_KEMOTERAPI) || 0);
-            setTarifAlkes(Number(response.data.tagihan.ALKES) || 0);
-            setTarifBMHP(Number(response.data.tagihan.BMHP) || 0);
-            setTarifSewaAlat(Number(response.data.tagihan.SEWA_ALAT) || 0);
-            setTarifKamar(Number(response.data.tagihan.AKOMODASI) || 0);
+            setDataDokter(Array.isArray(response.data.kunjungan.dokter) ? response.data.kunjungan.dokter : []);
+            setTarifProsedurBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_BEDAH) || 0);
+            setTarifProsedurNonBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_NON_BEDAH) || 0);
+            setTarifKonsultasi(Number(response.data.kunjungan.tagihan.KONSULTASI) || 0);
+            setTarifTenagaAhli(Number(response.data.kunjungan.tagihan.TENAGA_AHLI) || 0);
+            setTarifKeperawatan(Number(response.data.kunjungan.tagihan.KEPERAWATAN) || 0);
+            setTarifPenunjang(Number(response.data.kunjungan.tagihan.PENUNJANG) || 0);
+            setTarifRadiologi(Number(response.data.kunjungan.tagihan.RADIOLOGI) || 0);
+            setTarifLaboratorium(Number(response.data.kunjungan.tagihan.LABORATORIUM) || 0);
+            setTarifPelayananDarah(Number(response.data.kunjungan.tagihan.PELAYANAN_DARAH) || 0);
+            setTarifRehabilitasi(Number(response.data.kunjungan.tagihan.REHABILITASI) || 0);
+            setTarifKamar(Number(response.data.kunjungan.tagihan.KAMAR) || 0);
+            setTarifRawatIntensif(Number(response.data.kunjungan.tagihan.RAWAT_INTENSIF) || 0);
+            setTarifObat(Number(response.data.kunjungan.tagihan.OBAT) || 0);
+            setTarifObatKronis(Number(response.data.kunjungan.tagihan.OBAT_KRONIS) || 0);
+            setTarifObatKemoterapi(Number(response.data.kunjungan.tagihan.OBAT_KEMOTERAPI) || 0);
+            setTarifAlkes(Number(response.data.kunjungan.tagihan.ALKES) || 0);
+            setTarifBMHP(Number(response.data.kunjungan.tagihan.BMHP) || 0);
+            setTarifSewaAlat(Number(response.data.kunjungan.tagihan.SEWA_ALAT) || 0);
+            setTarifKamar(Number(response.data.kunjungan.tagihan.AKOMODASI) || 0);
         } catch (error) {
             setDataKunjungan(null);
             console.error('Gagal mengambil data kunjungan:', error);
@@ -589,6 +592,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
     // --- Handle Simpan ---
     const handleSimpan = async () => {
+        setLoadingSimpan(true);
         try {
             const payload = {
                 tanggal_masuk: tanggalMasuk,
@@ -659,40 +663,60 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 coder_nik: '3522133010010003', // diisi di backend
             };
 
-            await axios.post(`/eklaim/klaim/update-klaim/${item.id}`, payload);
-
-            toast.success('Data berhasil disimpan!');
+            const response = await router.post(`/eklaim/klaim/update-klaim/${item.id}`, payload, {
+                preserveState: true,
+                preserveScroll: true,
+                // we specify what we want to be replaced here
+                only: ['pengajuanKlaim', 'success', 'error'],
+                onStart: () => {
+                    setLoadingSimpan(true);
+                },
+                onError: () => {
+                    setLoadingSimpan(false);
+                },
+                onSuccess: () => {
+                    setLoadingSimpan(false);
+                },
+            });
         } catch (error: any) {
             toast.error('Gagal menyimpan data!');
             console.error(error);
+        } finally {
+            setLoadingSimpan(false);
         }
     };
 
     // --- Handle Grouper ---
     const handleGrouper = async () => {
-        try {
-            const response = await axios.get(`${item.id}/grouper/one`);
-            if (response.data && response.data.response) {
-                toast.success('Grouper berhasil dijalankan!');
-            } else {
-                toast.error('Gagal menjalankan grouper!');
-            }
-        } catch (error) {
-            toast.error('Gagal menjalankan grouper!');
-            console.error(error);
-        }
+        const response = await router.post(
+            `${item.id}/grouper/one`,
+            {},
+            {
+                preserveState: false,
+                preserveScroll: true,
+                // we specify what we want to be replaced here
+                only: ['pengajuanKlaim', 'success', 'error'],
+                onStart: () => {
+                    setLoadingGrouper(true);
+                },
+                onError: () => {
+                    setLoadingGrouper(false);
+                },
+                onSuccess: () => {
+                    setLoadingGrouper(false);
+                },
+            },
+        );
     };
-
 
     // --- Render ---
     return (
         <>
             {loadingKunjungan ? (
-                <div className="p-8 text-center text-gray-500 font-semibold">
-                    <Loader className="animate-spin h-6 w-6 inline-block mr-2" />
+                <div className="p-8 text-center font-semibold text-gray-500">
+                    <Loader className="mr-2 inline-block h-6 w-6 animate-spin" />
                     Loading data klaim...
                 </div>
-
             ) : (
                 <>
                     <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
@@ -1934,15 +1958,57 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                             )}
                         </tbody>
                     </table>
-                    <div>
-                        <Button variant="outline" className="mt-4 bg-blue-500 text-white hover:bg-blue-600" onClick={handleSimpan}>
+                    <div className="flex justify-end gap-2 p-4">
+                        <Button variant="outline" onClick={handleSimpan} disabled={loadingSimpan || loadingGrouper}>
+                            {loadingSimpan ? <>
+                            <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan ....
+                            </> : <Save className="mr-2 h-4 w-4 text-green-400" />}
                             Simpan
                         </Button>
-                        <Button variant="outline" className="mt-4 bg-blue-500 text-white hover:bg-blue-600" onClick={handleGrouper}>
+                        <Button variant="outline" onClick={handleGrouper} disabled={loadingSimpan || loadingGrouper}>
+                            {loadingGrouper ? <>
+                            <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan Grouper ....
+                            </> : <Save className="mr-2 h-4 w-4 text-blue-400" />}
                             Grouper
                         </Button>
-
+                        {loadingHapus ? (
+                            <Button variant="outline" disabled>
+                                <Loader className="mr-2 h-4 w-4 animate-spin text-red-500" />
+                                Menghapus...
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                disabled={loadingHapus}
+                                onClick={async () => {
+                                    await router.post(
+                                        route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }),
+                                        {},
+                                        {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                            onStart: () => {
+                                                setLoadingHapus(true);
+                                            },
+                                            onFinish: () => {
+                                                setLoadingHapus(false);
+                                            },
+                                            onError: () => {
+                                                setLoadingHapus(false);
+                                            },
+                                            onSuccess: () => {
+                                                setLoadingHapus(false);
+                                            },
+                                        },
+                                    );
+                                }}
+                            >
+                                <Trash className="mr-2 h-4 w-4 text-red-500" />
+                                Hapus
+                            </Button>
+                        )}
                     </div>
+
                     {/* Diagnosa & Procedure Modal */}
                     <DiagnosaModal
                         open={showDiagnosaModal}

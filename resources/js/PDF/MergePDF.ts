@@ -67,7 +67,7 @@ export const mergePDFs = async (
             blobPromises.push({
                 key: 'berkasKlaim',
                 name: 'Berkas Klaim',
-                promise: cetakBerkasKlaim(nomorSEP, 'merge', () => {}, () => {}, () => {}, () => {}, () => {}),
+                promise: cetakBerkasKlaim(nomorSEP, 'merge'),
             });
         }
         if (pengajuanKlaim.tagihan === 1) {

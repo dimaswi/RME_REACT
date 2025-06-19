@@ -14,7 +14,11 @@ import { AlignJustify, CalendarIcon, Check, Home, Pencil, Trash } from 'lucide-r
 import React, { useState } from 'react';
 import ModalBuatPengajuanBaru from './ModalBuatPengajuanBaru';
 import PengajuanKlaimCollapse from './collapseListPengajuan';
-import GroupingOneCollapse from './collapsibleGroupingOne';
+import GroupingOneCollapse from './collapseGroupingOne';
+import axios from 'axios';
+import { toast } from 'sonner';
+import FinalGroupingCollapse from './collapseFinalGrouping';
+import CollapseBelumDiajukan from './collapseBelumDiajukan';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -25,18 +29,17 @@ const formatTanggal = (tanggal: string | null) => {
 // Function untuk menampilkan badge status
 const getStatusBadge = (status: number, id: string) => {
     const statusMap: Record<number, { label: string; color: string; text: string }> = {
-        0: { label: 'Belum Diajukan', color: 'yellow', text: 'yellow-800' },
-        1: { label: 'Sudah Diajukan', color: 'green', text: 'green-800' },
-        2: { label: 'Group Stage 1', color: 'blue', text: 'blue-800' },
-        3: { label: 'Group Stage 2', color: 'blue', text: 'blue-800' },
-        4: { label: 'Final', color: 'blue', text: 'blue-800' },
+        0: { label: 'Belum Diajukan', color: 'red', text: 'white' },
+        1: { label: 'Sudah Diajukan', color: 'yellow', text: 'white' },
+        2: { label: 'Grouper', color: 'blue', text: 'white' },
+        3: { label: 'Final', color: 'green', text: 'white' },
     };
     const statusInfo = statusMap[status] || { label: 'Unknown', color: 'gray', text: 'gray-800' };
     return (
         <Badge
             onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))}
             variant="outline"
-            className={`hover:cursor-pointer hover:bg-${statusInfo.color}-300 bg-${statusInfo.color}-100 text-${statusInfo.text}`}
+            className={`hover:cursor-pointer hover:bg-${statusInfo.color}-700 bg-${statusInfo.color}-500 text-${statusInfo.text}`}
         >
             {statusInfo.label}
         </Badge>
@@ -156,22 +159,19 @@ export default function ListPengajuan() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={JSON.stringify([0, 1, 2, 3, 4])}>
-                                    <Badge className="bg-amber-200 text-amber-700">Semua Status</Badge>
+                                    <Badge className="bg-white text-black">Semua Status</Badge>
                                 </SelectItem>
                                 <SelectItem value="0">
-                                    <Badge className="bg-red-200 text-red-700">Belum Diajukan</Badge>
+                                    <Badge className="bg-red-500 text-white">Belum Diajukan</Badge>
                                 </SelectItem>
                                 <SelectItem value="1">
-                                    <Badge className="bg-green-200 text-green-700">Sudah Diajukan</Badge>
+                                    <Badge className="bg-yellow-500 text-white">Sudah Diajukan</Badge>
                                 </SelectItem>
                                 <SelectItem value="2">
-                                    <Badge className="bg-blue-200 text-blue-700">Group Stage 1</Badge>
+                                    <Badge className="bg-blue-500 text-white">Grouper</Badge>
                                 </SelectItem>
                                 <SelectItem value="3">
-                                    <Badge className="bg-blue-200 text-blue-700">Group Stage 2</Badge>
-                                </SelectItem>
-                                <SelectItem value="4">
-                                    <Badge className="bg-blue-200 text-blue-700">Final</Badge>
+                                    <Badge className="bg-green-500 text-white">Final</Badge>
                                 </SelectItem>
                             </SelectContent>
                         </Select>
@@ -273,39 +273,45 @@ export default function ListPengajuan() {
                                                 <center>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
-                                                            <Button variant="outline" size="sm">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={e => e.stopPropagation()}
+                                                            >
                                                                 <AlignJustify size={16} />
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent>
                                                             {item.status === 0 && (
                                                                 <DropdownMenuItem
-                                                                    onClick={() =>
-                                                                        router.post(route('eklaim.klaim.pengajuanUlang', { pengajuanKlaim: item.id }))
-                                                                    }
+                                                                    onClick={ async () => {
+                                                                        const response = await axios.post(route('eklaim.klaim.pengajuanUlang', { pengajuanKlaim: item.id }));
+                                                                        if (response.data.status === 'success') {
+                                                                            toast.success(response.data.message);
+                                                                            window.location.reload();
+                                                                        } else {
+                                                                            toast.error(response.data.message);
+                                                                        }
+                                                                    }}
                                                                     className="flex items-center gap-2"
                                                                 >
                                                                     <Check size={16} className="text-green-600" />
                                                                     Ajukan
                                                                 </DropdownMenuItem>
+                                                                
                                                             )}
-                                                            {item.status === 1 && (
+                                                            {item.status == 1 && (
                                                                 <>
                                                                     <DropdownMenuItem
-                                                                        onClick={() =>
-                                                                            router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }))
-                                                                        }
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Pencil size={16} className="text-yellow-600" />
-                                                                        Isi Data Klaim
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() =>
-                                                                            router.post(
-                                                                                route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }),
-                                                                            )
-                                                                        }
+                                                                        onClick={async () => {
+                                                                            const response = await axios.post(route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }));
+                                                                            if (response.data.status === 'success') {
+                                                                                toast.success(response.data.message);
+                                                                                window.location.reload();
+                                                                            } else {
+                                                                                toast.error(response.data.message);
+                                                                            }
+                                                                        }}
                                                                         className="flex items-center gap-2"
                                                                     >
                                                                         <Trash size={16} className="text-red-600" />
@@ -315,15 +321,32 @@ export default function ListPengajuan() {
                                                             )}
                                                             {item.status === 2 && (
                                                                 <DropdownMenuItem
-                                                                    onClick={() =>
-                                                                        router.post(route('eklaim.klaim.editUlangKlaim', { pengajuanKlaim: item.id }))
-                                                                    }
+                                                                    onClick={ async () => {
+                                                                        const response = await axios.post(route('eklaim.klaim.editUlangKlaim', { pengajuanKlaim: item.id }))
+                                                                        if (response.data.status === 'success') {
+                                                                            toast.success(response.data.message);
+                                                                            window.location.reload();
+                                                                        } else {
+                                                                            toast.error(response.data.message);
+                                                                        }
+                                                                    }}
                                                                     className="flex items-center gap-2"
                                                                 >
                                                                     <Pencil size={16} className="text-yellow-600" />
                                                                     Edit Ulang
                                                                 </DropdownMenuItem>
                                                             )}
+                                                            <DropdownMenuItem
+                                                                    
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }));
+                                                                        }}
+                                                                        className="flex items-center gap-2"
+                                                                    >
+                                                                        <Pencil size={16} className="text-yellow-600" />
+                                                                        Isi Data Klaim
+                                                                    </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </center>
@@ -332,6 +355,14 @@ export default function ListPengajuan() {
                                         {openRow === item.id && (
                                             <TableRow>
                                                 <TableCell colSpan={6} className="bg-gray-50">
+                                                    {
+                                                        item.status === 0 && (
+                                                            <CollapseBelumDiajukan
+                                                                pengajuanKlaim={item}
+                                                            />
+                                                        )
+                                                    }
+
                                                     {
                                                         item.status === 1 && (
                                                             <PengajuanKlaimCollapse
@@ -346,6 +377,14 @@ export default function ListPengajuan() {
                                                     {
                                                         item.status === 2 && (
                                                             <GroupingOneCollapse
+                                                                pengajuanKlaim={item}
+                                                            />
+                                                        )
+                                                    }
+
+                                                    {
+                                                        item.status === 3 && (
+                                                            <FinalGroupingCollapse 
                                                                 pengajuanKlaim={item}
                                                             />
                                                         )

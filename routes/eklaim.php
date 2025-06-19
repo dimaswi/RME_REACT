@@ -9,7 +9,9 @@ Route::middleware('auth')->group(function () {
     Route::get('eklaim/klaim/list-pengajuan', [KlaimController::class, 'listPengajuanKlaim'])->name('eklaim.klaim.indexPengajuanKlaim');
     Route::get('eklaim/klaim/{pasien}', [KlaimController::class, 'show'])->name('eklaim.klaim.show');
     Route::post('eklaim/klaim/pengajuan', [KlaimController::class, 'storePengajuanKlaim'])->name('eklaim.klaim.storePengajuanKlaim');
-    Route::get('eklaim/klaim/{pengajuanKlaim}/grouper/one', [KlaimController::class, 'groupStageOneKlaim'])->name('eklaim.klaim.groupStageOneKlaim');
+    Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/one', [KlaimController::class, 'groupStageOneKlaim'])->name('eklaim.klaim.groupStageOneKlaim');
+    Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/two', [KlaimController::class, 'groupStageTwoKlaim'])->name('eklaim.klaim.groupStageTwoKlaim');
+    Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/final', [KlaimController::class, 'groupStageFinalKlaim'])->name('eklaim.klaim.groupStageFinalKlaim');
     Route::get('eklaim/klaim/{dataKlaim}/isi', [KlaimController::class, 'dataKlaim'])->name('eklaim.klaim.dataKlaim');
     Route::post('eklaim/klaim/{pengajuanKlaim}/ajukan_ulang', [KlaimController::class, 'ajukanUlangKlaim'])->name('eklaim.klaim.pengajuanUlang');
     Route::post('eklaim/klaim/{pengajuanKlaim}/hapus', [KlaimController::class, 'hapusDataKlaim'])->name('eklaim.klaim.hapusDataKlaim');

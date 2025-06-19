@@ -229,14 +229,11 @@ export default function DataKlaim() {
                                                         await cetakBerkasKlaim(
                                                             dataKlaim.nomor_SEP,
                                                             'preview',
-                                                            setBerkasKlaimUrl,
-                                                            setPreviewPDF,
-                                                            setLoadingDownloadBerkasKlaim,
-                                                            setPreviewBerkasKlaim,
-                                                            setPreviewSEPData,
                                                         );
                                                     } catch (error) {
                                                         console.log(error);
+                                                        setPreviewBerkasKlaim(false);
+                                                    } finally {
                                                         setPreviewBerkasKlaim(false);
                                                     }
                                                 }}
@@ -253,45 +250,6 @@ export default function DataKlaim() {
                                                     </>
                                                 )}
                                             </Button>
-                                            {/* <Button
-                                                variant="outline"
-                                                className="w-full bg-white hover:bg-gray-300 flex items-center justify-center"
-                                                disabled={loadingDownloadBerkasKlaim}
-                                                onClick={async () => {
-                                                    setLoadingDownloadBerkasKlaim(true);
-                                                    toast.info("Memproses mengambil PDF, mohon tunggu...");
-                                                    setTimeout(async () => {
-                                                        try {
-                                                            await cetakBerkasKlaim(
-                                                                dataKlaim.nomor_SEP,
-                                                                "download",
-                                                                setBerkasKlaimUrl,
-                                                                setPreviewPDF,
-                                                                setLoadingDownloadBerkasKlaim,
-                                                                setPreviewBerkasKlaim,
-                                                                setPreviewSEPData
-                                                            );
-                                                        } catch (error) {
-                                                            console.log(error)
-                                                            setLoadingDownloadBerkasKlaim(false);
-                                                        } finally {
-                                                            setLoadingDownloadBerkasKlaim(false);
-                                                        }
-                                                    }, 500);
-                                                }}
-                                            >
-                                                {loadingDownloadBerkasKlaim ? (
-                                                    <>
-                                                        <Loader className="animate-spin" />
-                                                        Loading...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Download />
-                                                        Download
-                                                    </>
-                                                )}
-                                            </Button> */}
                                         </div>
                                     </td>
                                 </tr>

@@ -19,6 +19,7 @@ class PengajuanKlaim extends Model
         'NORM',
         'nomor_pendaftaran',
         'nomor_SEP',
+        'klaim_number',
         'status',
         'petugas',
         'request',

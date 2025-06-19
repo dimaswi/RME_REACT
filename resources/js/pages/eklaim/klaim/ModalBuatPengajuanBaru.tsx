@@ -95,17 +95,23 @@ export default function ModalBuatPengajuanBaru({ open, onOpenChange, onSuccess }
             jenis_perawatan: jenisPerawatan, // <-- tambahkan ini
         };
 
-        try {
-            await axios.post('/eklaim/klaim/pengajuan', data);
-            if (onSuccess) {
-                onSuccess();
-            } else {
-                onOpenChange(false); // Tutup modal jika sukses
-            }
-        } catch (err) {
-            toast.error("Gagal menyimpan pengajuan klaim. Pastikan semua data sudah benar.");
-        }
-        setSaving(false);
+            router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
+                preserveState: true,
+                preserveScroll: true,
+                onStart: () => {
+                    setSaving(true);
+                },
+                onFinish: () => {
+                    setSaving(false);
+                },
+                onError: () => {
+                    setSaving(false);
+                },
+                onSuccess: () => {
+                    setSaving(false);
+                },
+            });
+            
     };
 
     return (

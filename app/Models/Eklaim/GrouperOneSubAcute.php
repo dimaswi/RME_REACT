@@ -11,14 +11,14 @@ class GrouperOneSubAcute extends Model
     protected $table = 'grouper_one_sub_acute';
 
     protected $fillable = [
-        'pengajuan_klaim_id',
+        'grouper_one_id',
         'code',
         'description',
         'tarif',
     ];
 
-    public function pengajuanKlaim()
+    public function grouperOne()
     {
-        return $this->belongsTo(PengajuanKlaim::class, 'pengajuan_klaim_id');
+        return $this->belongsTo(PengajuanKlaim::class, 'grouper_one_id');
     }
 }
