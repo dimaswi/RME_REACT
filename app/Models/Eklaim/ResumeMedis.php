@@ -2,6 +2,7 @@
 
 namespace App\Models\Eklaim;
 
+use App\Models\Master\MrConso;
 use Illuminate\Database\Eloquent\Model;
 
 class ResumeMedis extends Model
@@ -29,13 +30,7 @@ class ResumeMedis extends Model
         'riwayat_penyakit_lalu',
         'pemeriksaan_fisik',
         'diagnosa_utama',
-        'icd10_utama',
-        'diagnosa_sekunder',
-        'icd10_sekunder',
         'tindakan_prosedur',
-        'icd9_utama',
-        'tindakan_prosedur_sekunder',
-        'icd9_sekunder',
         'riwayat_alergi',
         'keadaan_pulang',
         'cara_pulang',

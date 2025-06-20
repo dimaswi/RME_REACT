@@ -281,61 +281,7 @@ export default function ListPengajuan() {
                                                                 <AlignJustify size={16} />
                                                             </Button>
                                                         </DropdownMenuTrigger>
-                                                        <DropdownMenuContent>
-                                                            {item.status === 0 && (
-                                                                <DropdownMenuItem
-                                                                    onClick={ async () => {
-                                                                        const response = await axios.post(route('eklaim.klaim.pengajuanUlang', { pengajuanKlaim: item.id }));
-                                                                        if (response.data.status === 'success') {
-                                                                            toast.success(response.data.message);
-                                                                            window.location.reload();
-                                                                        } else {
-                                                                            toast.error(response.data.message);
-                                                                        }
-                                                                    }}
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <Check size={16} className="text-green-600" />
-                                                                    Ajukan
-                                                                </DropdownMenuItem>
-                                                                
-                                                            )}
-                                                            {item.status == 1 && (
-                                                                <>
-                                                                    <DropdownMenuItem
-                                                                        onClick={async () => {
-                                                                            const response = await axios.post(route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }));
-                                                                            if (response.data.status === 'success') {
-                                                                                toast.success(response.data.message);
-                                                                                window.location.reload();
-                                                                            } else {
-                                                                                toast.error(response.data.message);
-                                                                            }
-                                                                        }}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Trash size={16} className="text-red-600" />
-                                                                        Batalkan Klaim
-                                                                    </DropdownMenuItem>
-                                                                </>
-                                                            )}
-                                                            {item.status === 2 && (
-                                                                <DropdownMenuItem
-                                                                    onClick={ async () => {
-                                                                        const response = await axios.post(route('eklaim.klaim.editUlangKlaim', { pengajuanKlaim: item.id }))
-                                                                        if (response.data.status === 'success') {
-                                                                            toast.success(response.data.message);
-                                                                            window.location.reload();
-                                                                        } else {
-                                                                            toast.error(response.data.message);
-                                                                        }
-                                                                    }}
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <Pencil size={16} className="text-yellow-600" />
-                                                                    Edit Ulang
-                                                                </DropdownMenuItem>
-                                                            )}
+                                                        <DropdownMenuContent>    
                                                             <DropdownMenuItem
                                                                     
                                                                         onClick={(e) => {

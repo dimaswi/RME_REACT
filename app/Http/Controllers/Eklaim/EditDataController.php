@@ -44,6 +44,147 @@ class EditDataController extends Controller
 {
     public function EditResumeMedis(PengajuanKlaim $pengajuanKlaim)
     {
+        if ($pengajuanKlaim->edit == 1) {
+            $dataKunjungan = $pengajuanKlaim->load([
+                'resumeMedis.pengkajianAwal',
+                'resumeMedis.intruksiTindakLanjut',
+                'resumeMedis.permintaanKonsul',
+                'resumeMedis.terapiPulang',
+            ]);
+        }
+        // Jika jenis_perawatan adalah Rawat Jalan
+        if ($pengajuanKlaim->jenis_perawatan === 'Rawat Jalan' && $pengajuanKlaim->edit == 0) {
+            $dataPendaftaranRawatJalan = Pendaftaran::where('NOMOR', $pengajuanKlaim->nomor_pendaftaran)
+                ->with(['kunjunganPasien.ruangan'])
+                ->first();
+
+            // Ambil Kunjungan Rawat Jalan
+            if ($dataPendaftaranRawatJalan && $dataPendaftaranRawatJalan->kunjunganPasien) {
+                foreach ($dataPendaftaranRawatJalan->kunjunganPasien as $kunjungan) {
+                    if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 1) {
+                        $kunjungan->load([
+                            'ruangan',
+                            // 'resumeMedis',
+                            'pendaftaranPasien.pasien',
+                            'penjaminPasien.jenisPenjamin',
+                            'anamnesisPasien',
+                            'rpp',
+                            'pemeriksaanFisik',
+                            'riwayatAlergi',
+                            'pasienPulang.keadaanPulang',
+                            'pasienPulang.caraPulang',
+                            'permintaanKonsul',
+                            'diagnosaPasien.namaDiagnosa',
+                            'prosedurPasien.namaProsedur',
+                            'orderResepPulang.orderResepDetil.namaObat',
+                            'orderResepPulang.orderResepDetil.caraPakai',
+                            'orderResepPulang.orderResepDetil.frekuensiObat',
+                            'jadwalKontrol.ruangan',
+                            'tagihanPendaftaran.gabungTagihan',
+                            'dokterDPJP.pegawai'
+                        ]);
+                        $dataKunjungan = $kunjungan;
+                    }
+                }
+            }
+        }
+
+        // Jika jenis_perawatan adalah Rawat Inap
+        if ($pengajuanKlaim->jenis_perawatan === 'Rawat Inap' && $pengajuanKlaim->edit == 0) {
+            $dataPendaftaranRawatInap = Pendaftaran::where('NOMOR', $pengajuanKlaim->nomor_pendaftaran)
+                ->with([
+                    'kunjunganPasien.ruangan',
+                ])
+                ->first();
+
+            // Ambil Kunjungan Rawat Inap
+            if ($dataPendaftaranRawatInap && $dataPendaftaranRawatInap->kunjunganPasien) {
+                foreach ($dataPendaftaranRawatInap->kunjunganPasien as $kunjungan) {
+                    if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 3) {
+                        $kunjungan->load([
+                            'ruangan',
+                            'resumeMedis',
+                            'pendaftaranPasien.pasien',
+                            'penjaminPasien.jenisPenjamin',
+                            'anamnesisPasien',
+                            'rpp',
+                            'pemeriksaanFisik',
+                            'riwayatAlergi',
+                            'pasienPulang.keadaanPulang',
+                            'pasienPulang.caraPulang',
+                            'permintaanKonsul',
+                            'diagnosaPasien.namaDiagnosa',
+                            'prosedurPasien.namaProsedur',
+                            'orderResepPulang.orderResepDetil.namaObat',
+                            'orderResepPulang.orderResepDetil.caraPakai',
+                            'orderResepPulang.orderResepDetil.frekuensiObat',
+                            'jadwalKontrol.ruangan',
+                            'tagihanPendaftaran.gabungTagihan',
+                            'dokterDPJP.pegawai'
+                        ]);
+                        $dataKunjungan = $kunjungan;
+                    }
+                }
+            }
+
+            // Data pengkajian awal
+            $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
+                ->with(['gabungTagihan.kunjunganPasien.ruangan'])
+                ->get();
+
+
+            foreach ($tagihanPendaftaran as $tp) {
+                if (!empty($tp->gabungTagihan)) {
+                    foreach ($tp->gabungTagihan as $tagihan) {
+                        if (!empty($tagihan->kunjunganPasien)) {
+                            foreach ($tagihan->kunjunganPasien as $kunjungan) {
+                                if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
+                                    $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Jika jenis_perawatan adalah Gawat Darurat
+        if ($pengajuanKlaim->jenis_perawatan === 'Gawat Darurat' && $pengajuanKlaim->edit == 0) {
+            $dataPendaftaranGawatDarurat = Pendaftaran::where('NOMOR', $pengajuanKlaim->nomor_pendaftaran)
+                ->with(['kunjunganPasien.ruangan'])
+                ->first();
+
+            // Ambil Kunjungan Gawat Darurat
+            if ($dataPendaftaranGawatDarurat && $dataPendaftaranGawatDarurat->kunjunganPasien) {
+                foreach ($dataPendaftaranGawatDarurat->kunjunganPasien as $kunjungan) {
+                    if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
+                        $kunjungan->load([
+                            'ruangan',
+                            'resumeMedis',
+                            'pendaftaranPasien.pasien',
+                            'penjaminPasien.jenisPenjamin',
+                            'anamnesisPasien',
+                            'rpp',
+                            'pemeriksaanFisik',
+                            'riwayatAlergi',
+                            'pasienPulang.keadaanPulang',
+                            'pasienPulang.caraPulang',
+                            'permintaanKonsul',
+                            'diagnosaPasien.namaDiagnosa',
+                            'prosedurPasien.namaProsedur',
+                            'orderResepPulang.orderResepDetil.namaObat',
+                            'orderResepPulang.orderResepDetil.caraPakai',
+                            'orderResepPulang.orderResepDetil.frekuensiObat',
+                            'jadwalKontrol.ruangan',
+                            'tagihanPendaftaran.gabungTagihan',
+                            'dokterDPJP.pegawai'
+                        ]);
+                        $dataKunjungan = $kunjungan;
+                    }
+                }
+            }
+        }
+
         //Kop
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
@@ -52,73 +193,9 @@ class EditDataController extends Controller
         $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
         $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
 
-        if ($pengajuanKlaim->edit == 1) {
-            $pengajuanKlaim->load([
-                'resumeMedis.pengkajianAwal',
-                'resumeMedis.intruksiTindakLanjut',
-                'resumeMedis.permintaanKonsul',
-                'resumeMedis.terapiPulang',
-            ]);
-        }
-
-        if ($pengajuanKlaim->edit == 0) {
-            $pengajuanKlaim->load([
-                'penjamin.kunjunganPasien.ruangan',
-                'penjamin.kunjunganPasien.penjaminPasien.jenisPenjamin',
-                'penjamin.kunjunganPasien.pendaftaranPasien.pasien',
-                'penjamin.kunjunganPasien.pendaftaranPasien.resumeMedis',
-                'penjamin.kunjunganPasien.anamnesisPasien',
-                'penjamin.kunjunganPasien.rpp',
-                'penjamin.kunjunganPasien.diagnosaPasien',
-                'penjamin.kunjunganPasien.prosedurPasien',
-                'penjamin.kunjunganPasien.pemeriksaanFisik',
-                'penjamin.kunjunganPasien.permintaanKonsul',
-                'penjamin.kunjunganPasien.permintaanKonsul.jawabanKonsul',
-                'penjamin.kunjunganPasien.riwayatAlergi',
-                'penjamin.kunjunganPasien.pasienPulang.caraPulang',
-                'penjamin.kunjunganPasien.pasienPulang.keadaanPulang',
-                'penjamin.kunjunganPasien.orderResep.orderResepDetil.namaObat',
-                'penjamin.kunjunganPasien.orderResep.orderResepDetil.caraPakai',
-                'penjamin.kunjunganPasien.orderResep.orderResepDetil.frekuensiObat',
-                'penjamin.kunjunganPasien.jadwalKontrol.ruangan',
-                'penjamin.kunjunganPasien.dokterDPJP',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.ruangan',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.pendaftaranPasien.pasien',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.anamnesisPasien',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.anamnesisPasienDiperoleh',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.keluhanUtama',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.rpp',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.orderResep.orderResepDetil.namaObat',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.riwayatPenyakitKeluarga',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.tandaVital',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.riwayatAlergi',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.rencanaTerapi',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.diagnosaPasien.namaDiagnosa',
-                'penjamin.kunjunganPasien.tagihanPendaftaran.gabungTagihan.kunjunganPasien.dokterDPJP',
-
-            ]);
-
-            // Handle jika penjamin atau kunjunganPasien kosong/null
-            if (!$pengajuanKlaim->penjamin || !$pengajuanKlaim->penjamin->kunjunganPasien) {
-                return Inertia::render('eklaim/EditData/ResumeMedis', [
-                    'pengajuanKlaim' => $pengajuanKlaim,
-                    'imageBase64' => $imageBase64
-                ])->with('error', 'Tidak ada data resume medis untuk diedit');
-            }
-
-            if (
-                $pengajuanKlaim->penjamin->kunjunganPasien->count() < 1
-            ) {
-                return Inertia::render('eklaim/EditData/ResumeMedis', [
-                    'pengajuanKlaim' => $pengajuanKlaim,
-                    'imageBase64' => $imageBase64
-                ]);
-            }
-        }
-
-        // dd($pengajuanKlaim);
         return Inertia::render('eklaim/EditData/ResumeMedis', [
-            'pengajuanKlaim' => $pengajuanKlaim,
+            'dataKlaim' => $pengajuanKlaim,
+            'dataKunjungan' => $dataKunjungan,
             'imageBase64' => $imageBase64
         ]);
     }
@@ -169,13 +246,7 @@ class EditDataController extends Controller
                     'riwayat_penyakit_lalu'   => $resumeData['riwayat_penyakit_lalu'] ?? null,
                     'pemeriksaan_fisik'       => $resumeData['pemeriksaan_fisik'] ?? null,
                     'diagnosa_utama'          => $resumeData['diagnosa_utama'] ?? null,
-                    'icd10_utama'             => $resumeData['icd10_utama'] ?? null,
-                    'diagnosa_sekunder'       => $resumeData['diagnosa_sekunder'] ?? null,
-                    'icd10_sekunder'          => $resumeData['icd10_sekunder'] ?? null,
                     'tindakan_prosedur'       => $resumeData['tindakan_prosedur'] ?? null,
-                    'icd9_utama'              => $resumeData['icd9_utama'] ?? null,
-                    'tindakan_prosedur_sekunder' => $resumeData['tindakan_prosedur_sekunder'] ?? null,
-                    'icd9_sekunder'           => $resumeData['icd9_sekunder'] ?? null,
                     'riwayat_alergi'          => $resumeData['riwayat_alergi'] ?? null,
                     'keadaan_pulang'          => $resumeData['keadaan_pulang'] ?? null,
                     'cara_pulang'             => $resumeData['cara_pulang'] ?? null,

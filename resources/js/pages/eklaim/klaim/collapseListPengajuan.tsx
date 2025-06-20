@@ -1971,42 +1971,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                             </> : <Save className="mr-2 h-4 w-4 text-blue-400" />}
                             Grouper
                         </Button>
-                        {loadingHapus ? (
-                            <Button variant="outline" disabled>
-                                <Loader className="mr-2 h-4 w-4 animate-spin text-red-500" />
-                                Menghapus...
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="outline"
-                                disabled={loadingHapus}
-                                onClick={async () => {
-                                    await router.post(
-                                        route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: item.id }),
-                                        {},
-                                        {
-                                            preserveState: true,
-                                            preserveScroll: true,
-                                            onStart: () => {
-                                                setLoadingHapus(true);
-                                            },
-                                            onFinish: () => {
-                                                setLoadingHapus(false);
-                                            },
-                                            onError: () => {
-                                                setLoadingHapus(false);
-                                            },
-                                            onSuccess: () => {
-                                                setLoadingHapus(false);
-                                            },
-                                        },
-                                    );
-                                }}
-                            >
-                                <Trash className="mr-2 h-4 w-4 text-red-500" />
-                                Hapus
-                            </Button>
-                        )}
                     </div>
 
                     {/* Diagnosa & Procedure Modal */}

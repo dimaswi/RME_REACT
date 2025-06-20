@@ -32,20 +32,34 @@ class KlaimController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $q = $request->input('q');
+        $poli = $request->input('poli');
 
-        $query = Pasien::query();
+
+        // $query = Pasien::query();
+        $query = Kunjungan::query();
 
         if ($q) {
             $query->where(function ($sub) use ($q) {
-                $sub->where('NAMA', 'like', "%$q%")
-                    ->orWhere('NORM', 'like', "%$q%")
-                    ->orWhere('ALAMAT', 'like', "%$q%");
+                $sub->where('noSEP', 'like', "%$q%")
+                    ->orWhere('noKartu', 'like', "%$q%");
             });
         }
 
+        if ($poli) {
+            // Jika $poli adalah string JSON array, decode
+            if (is_string($poli) && str_starts_with($poli, '[')) {
+                $poliArr = json_decode($poli, true);
+            } else {
+                // Jika string biasa, jadikan array
+                $poliArr = [$poli];
+            }
+            $query->whereIn('poliTujuan', $poliArr);
+        }
+
         $dataPendaftaran = $query
-            ->orderByDesc('NORM')
-            ->paginate($perPage, ['NORM', 'NAMA', 'ALAMAT'])
+            ->with(['dataPeserta', 'kartuAsuransiPasien', 'penjaminPendaftaran'])
+            ->orderByDesc('tglSEP')
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('eklaim/klaim/index', [
@@ -94,7 +108,7 @@ class KlaimController extends Controller
         $klaimNumber = $this->generateClaimNumber();
         $data = [
             "nomor_kartu" => $request->input('nomor_kartu'),
-            "nomor_sep" => $klaimNumber,
+            "nomor_sep" => $request->input('nomor_sep'),
             "nomor_rm" => (string) $request->input('nomor_rm'),
             "nama_pasien" => $request->input('nama_pasien'),
             "tgl_lahir" => $request->input('tgl_lahir'),
@@ -130,6 +144,9 @@ class KlaimController extends Controller
             'tanggal_pengajuan' => now(),
         ]);
 
+        Kunjungan::where('noSep', $request->input('nomor_sep'))
+            ->update(['klaimStatus' => 1]);
+
         LogKlaim::create([
             'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
             'method' => json_encode($metadata),
@@ -152,9 +169,6 @@ class KlaimController extends Controller
         // Ubah request menjadi array
         $requestData = json_decode($pengajuanKlaim->request, true);
 
-        // Ganti nomor_sep
-        $requestData['nomor_sep'] = $klaimNumber;
-
         // Kirim ke eklaim
         $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
         $send = $inacbgController->sendToEklaim($metadata, $requestData);
@@ -172,7 +186,7 @@ class KlaimController extends Controller
         }
 
         LogKlaim::create([
-            'nomor_SEP' => $klaimNumber,
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
             'method' => json_encode($metadata),
             'request' => json_encode($requestData),
             'response' => json_encode($send),
@@ -181,7 +195,7 @@ class KlaimController extends Controller
         // Update request dan nomor_SEP di database
         $pengajuanKlaim->update([
             'request' => json_encode($requestData),
-            'nomor_SEP' => $klaimNumber,
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
             'status' => 1,
         ]);
         DB::connection('eklaim')->commit();

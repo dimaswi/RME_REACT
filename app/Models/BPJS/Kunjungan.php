@@ -2,6 +2,7 @@
 
 namespace App\Models\BPJS;
 
+use App\Models\Master\KartuAsuransiPasien;
 use App\Models\Master\PPK;
 use App\Models\Pendaftaran\Penjamin;
 use Illuminate\Database\Eloquent\Model;
@@ -69,7 +70,8 @@ class Kunjungan extends Model
         'status',
         'user_batal',
         'batalSEP',
-        'errMsgBatalSEP'
+        'errMsgBatalSEP',
+        'klaimStatus',
     ];
 
     public function dokterDPJP()
@@ -95,5 +97,10 @@ class Kunjungan extends Model
     public function penjaminPendaftaran()
     {
         return $this->hasOne(Penjamin::class, 'NOMOR', 'noSEP');
+    }
+
+    public function kartuAsuransiPasien()
+    {
+        return $this->hasOne(KartuAsuransiPasien::class, 'NOMOR', 'noKartu');
     }
 }

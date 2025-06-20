@@ -1,32 +1,35 @@
-import React, { useState } from "react";
-import AppLayout from "@/layouts/app-layout";
-import { BreadcrumbItem } from "@/types";
-import { Head, usePage, router } from "@inertiajs/react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Home, ListCollapse } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { Home, ListCollapse, Loader, Save } from 'lucide-react';
+import React, { useState } from 'react';
 
 export default function KlaimIndex() {
-    const { dataPendaftaran, filters } = usePage().props as {
+    const { dataPendaftaran, filters } = usePage().props as unknown as {
         dataPendaftaran: {
-            data: any[],
-            links: any[],
-            current_page: number,
-            last_page: number,
-            per_page: number,
-        },
+            data: any[];
+            links: any[];
+            current_page: number;
+            last_page: number;
+            per_page: number;
+        };
         filters?: {
-            q?: string,
-            perPage?: number,
-        }
+            q?: string;
+            perPage?: number;
+        };
     };
 
     const [itemsPerPage, setItemsPerPage] = useState(dataPendaftaran.per_page || 10);
-    const [query, setQuery] = useState(filters?.q || "");
+    const [query, setQuery] = useState(filters?.q || '');
+    const [selectedPoli, setSelectedPoli] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: <Home className="inline mr-1" />,
+            title: <Home className="mr-1 inline" />,
             href: '/eklaim/klaim',
         },
     ];
@@ -35,20 +38,12 @@ export default function KlaimIndex() {
     const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setQuery(value);
-        router.get(
-            route('eklaim.klaim.index'),
-            { page: 1, per_page: itemsPerPage, q: value },
-            { preserveState: true, replace: true }
-        );
+        router.get(route('eklaim.klaim.index'), { page: 1, per_page: itemsPerPage, q: value }, { preserveState: true, replace: true });
     };
 
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setItemsPerPage(Number(e.target.value));
-        router.get(
-            route('eklaim.klaim.index'),
-            { page: 1, per_page: e.target.value, q: query },
-            { preserveState: true }
-        );
+        router.get(route('eklaim.klaim.index'), { page: 1, per_page: e.target.value, q: query }, { preserveState: true });
     };
 
     const handlePageChange = (url: string | null) => {
@@ -60,56 +55,127 @@ export default function KlaimIndex() {
         }
     };
 
-    const handleRowClick = (norm: string) => {
-        router.get(route('eklaim.klaim.show', { pasien: norm }));
+    const [modalData, setModalData] = useState<any | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [loadingAjukan, setLoadingAjukan] = useState(false);
+
+    const handleRowClick = (item: any) => {
+        setModalData(item);
+        setShowModal(true);
+        console.log('Row clicked:', item);
+    };
+
+    const formatTanggalIndo = (tanggal: string) => {
+        const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(tanggal).toLocaleDateString('id-ID', options);
     };
 
     const prevLink = dataPendaftaran.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous');
     const nextLink = dataPendaftaran.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;');
+    const badgeStatus = (status: number) => {
+        switch (status) {
+            case 0:
+                return <Badge className="bg-green-100 text-green-800">Belum Diajukan</Badge>;
+            case 1:
+                return <Badge className="bg-red-100 text-red-800">Sudah Diajukan</Badge>;
+            default:
+                return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+        }
+    };
+
+    const handleAjukanKlaim = async () => {
+        const data = {
+            nomor_kartu: modalData.noKartu,
+            nomor_sep: modalData.noSEP,
+            nomor_rm: modalData.kartu_asuransi_pasien.NORM,
+            nama_pasien: modalData.data_peserta.NAMA,
+            nomor_pendaftaran: modalData.penjamin_pendaftaran.NOPEN,
+            tgl_lahir: modalData.data_peserta.tglLahir,
+            gender: modalData.data_peserta.sex == 'L' ? '1' : '2',
+            jenis_perawatan: modalData.poliTujuan == 'IGD' ? 'Gawat Darurat' : modalData.poliTujuan == "" ? 'Rawat Inap' : 'Rawat Jalan',
+        };
+
+        router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
+            onStart: () => setLoadingAjukan(true),
+            onFinish: () => {
+                setLoadingAjukan(false);
+                setShowModal(false);
+            },
+        });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Klaim"/>
+            <Head title="Klaim" />
             <div className="p-4">
                 {/* Single Search Field */}
-                <div className="mb-4 flex flex-wrap gap-2 items-end justify-between">
+                <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
                     <input
                         type="text"
                         value={query}
                         onChange={handleQueryChange}
-                        className="border rounded-md p-1 text-sm w-64"
-                        placeholder="Cari Nama atau NORM"
+                        className="w-64 rounded-md border p-1 text-sm"
+                        placeholder="Cari Nomor Kartu atau Nomor SEP"
                     />
                     <Button
                         variant="outline"
-                        onClick={() => router.get(route('eklaim.klaim.indexPengajuanKlaim'), { page: 1, per_page: itemsPerPage, q: query }, { preserveState: true })}
+                        onClick={() =>
+                            router.get(
+                                route('eklaim.klaim.indexPengajuanKlaim'),
+                                { page: 1, per_page: itemsPerPage, q: query },
+                                { preserveState: true },
+                            )
+                        }
                     >
-                        <ListCollapse size={12}/>
+                        <ListCollapse size={12} />
                         Data Pengajuan
                     </Button>
                 </div>
                 <div className="w-full overflow-x-auto rounded-md border">
+                    <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
+                        <Select
+                            value={selectedPoli}
+                            onValueChange={(val) => {
+                                setSelectedPoli(val);
+                                router.get(
+                                    route('eklaim.klaim.index'),
+                                    { page: 1, per_page: itemsPerPage, q: query, poli: val },
+                                    { preserveState: true, replace: true },
+                                );
+                            }}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter Poli" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD'])}>Semua Poli</SelectItem>
+                                <SelectItem value={JSON.stringify(['INT'])}>Poli Penyakit Dalam</SelectItem>
+                                <SelectItem value={JSON.stringify(['ANA'])}>Poli Anak</SelectItem>
+                                <SelectItem value={JSON.stringify(['OBG'])}>Poli Obgyn</SelectItem>
+                                <SelectItem value={JSON.stringify(['BED'])}>Poli Bedah</SelectItem>
+                                <SelectItem value={JSON.stringify(['IGD'])}>Gawat Darurat</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Table className="w-full min-w-max">
                         <TableHeader>
                             <TableRow>
-                                <TableHead>No</TableHead>
-                                <TableHead>NORM</TableHead>
+                                <TableHead>SEP</TableHead>
                                 <TableHead>Nama Lengkap</TableHead>
-                                <TableHead>Alamat</TableHead>
+                                <TableHead>Kode Poli</TableHead>
+                                <TableHead>Tanggal SEP</TableHead>
+                                <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {dataPendaftaran.data.length > 0 ? (
                                 dataPendaftaran.data.map((item, idx) => (
-                                    <TableRow
-                                        key={item.NORM}
-                                        className="cursor-pointer hover:bg-blue-50"
-                                        onClick={() => handleRowClick(item.NORM)}
-                                    >
-                                        <TableCell>{idx + 1 + ((dataPendaftaran.current_page - 1) * itemsPerPage)}</TableCell>
-                                        <TableCell>{item.NORM}</TableCell>
-                                        <TableCell>{item.NAMA}</TableCell>
-                                        <TableCell>{item.ALAMAT}</TableCell>
+                                    <TableRow key={item.NORM} className="cursor-pointer hover:bg-blue-50" onClick={() => handleRowClick(item)}>
+                                        <TableCell>{item.noSEP}</TableCell>
+                                        <TableCell>{item.data_peserta.nama}</TableCell>
+                                        <TableCell>{item.poliTujuan ? item.poliTujuan : 'Rawat Inap'}</TableCell>
+                                        <TableCell>{formatTanggalIndo(item.tglSEP)}</TableCell>
+                                        <TableCell>{badgeStatus(item.klaimStatus)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -123,7 +189,7 @@ export default function KlaimIndex() {
                     </Table>
                 </div>
                 {/* Pagination dan item per page */}
-                <div className="flex flex-wrap justify-between items-center mt-4">
+                <div className="mt-4 flex flex-wrap items-center justify-between">
                     {/* Informasi Halaman */}
                     <div className="text-sm text-gray-700">
                         Page {dataPendaftaran.current_page} of {dataPendaftaran.last_page}
@@ -133,11 +199,7 @@ export default function KlaimIndex() {
                         {/* Selector untuk jumlah item per halaman */}
                         <div className="flex items-center space-x-2">
                             <span className="text-sm">Baris :</span>
-                            <select
-                                value={itemsPerPage}
-                                onChange={handleItemsPerPageChange}
-                                className="border rounded-md p-1 text-sm"
-                            >
+                            <select value={itemsPerPage} onChange={handleItemsPerPageChange} className="rounded-md border p-1 text-sm">
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
@@ -145,26 +207,82 @@ export default function KlaimIndex() {
                         </div>
                         {/* Tombol Pagination */}
                         <div className="flex space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(prevLink?.url)}
-                                disabled={!prevLink?.url}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handlePageChange(prevLink?.url)} disabled={!prevLink?.url}>
                                 Previous
                             </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(nextLink?.url)}
-                                disabled={!nextLink?.url}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handlePageChange(nextLink?.url)} disabled={!nextLink?.url}>
                                 Next
                             </Button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {showModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-10 text-sm"
+                    onMouseDown={(e) => {
+                        // Tutup modal jika klik di luar konten modal
+                        if (e.target === e.currentTarget) setShowModal(false);
+                    }}
+                >
+                    <div className="mx-4 w-full max-w-7xl rounded-lg bg-white shadow-lg" onMouseDown={(e) => e.stopPropagation()}>
+                        {/* Modal Header */}
+                        <div className="flex items-center border-b px-4 py-3">
+                            <Home className="mr-2 text-blue-500" />
+                            <h2 className="flex-1 text-lg font-semibold">Detail Pasien</h2>
+                            <button className="text-xl text-gray-400 hover:text-gray-700" onClick={() => setShowModal(false)} aria-label="Tutup">
+                                &times;
+                            </button>
+                        </div>
+                        {/* Modal Body */}
+                        <div className="m-4 rounded bg-blue-50 p-2 text-[11px]">
+                            <div>
+                                <b>Nama Pasien:</b> {modalData?.data_peserta?.nama || 'Tidak Diketahui'}
+                            </div>
+                            <div>
+                                <b>Nomor Kartu:</b> {modalData?.data_peserta?.noKartu || 'Tidak Diketahui'}
+                            </div>
+                            <div>
+                                <b>Tanggal Lahir:</b> {formatTanggalIndo(modalData?.data_peserta?.tglLahir) || 'Tidak Diketahui'}
+                            </div>
+                            <div>
+                                <b>No SEP:</b> {modalData?.noSEP || 'Tidak Diketahui'}
+                            </div>
+                            <div>
+                                <b>Tgl SEP:</b> {formatTanggalIndo(modalData?.tglSEP) || 'Tidak Diketahui'}
+                            </div>
+                            <div>
+                                <b>Ruangan</b> : {modalData?.poliTujuan || 'Rawat Inap'}
+                            </div>
+                        </div>
+                        {/* Modal Footer */}
+                        <div className="flex justify-end gap-2 border-t px-4 py-2">
+                            {modalData?.klaimStatus === 0 && (
+                                <Button
+                                    variant="outline"
+                                    disabled={loadingAjukan}
+                                    onClick={() => handleAjukanKlaim()}
+                                >
+                                    {loadingAjukan ? (
+                                        <>
+                                            <Loader className="mr-2 h-4 w-4 animate-spin text-blue-400" />
+                                            Mengajukan Klaim...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="mr-2 h-4 w-4 text-green-400" /> Ajukan Klaim
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                            <Button variant="outline" onClick={() => setShowModal(false)}>
+                                Tutup
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout>
-    )
+    );
 }

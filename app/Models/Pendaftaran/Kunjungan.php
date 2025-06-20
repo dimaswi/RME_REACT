@@ -17,6 +17,7 @@ use App\Models\RM\JadwalKontrol;
 use App\Models\RM\KeluhanUtama;
 use App\Models\RM\PemeriksaanFisik;
 use App\Models\RM\Prosedur;
+use App\Models\RM\Resume;
 use App\Models\RM\RiwayatPenyakitKeluarga;
 use App\Models\RM\RPP;
 use App\Models\RM\Triage;
@@ -92,17 +93,17 @@ class Kunjungan extends Model
 
     public function diagnosaPasien()
     {
-        return $this->hasMany(Diagnosa::class, 'NOPEN', 'NOPEN');
+        return $this->hasMany(Diagnosa::class, 'NOPEN', 'NOPEN')->where('INA_GROUPER', 1);
     }
 
     public function prosedurPasien()
     {
-        return $this->hasMany(Prosedur::class, 'NOPEN', 'NOPEN');
+        return $this->hasMany(Prosedur::class, 'NOPEN', 'NOPEN')->where('INA_GROUPER', 1);
     }
 
     public function riwayatAlergi()
     {
-        return $this->hasMany(Alergi::class, 'KUNJUNGAN', 'NOMOR');
+        return $this->hasOne(Alergi::class, 'KUNJUNGAN', 'NOMOR')->orderBy('TANGGAL', 'DESC');
     }
 
     public function pasienPulang()
@@ -115,7 +116,7 @@ class Kunjungan extends Model
         return $this->hasMany(OrderResep::class, 'KUNJUNGAN', 'NOMOR');
     }
 
-        public function orderResepPulang()
+    public function orderResepPulang()
     {
         return $this->hasMany(OrderResep::class, 'KUNJUNGAN', 'NOMOR')->where('RESEP_PASIEN_PULANG', 1);
     }
@@ -123,6 +124,11 @@ class Kunjungan extends Model
     public function dokterDPJP()
     {
         return $this->hasOne(Dokter::class, 'ID', 'DPJP');
+    }
+
+    public function resumeMedis()
+    {
+        return $this->hasOne(Resume::class, 'NOPEN', 'NOPEN');
     }
 
     public function tagihanPendaftaran()

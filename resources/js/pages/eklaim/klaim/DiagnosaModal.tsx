@@ -50,7 +50,7 @@ export default function DiagnosaModal({
                                 key={`${item.id}-${index}`}
                                 className="bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center gap-2 cursor-pointer"
                                 onClick={() => {
-                                    setDiagnosaSearch(item.id);
+                                    setDiagnosaSearch(item.id.split('-')[0]);
                                     fetchDiagnosa(item.id);
                                 }}
                             >

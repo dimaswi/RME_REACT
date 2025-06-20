@@ -21,7 +21,7 @@ interface PengkajianAwalProps {
 export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, mode }: PengkajianAwalProps) {
 
     const { success, error } = usePage().props;
-
+    console.error("Props:", usePage().props);
     useEffect(() => {
         if (success) toast.success(success);
         if (error) toast.error(error);

@@ -50,7 +50,7 @@ export default function ProcedureModal({
                                 key={`${item.id}-${index}`}
                                 className="bg-green-100 text-green-700 px-2 py-1 rounded flex items-center gap-2 cursor-pointer"
                                 onClick={() => {
-                                    setProcedureSearch(item.id);
+                                    setProcedureSearch(item.id.split('-')[0]);
                                     fetchProcedure(item.id);
                                 }}
                             >
