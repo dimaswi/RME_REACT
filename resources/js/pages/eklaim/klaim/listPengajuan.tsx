@@ -68,6 +68,8 @@ export default function ListPengajuan() {
             perPage: number;
         };
     };
+
+    console.log(pengajuanKlaim);
     const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
         from: parseDate(tanggal_awal),
         to: parseDate(tanggal_akhir),
@@ -125,14 +127,14 @@ export default function ListPengajuan() {
             <div className="p-4">
                 <div className="w-full overflow-x-auto rounded-md border">
                     <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
-                        <Button
+                        {/* <Button
                             variant="outline"
                             size="sm"
                             className="bg-green-400 text-white hover:bg-green-600"
                             onClick={() => setOpenModalBaru(true)}
                         >
                             Buat Pengajuan Klaim Baru
-                        </Button>
+                        </Button> */}
                         <Select
                             value={status}
                             onValueChange={(val) => {
@@ -236,6 +238,7 @@ export default function ListPengajuan() {
                             <TableRow>
                                 <TableHead>No</TableHead>
                                 <TableHead>NORM</TableHead>
+                                <TableHead>Nama</TableHead>
                                 <TableHead>Nomor SEP</TableHead>
                                 <TableHead>
                                     <center>Status</center>
@@ -260,6 +263,7 @@ export default function ListPengajuan() {
                                                 <div className="pl-5">{idx + 1 + (pengajuanKlaim.current_page - 1) * filters.perPage}</div>
                                             </TableCell>
                                             <TableCell>{item.NORM}</TableCell>
+                                            <TableCell>{item.pendaftaran_poli.pasien.NAMA}</TableCell>
                                             <TableCell>
                                                 <p>{item.nomor_SEP}</p>
                                             </TableCell>

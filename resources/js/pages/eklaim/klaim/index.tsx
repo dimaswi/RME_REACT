@@ -1,11 +1,14 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Home, ListCollapse, Loader, Save } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarIcon, Home, ListCollapse, Loader, Save } from 'lucide-react';
 import React, { useState } from 'react';
 
 export default function KlaimIndex() {
@@ -26,6 +29,7 @@ export default function KlaimIndex() {
     const [itemsPerPage, setItemsPerPage] = useState(dataPendaftaran.per_page || 10);
     const [query, setQuery] = useState(filters?.q || '');
     const [selectedPoli, setSelectedPoli] = useState('');
+    const [selectedKelas, setSelectedKelas] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -92,7 +96,7 @@ export default function KlaimIndex() {
             nomor_pendaftaran: modalData.penjamin_pendaftaran.NOPEN,
             tgl_lahir: modalData.data_peserta.tglLahir,
             gender: modalData.data_peserta.sex == 'L' ? '1' : '2',
-            jenis_perawatan: modalData.poliTujuan == 'IGD' ? 'Gawat Darurat' : modalData.poliTujuan == "" ? 'Rawat Inap' : 'Rawat Jalan',
+            jenis_perawatan: modalData.poliTujuan == 'IGD' ? 'Gawat Darurat' : modalData.poliTujuan == '' ? 'Rawat Inap' : 'Rawat Jalan',
         };
 
         router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
@@ -102,7 +106,21 @@ export default function KlaimIndex() {
                 setShowModal(false);
             },
         });
+    };
+
+    const tanggal_awal = usePage().props.tanggal_awal || '';
+    const tanggal_akhir = usePage().props.tanggal_akhir || '';
+
+    function parseDate(str: string): Date | undefined {
+        if (!str) return undefined;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? undefined : d;
     }
+
+    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+        from: parseDate(tanggal_awal),
+        to: parseDate(tanggal_akhir),
+    });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -133,13 +151,56 @@ export default function KlaimIndex() {
                 </div>
                 <div className="w-full overflow-x-auto rounded-md border">
                     <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
+                        {/* Filter Kelas */}
+                        <Select
+                            value={selectedKelas}
+                            onValueChange={(val) => {
+                                setSelectedKelas(val);
+                                router.get(
+                                    route('eklaim.klaim.index'),
+                                    {
+                                        ...filters,
+                                        page: 1,
+                                        per_page: itemsPerPage,
+                                        q: query,
+                                        kelas: val === 'ALL' ? '' : val,
+                                        poli: selectedPoli === 'ALL' ? '' : selectedPoli,
+                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                                    },
+                                    { preserveState: true, replace: true },
+                                );
+                            }}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter Kelas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">Semua Kelas</SelectItem>
+                                <SelectItem value="1">Kelas 1</SelectItem>
+                                <SelectItem value="2">Kelas 2</SelectItem>
+                                <SelectItem value="3">Kelas 3</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {/* Filter Poli */}
                         <Select
                             value={selectedPoli}
                             onValueChange={(val) => {
                                 setSelectedPoli(val);
                                 router.get(
                                     route('eklaim.klaim.index'),
-                                    { page: 1, per_page: itemsPerPage, q: query, poli: val },
+                                    {
+                                        ...filters,
+                                        page: 1,
+                                        per_page: itemsPerPage,
+                                        q: query,
+                                        // Rawat Inap = '', ALL = 'ALL', lainnya = kode poli
+                                        poli: val === 'RAWAT_INAP' ? '' : val === 'ALL' ? '' : val,
+                                        kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
+                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                                    },
                                     { preserveState: true, replace: true },
                                 );
                             }}
@@ -149,6 +210,7 @@ export default function KlaimIndex() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD'])}>Semua Poli</SelectItem>
+                                <SelectItem value={JSON.stringify([''])}>Rawat Inap</SelectItem>
                                 <SelectItem value={JSON.stringify(['INT'])}>Poli Penyakit Dalam</SelectItem>
                                 <SelectItem value={JSON.stringify(['ANA'])}>Poli Anak</SelectItem>
                                 <SelectItem value={JSON.stringify(['OBG'])}>Poli Obgyn</SelectItem>
@@ -156,7 +218,66 @@ export default function KlaimIndex() {
                                 <SelectItem value={JSON.stringify(['IGD'])}>Gawat Darurat</SelectItem>
                             </SelectContent>
                         </Select>
+
+                        {/* Filter tanggal tetap */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-[260px] justify-start text-left font-normal">
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateRange.from && dateRange.to
+                                        ? `${format(dateRange.from, 'dd MMM yyyy')} - ${format(dateRange.to, 'dd MMM yyyy')}`
+                                        : 'Pilih Rentang Tanggal'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-auto p-0">
+                                <div className="flex flex-col gap-2 p-4">
+                                    <Calendar
+                                        mode="range"
+                                        selected={dateRange}
+                                        onSelect={(range) => {
+                                            setDateRange(range);
+                                            if (range.from && range.to) {
+                                                router.get(
+                                                    route('eklaim.klaim.index'),
+                                                    {
+                                                        ...filters,
+                                                        tanggal_awal: format(range.from, 'yyyy-MM-dd'),
+                                                        tanggal_akhir: format(range.to, 'yyyy-MM-dd'),
+                                                        kelas: selectedKelas,
+                                                        poli: selectedPoli,
+                                                    },
+                                                    { preserveState: true },
+                                                );
+                                            }
+                                        }}
+                                        numberOfMonths={2}
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-2 self-end"
+                                        onClick={() => {
+                                            setDateRange({ from: undefined, to: undefined });
+                                            router.get(
+                                                route('eklaim.klaim.index'),
+                                                {
+                                                    ...filters,
+                                                    tanggal_awal: '',
+                                                    tanggal_akhir: '',
+                                                    kelas: selectedKelas,
+                                                    poli: selectedPoli,
+                                                },
+                                                { preserveState: true },
+                                            );
+                                        }}
+                                    >
+                                        Reset
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
+
                     <Table className="w-full min-w-max">
                         <TableHeader>
                             <TableRow>
@@ -164,6 +285,7 @@ export default function KlaimIndex() {
                                 <TableHead>Nama Lengkap</TableHead>
                                 <TableHead>Kode Poli</TableHead>
                                 <TableHead>Tanggal SEP</TableHead>
+                                <TableHead>Kelas</TableHead>
                                 <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -175,6 +297,7 @@ export default function KlaimIndex() {
                                         <TableCell>{item.data_peserta.nama}</TableCell>
                                         <TableCell>{item.poliTujuan ? item.poliTujuan : 'Rawat Inap'}</TableCell>
                                         <TableCell>{formatTanggalIndo(item.tglSEP)}</TableCell>
+                                        <TableCell>{item.data_peserta.nmKelas}</TableCell>
                                         <TableCell>{badgeStatus(item.klaimStatus)}</TableCell>
                                     </TableRow>
                                 ))
@@ -259,11 +382,7 @@ export default function KlaimIndex() {
                         {/* Modal Footer */}
                         <div className="flex justify-end gap-2 border-t px-4 py-2">
                             {modalData?.klaimStatus === 0 && (
-                                <Button
-                                    variant="outline"
-                                    disabled={loadingAjukan}
-                                    onClick={() => handleAjukanKlaim()}
-                                >
+                                <Button variant="outline" disabled={loadingAjukan} onClick={() => handleAjukanKlaim()}>
                                     {loadingAjukan ? (
                                         <>
                                             <Loader className="mr-2 h-4 w-4 animate-spin text-blue-400" />

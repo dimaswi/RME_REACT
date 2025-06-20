@@ -14,11 +14,15 @@ use App\Models\Eklaim\GrouperOneSubAcute;
 use App\Models\Eklaim\GrouperOneTarif;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
+use App\Models\Eklaim\ResumeMedis;
 use App\Models\Master\Dokter;
 use App\Models\Master\Pasien;
 use App\Models\Pembayaran\Tagihan;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pendaftaran\Pendaftaran;
+use App\Models\RM\Diagnosa;
+use App\Models\RM\Prosedur;
+use App\Models\RM\TTV;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +37,9 @@ class KlaimController extends Controller
         $perPage = $request->input('per_page', 10);
         $q = $request->input('q');
         $poli = $request->input('poli');
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+        $kelas = $request->input('kelas');
 
 
         // $query = Pasien::query();
@@ -56,6 +63,21 @@ class KlaimController extends Controller
             $query->whereIn('poliTujuan', $poliArr);
         }
 
+        if ($kelas) {
+            $query->whereHas('dataPeserta', function ($q) use ($kelas) {
+                $q->where('kdKelas', $kelas);
+            });
+        }
+
+        // Filter tanggal_pengajuan
+        if ($tanggalAwal && $tanggalAkhir) {
+            $query->whereBetween('tglSEP', [$tanggalAwal, $tanggalAkhir]);
+        } elseif ($tanggalAwal) {
+            $query->whereDate('tglSEP', '>=', $tanggalAwal);
+        } elseif ($tanggalAkhir) {
+            $query->whereDate('tglSEP', '<=', $tanggalAkhir);
+        }
+
         $dataPendaftaran = $query
             ->with(['dataPeserta', 'kartuAsuransiPasien', 'penjaminPendaftaran'])
             ->orderByDesc('tglSEP')
@@ -68,6 +90,9 @@ class KlaimController extends Controller
                 'q' => $q,
                 'perPage' => $perPage,
             ],
+            'tanggal_awal' => $tanggalAwal,
+            'tanggal_akhir' => $tanggalAkhir,
+            'kelas' => $kelas,
         ]);
     }
 
@@ -1052,7 +1077,7 @@ class KlaimController extends Controller
         $tanggalAkhir = $request->input('tanggal_akhir');
         $status = $request->input('status'); // Ambil status dari request
 
-        $query = PengajuanKlaim::query();
+        $query = PengajuanKlaim::with('pendaftaranPoli.pasien');
 
         // Filter status klaim
         if ($status !== null && $status !== '') {
@@ -1119,7 +1144,7 @@ class KlaimController extends Controller
         // Jika belum ada, fallback ke data kunjungan (seperti sebelumnya)
         $data = $pengajuanKlaim->load([
             'pendaftaranPoli.kunjunganPasien.ruangan' => function ($query) {
-                $query->where('JENIS_KUNJUNGAN', 1);
+                $query->whereIn('JENIS_KUNJUNGAN', [1, 2, 3, 17]);
             },
         ]);
 
@@ -1134,6 +1159,43 @@ class KlaimController extends Controller
         $tagihanPendaftaran = \App\Models\Pembayaran\TagihanPendaftaran::where('PENDAFTARAN',  $pengajuanKlaim->nomor_pendaftaran)->first();
         $tagihan = \App\Models\Pembayaran\Tagihan::where('ID', $tagihanPendaftaran->TAGIHAN)->first();
         $data->tagihan = $tagihan;
+
+        if ($pengajuanKlaim->edit == 1) {
+            $dataResumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
+            $data['sistole'] = $dataResumeMedis->sistole;
+            $data['diastole'] = $dataResumeMedis->diastole;
+            $data['diagnosa'] = $dataResumeMedis->diagnosa_utama;
+            $data['prosedur'] = $dataResumeMedis->tindakan_prosedur;
+        }
+
+        if ($pengajuanKlaim->edit == 0) {
+            if (
+                isset($data->pendaftaranPoli) &&
+                isset($data->pendaftaranPoli->kunjunganPasien) &&
+                is_iterable($data->pendaftaranPoli->kunjunganPasien)
+            ) {
+                foreach ($data->pendaftaranPoli->kunjunganPasien as $kunjungan) {
+                    if (
+                        isset($kunjungan->ruangan) &&
+                        isset($kunjungan->ruangan->JENIS_KUNJUNGAN) &&
+                        in_array($kunjungan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])
+                    ) {
+                        $nomorKunjungan = $kunjungan->NOMOR;
+                        $ttv = TTV::where('KUNJUNGAN', $nomorKunjungan)->orderBy('TANGGAL', 'DESC')->first();
+                        $diagnosa = Diagnosa::where('NOPEN', $kunjungan->NOPEN)->orderBy('TANGGAL', 'DESC')->first();
+                        // dd($diagnosa);
+                        $prosedur = Prosedur::where('NOPEN', $kunjungan->NOPEN)->orderBy('TANGGAL', 'DESC')->first();
+                        $sistole = $ttv->SISTOLIK ?? null;
+                        $diastole = $ttv->DISTOLIK ?? null;
+                        $data['sistole'] = $sistole;
+                        $data['diastole'] = $diastole;
+                        $data['diagnosa'] = $diagnosa ? $diagnosa->KODE : null;
+                        $data['prosedur'] = $prosedur ? $prosedur->KODE : null;
+                        
+                    }
+                }
+            }
+        }
 
         return response()->json([
             'klaimData' => null,

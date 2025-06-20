@@ -34,7 +34,13 @@ class ResumeMedis extends Model
         'riwayat_alergi',
         'keadaan_pulang',
         'cara_pulang',
-        'dokter'
+        'dokter',
+        'keadaan_umum',
+        'suhu',
+        'nadi',
+        'respirasi',
+        'sistole',
+        'diastole',
     ];
 
     public function pengkajianAwal()

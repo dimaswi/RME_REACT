@@ -147,6 +147,12 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const [dokumenPengkajianAwalLoaded, setDokumenPengkajianAwalLoaded] = useState<any>(false);
     const [dokumenTriageLoaded, setDokumenTriageLoaded] = useState<any>(false);
     const [dokumenCPPTLoaded, setDokumenCPPTLoaded] = useState<any>(false);
+    const [keadaanUmum, setKeadaanUmum] = useState<string | null>(null);
+    const [nadi, setNadi] = useState<string | null>(null);
+    const [suhu, setSuhu] = useState<string | null>(null);
+    const [sistole, setSistole] = useState<string | null>(null);
+    const [diastole, setDiastole] = useState<string | null>(null);
+    const [respirasi, setRespirasi] = useState<string | null>(null);
 
     useEffect(() => {
         setDiagnosaUtama(formatDiagnosaString(selectedDiagnosa));
@@ -155,7 +161,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     function formatDiagnosaString(selectedDiagnosa: any[]): string {
         // Gabungkan kode dan description
-        const codes = selectedDiagnosa.map((item) => `${item.id}-${item.description || ''}`);
+        const codes = selectedDiagnosa.map((item) => `${item.id}`);
 
         // Hitung kemunculan setiap kode-description
         const count: Record<string, number> = {};
@@ -182,7 +188,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     function formatProcedureString(selectedProcedure: any[]): string {
         // Gabungkan kode dan description
-        const codes = selectedProcedure.map((item) => `${item.id}-${item.description || ''}`);
+        const codes = selectedProcedure.map((item) => `${item.id}`);
 
         // Hitung kemunculan setiap kode-description
         const count: Record<string, number> = {};
@@ -301,6 +307,12 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setRiwayatAlergi(kunjungan?.resume_medis?.riwayat_alergi || null);
             setKeadaanPulang(kunjungan?.resume_medis?.keadaan_pulang || 'Belum Pulang');
             setCaraPulang(kunjungan?.resume_medis?.cara_pulang || 'Belum Pulang');
+            setKeadaanUmum(kunjungan?.resume_medis?.keadaan_umum || null);
+            setNadi(kunjungan?.resume_medis?.nadi || null);
+            setSuhu(kunjungan?.resume_medis?.suhu || null);
+            setSistole(kunjungan?.resume_medis?.sistole || null);
+            setDiastole(kunjungan?.resume_medis?.diastole || null);
+            setRespirasi(kunjungan?.resume_medis?.respirasi || null);
             setSelectedDiagnosa(
                 (kunjungan?.resume_medis?.diagnosa_utama || '')
                     .split('#')
@@ -360,6 +372,12 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         lembar_pengkajian_awal: dokumenPengkajianAwalLoaded,
         lembar_triage: dokumenTriageLoaded,
         lembar_cppt: dokumenCPPTLoaded,
+        keadaan_umum: keadaanUmum || null,
+        nadi: nadi || null,
+        suhu: suhu || null,
+        sistole: sistole || null,
+        diastole: diastole || null,
+        respirasi: respirasi || null,
     };
 
     function handleLamaDirawat(tanggalMasuk: string | null | undefined, tanggalKeluar: string | null | undefined): string {
@@ -1085,6 +1103,77 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                             <small className="text-red-500">* Untuk procedure primary pastikan pada pilihan pertama (ICD-9)</small>
                                             <br />
                                             <small className="text-red-500">* Pilih 2 kali jika procedure digunakan lebih dari sekali</small>
+                                        </td>
+                                    </tr>
+
+                                    {/* Keadaan Umum */}
+                                    <tr>
+                                        <td
+                                            colSpan={2}
+                                            style={{
+                                                verticalAlign: 'top',
+                                                height: 70,
+                                                width: '5%',
+                                                border: '1px solid #000',
+                                                paddingLeft: 5,
+                                            }}
+                                        >
+                                            <strong>Keadaan Umum</strong>
+                                        </td>
+                                        <td
+                                            colSpan={6}
+                                            style={{
+                                                verticalAlign: 'top',
+                                                height: 70,
+                                                width: '5%',
+                                                border: '1px solid #000',
+                                                paddingLeft: 5,
+                                            }}
+                                        >
+                                            <div className="gap-2 px-2 py-4">
+                                                <Input
+                                                    type="text"
+                                                    value={keadaanUmum || ''}
+                                                    onChange={(e) => setKeadaanUmum(e.target.value)}
+                                                    placeholder="Masukkan keadaan umum"
+                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                                <Input
+                                                    type="text"
+                                                    value={suhu || ''}
+                                                    onChange={(e) => setSuhu(e.target.value)}
+                                                    placeholder="Masukkan suhu"
+                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                                <Input
+                                                    type="text"
+                                                    value={respirasi || ''}
+                                                    onChange={(e) => setRespirasi(e.target.value)}
+                                                    placeholder="Masukkan respirasi"
+                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                                <Input
+                                                    type="text"
+                                                    value={sistole || ''}
+                                                    onChange={(e) => setSistole(e.target.value)}
+                                                    placeholder="Masukkan sistole"
+                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                                <Input
+                                                    type="text"
+                                                    value={diastole || ''}
+                                                    onChange={(e) => setDiastole(e.target.value)}
+                                                    placeholder="Masukkan diastole"
+                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                                <Input
+                                                    type="text"
+                                                    value={nadi || ''}
+                                                    onChange={(e) => setNadi(e.target.value)}
+                                                    placeholder="Masukkan nadi"
+                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
 

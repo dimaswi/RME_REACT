@@ -238,41 +238,6 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                 <></>
             ) : (
                 <div className="flex justify-end gap-2 px-4 py-2">
-                    {loadingHapus ? (
-                        <Button variant="outline" disabled>
-                            <Loader className="mr-2 h-4 w-4 animate-spin text-red-500" />
-                            Menghapus...
-                        </Button>
-                    ) : (
-                        <Button
-                            variant="outline"
-                            onClick={async () => {
-                                await router.post(
-                                    route('eklaim.klaim.hapusDataKlaim', { pengajuanKlaim: pengajuanKlaim.id }),
-                                    {},
-                                    {
-                                        preserveState: true,
-                                        preserveScroll: true,
-                                        onStart: () => {
-                                            setLoadingHapus(true);
-                                        },
-                                        onFinish: () => {
-                                            setLoadingHapus(false);
-                                        },
-                                        onError: () => {
-                                            setLoadingHapus(false);
-                                        },
-                                        onSuccess: () => {
-                                            setLoadingHapus(false);
-                                        },
-                                    },
-                                );
-                            }}
-                        >
-                            <Trash className="mr-2 h-4 w-4 text-red-500" />
-                            Hapus
-                        </Button>
-                    )}
                     {data &&
                     data.grouperOneSpecialCmgOption &&
                     Array.isArray(data.grouperone?.special_cmg) &&

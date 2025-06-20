@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
-import { Loader, Save, Trash } from 'lucide-react';
+import { Loader, Save } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import DiagnosaModal from './DiagnosaModal';
@@ -362,6 +362,65 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             const klaimData = klaimRes.data;
+
+            if (item.edit == 1) {
+                setSistole(Number(klaimData.kunjungan.sistole) || '');
+                setDiastole(Number(klaimData.kunjungan.diastole) || '');
+                // Setelah dapat response dari backend (baik dari klaimData maupun kunjungan)
+                const diagnosaStr = klaimData?.kunjungan?.diagnosa || '';
+                const procedureStr = klaimData?.kunjungan?.prosedur || '';
+
+                const diagnosaArr = diagnosaStr
+                    .split('#')
+                    .filter(Boolean)
+                    .flatMap((item: string) => {
+                        const [codeDesc, countStr] = item.split('+');
+                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                        const count = countStr ? parseInt(countStr, 10) : 1;
+                        return Array(count).fill({ id: id.trim() });
+                    });
+                setSelectedDiagnosa(diagnosaArr);
+
+                const procedureArr = procedureStr
+                    .split('#')
+                    .filter(Boolean)
+                    .flatMap((item: string) => {
+                        const [codeDesc, countStr] = item.split('+');
+                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                        const count = countStr ? parseInt(countStr, 10) : 1;
+                        return Array(count).fill({ id: id.trim() });
+                    });
+                setSelectedProcedure(procedureArr);
+            }
+
+            if (item.edit == 0) {
+                setSistole(Number(klaimData.kunjungan.sistole) || '');
+                setDiastole(Number(klaimData.kunjungan.diastole) || '');
+                const diagnosaStr = klaimData?.kunjungan?.diagnosa || '';
+                const procedureStr = klaimData?.kunjungan?.prosedur || '';
+                const diagnosaArr = diagnosaStr
+                    .split('#')
+                    .filter(Boolean)
+                    .flatMap((item: string) => {
+                        const [codeDesc, countStr] = item.split('+');
+                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                        const count = countStr ? parseInt(countStr, 10) : 1;
+                        return Array(count).fill({ id: id.trim() });
+                    });
+                setSelectedDiagnosa(diagnosaArr);
+
+                const procedureArr = procedureStr
+                    .split('#')
+                    .filter(Boolean)
+                    .flatMap((item: string) => {
+                        const [codeDesc, countStr] = item.split('+');
+                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                        const count = countStr ? parseInt(countStr, 10) : 1;
+                        return Array(count).fill({ id: id.trim() });
+                    });
+                setSelectedProcedure(procedureArr);
+            }
+
             if (klaimData && klaimData.klaimData) {
                 // Jika data klaim sudah ada di database, set state dari klaimData
                 setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
@@ -369,8 +428,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
                 setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
                 setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
-                setSistole(klaimData.klaimData.sistole || '');
-                setDiastole(klaimData.klaimData.diastole || '');
                 setNamaDokter(klaimData.klaimData.nama_dokter || '');
                 setKodeTarifRumahSAkit(klaimData.klaimData.kode_tarif || 'DS');
                 setTarifPoliEks(Number(klaimData.klaimData.tarif_poli_eks) || 0);
@@ -394,18 +451,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     }
                     return result;
                 }
-                setSelectedDiagnosa(
-                    klaimStringToArray(klaimData.klaimData.diagnosa).map((id: string) => ({
-                        id,
-                        description: '', // Anda bisa fetch deskripsi jika perlu
-                    })),
-                );
-                setSelectedProcedure(
-                    klaimStringToArray(klaimData.klaimData.procedure).map((id: string) => ({
-                        id,
-                        description: '', // Anda bisa fetch deskripsi jika perlu
-                    })),
-                );
 
                 // Tarif RS
                 if (klaimData.tarif_rs) {
@@ -500,7 +545,9 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Jika data klaim belum ada, fallback ke data kunjungan
             const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             setDataKunjungan(response.data);
-            setJenisPerawatan(response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1');
+            setJenisPerawatan(
+                response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
+            );
             setDataPenjaminKlaim(3);
             const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
             const keluar = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
@@ -1960,15 +2007,23 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     </table>
                     <div className="flex justify-end gap-2 p-4">
                         <Button variant="outline" onClick={handleSimpan} disabled={loadingSimpan || loadingGrouper}>
-                            {loadingSimpan ? <>
-                            <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan ....
-                            </> : <Save className="mr-2 h-4 w-4 text-green-400" />}
+                            {loadingSimpan ? (
+                                <>
+                                    <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan ....
+                                </>
+                            ) : (
+                                <Save className="mr-2 h-4 w-4 text-green-400" />
+                            )}
                             Simpan
                         </Button>
                         <Button variant="outline" onClick={handleGrouper} disabled={loadingSimpan || loadingGrouper}>
-                            {loadingGrouper ? <>
-                            <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan Grouper ....
-                            </> : <Save className="mr-2 h-4 w-4 text-blue-400" />}
+                            {loadingGrouper ? (
+                                <>
+                                    <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan Grouper ....
+                                </>
+                            ) : (
+                                <Save className="mr-2 h-4 w-4 text-blue-400" />
+                            )}
                             Grouper
                         </Button>
                     </div>
