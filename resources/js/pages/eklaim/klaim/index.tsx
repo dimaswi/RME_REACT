@@ -79,9 +79,9 @@ export default function KlaimIndex() {
     const badgeStatus = (status: number) => {
         switch (status) {
             case 0:
-                return <Badge className="bg-green-100 text-green-800">Belum Diajukan</Badge>;
+                return <Badge className="bg-red-100 text-red-800">Belum Diajukan</Badge>;
             case 1:
-                return <Badge className="bg-red-100 text-red-800">Sudah Diajukan</Badge>;
+                return <Badge className="bg-green-100 text-green-800">Sudah Diajukan</Badge>;
             default:
                 return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
         }

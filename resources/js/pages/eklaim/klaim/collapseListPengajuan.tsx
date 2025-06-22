@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
-import { Loader, Save } from 'lucide-react';
+import { Banknote, Currency, Loader, Save } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import DiagnosaModal from './DiagnosaModal';
@@ -72,7 +72,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const [diastole, setDiastole] = useState('');
     const [loadingSimpan, setLoadingSimpan] = useState(false);
     const [loadingGrouper, setLoadingGrouper] = useState(false);
-    const [loadingHapus, setLoadingHapus] = useState(false);
+    const [loadingTestGrouper, setLoadingTestGrouper] = useState(false);
 
     // --- Persalinan State ---
     const [persalinan, setPersalinan] = useState({
@@ -751,6 +751,29 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 },
                 onSuccess: () => {
                     setLoadingGrouper(false);
+                },
+            },
+        );
+    };
+
+    // --- Handle Test Grouper ---
+    const handleTestGrouper = async () => {
+        await router.post(
+            `${item.id}/grouper/test`,
+            {},
+            {
+                preserveState: false,
+                preserveScroll: true,
+                // we specify what we want to be replaced here
+                only: ['pengajuanKlaim', 'success', 'error'],
+                onStart: () => {
+                    setLoadingTestGrouper(true);
+                },
+                onError: () => {
+                    setLoadingTestGrouper(false);
+                },
+                onSuccess: () => {
+                    setLoadingTestGrouper(false);
                 },
             },
         );
@@ -2025,6 +2048,20 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                 <Save className="mr-2 h-4 w-4 text-blue-400" />
                             )}
                             Grouper
+                        </Button>
+                        <Button
+                            variant="outline"
+                            disabled={loadingTestGrouper}
+                            onClick={handleTestGrouper}
+                        >
+                            {loadingTestGrouper ? (
+                                <><Loader className="mr-2 h-4 w-4 animate-spin" /> Mengambil data ....</>
+                            ) : (
+                                <>
+                                    <Banknote className="mr-2 h-4 w-4 text-yellow-400" /> Ambil Tarif
+                                </>
+                            )}
+  
                         </Button>
                     </div>
 

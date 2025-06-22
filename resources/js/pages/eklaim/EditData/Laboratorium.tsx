@@ -101,6 +101,9 @@ export default function EditLaboratorium() {
     // Untuk baris tambah baru
     const [addRow, setAddRow] = useState<{ tindakanId?: string; hasil_lab: HasilLab[] }>({ hasil_lab: [] });
 
+    // Tambahkan state untuk table default
+    const [showDefaultTable, setShowDefaultTable] = useState(true);
+
     // Handler hapus tindakan (baik dari backend maupun dynamic)
     const handleDeleteTindakan = (id: string) => {
         // Jika dataTindakan (backend), hapus dari state dataTindakan
@@ -121,19 +124,22 @@ export default function EditLaboratorium() {
                 const response = await axios.get(
                     route('getDataLaboratorium', {
                         nomorKunjungan: selectedKunjungan,
-                        jenisData: selectedJenisData, // <-- tambahkan ini
+                        jenisData: selectedJenisData,
                     }),
                 );
                 if (response.data && Array.isArray(response.data)) {
                     setDataTindakan(response.data);
                     setShowTable(true);
+                    setShowDefaultTable(false); // Hapus table default setelah load
                     toast.success('Data laboratorium berhasil dimuat.');
                 } else {
                     setShowTable(false);
+                    setShowDefaultTable(false);
                     toast.error('Gagal memuat data laboratorium.');
                 }
             } catch {
                 setShowTable(false);
+                setShowDefaultTable(false);
                 toast.error('Gagal memuat data laboratorium.');
             }
         }
@@ -391,6 +397,75 @@ export default function EditLaboratorium() {
                             </Button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Table default: hanya baris tambah tindakan, tampil sebelum klik Load */}
+            {showDefaultTable && (
+                <div className="mb-10 w-full overflow-x-auto">
+                    <table className="min-w-full border text-sm">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="w-[10%] border px-2 py-1">Tindakan</th>
+                                <th className="w-[10%] border px-2 py-1">Tanggal</th>
+                                <th className="w-[20%] border px-2 py-1">Parameter</th>
+                                <th className="w-[10%] border px-2 py-1">Hasil</th>
+                                <th className="w-[25%] border px-2 py-1">Nilai Normal</th>
+                                <th className="w-[15%] border px-2 py-1">Satuan</th>
+                                <th className="w-[5%] border px-2 py-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* Baris tambah baru */}
+                            <tr>
+                                <td className="border px-2 py-1 align-top">
+                                    <Select value={addRow.tindakanId} onValueChange={handleSelectTindakanBaru}>
+                                        <SelectTrigger className="w-[150px]">
+                                            <SelectValue placeholder="Pilih Tindakan" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {listTindakanLab.map((t) => (
+                                                <SelectItem key={t.ID} value={t.ID}>
+                                                    {t.NAMA}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </td>
+                                <td className="border px-2 py-1 align-top">{addRow.tindakanId ? formatTanggalIndo(new Date().toISOString()) : ''}</td>
+                                <td className="border px-2 py-1"></td>
+                                <td className="border px-2 py-1"></td>
+                                <td className="border px-2 py-1"></td>
+                                <td className="border px-2 py-1"></td>
+                                <td className="border px-2 py-1 align-top">
+                                    {addRow.tindakanId && (
+                                        <Button size="sm" className="bg-green-400 hover:bg-green-700" onClick={handleSimpanBaru}>
+                                            Tambah
+                                        </Button>
+                                    )}
+                                </td>
+                            </tr>
+                            {/* Parameter dan hasil otomatis muncul setelah pilih tindakan */}
+                            {addRow.tindakanId &&
+                                addRow.hasil_lab.map((hasil, idx) => (
+                                    <tr key={hasil.ID}>
+                                        <td className="border px-2 py-1"></td>
+                                        <td className="border px-2 py-1"></td>
+                                        <td className="border px-2 py-1">{hasil.parameter_tindakan_lab.PARAMETER}</td>
+                                        <td className="border px-2 py-1">
+                                            <input
+                                                className="w-full border px-1 py-0.5"
+                                                value={hasil.HASIL}
+                                                onChange={(e) => handleEditHasilBaru(idx, e.target.value)}
+                                            />
+                                        </td>
+                                        <td className="border px-2 py-1">{hasil.NILAI_NORMAL}</td>
+                                        <td className="border px-2 py-1">{hasil.SATUAN}</td>
+                                        <td className="border px-2 py-1"></td>
+                                    </tr>
+                                ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
 

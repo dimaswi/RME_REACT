@@ -879,10 +879,6 @@ class EditDataController extends Controller
             }
         }
 
-        if (empty($dataKunjunganRadiologi)) {
-            return redirect()->back()->with('error', 'Tidak ada kunjungan Radiologi yang ditemukan.');
-        }
-
         $tindakanRad = Tindakan::where('JENIS', 7)->get();
         $pegawai = Pegawai::all()->map(function ($pegawai) {
             $nama = trim($pegawai->NAMA);

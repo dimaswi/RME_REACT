@@ -10,7 +10,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { AlignJustify, CalendarIcon, Check, Home, Pencil, Trash } from 'lucide-react';
+import { AlignJustify, CalendarIcon, Check, Home, Pencil, Send, Trash } from 'lucide-react';
 import React, { useState } from 'react';
 import ModalBuatPengajuanBaru from './ModalBuatPengajuanBaru';
 import PengajuanKlaimCollapse from './collapseListPengajuan';
@@ -19,6 +19,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import FinalGroupingCollapse from './collapseFinalGrouping';
 import CollapseBelumDiajukan from './collapseBelumDiajukan';
+import ModalKirimKlaim from './modalKirimKlaim';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -121,10 +122,27 @@ export default function ListPengajuan() {
     const [openRow, setOpenRow] = useState<number | null>(null);
     const [openModalBaru, setOpenModalBaru] = useState(false);
 
+    const [showModalKirim, setShowModalKirim] = useState(false);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="List Pengajuan Klaim" />
             <div className="p-4">
+                <div className='flex mb-4 items-center gap-2 justify-end'>
+                    <div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className='bg-blue-500 text-white hover:bg-blue-600'
+                            onClick={() => {
+                                setShowModalKirim(true);
+                            }}
+                        >
+                            <Send className="mr-2" />
+                            Kirim
+                        </Button>
+                    </div>
+                </div>
                 <div className="w-full overflow-x-auto rounded-md border">
                     <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
                         {/* <Button
@@ -143,7 +161,7 @@ export default function ListPengajuan() {
                                 try {
                                     const arr = JSON.parse(val);
                                     if (Array.isArray(arr)) statusParam = arr;
-                                } catch {}
+                                } catch { }
                                 router.get(
                                     route('eklaim.klaim.indexPengajuanKlaim'),
                                     {
@@ -285,18 +303,18 @@ export default function ListPengajuan() {
                                                                 <AlignJustify size={16} />
                                                             </Button>
                                                         </DropdownMenuTrigger>
-                                                        <DropdownMenuContent>    
+                                                        <DropdownMenuContent>
                                                             <DropdownMenuItem
-                                                                    
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }));
-                                                                        }}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Pencil size={16} className="text-yellow-600" />
-                                                                        Isi Data Klaim
-                                                                    </DropdownMenuItem>
+
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }));
+                                                                }}
+                                                                className="flex items-center gap-2"
+                                                            >
+                                                                <Pencil size={16} className="text-yellow-600" />
+                                                                Isi Data Klaim
+                                                            </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </center>
@@ -304,7 +322,7 @@ export default function ListPengajuan() {
                                         </TableRow>
                                         {openRow === item.id && (
                                             <TableRow>
-                                                <TableCell colSpan={6} className="bg-gray-50">
+                                                <TableCell colSpan={7} className="bg-gray-50">
                                                     {
                                                         item.status === 0 && (
                                                             <CollapseBelumDiajukan
@@ -334,7 +352,7 @@ export default function ListPengajuan() {
 
                                                     {
                                                         item.status === 3 && (
-                                                            <FinalGroupingCollapse 
+                                                            <FinalGroupingCollapse
                                                                 pengajuanKlaim={item}
                                                             />
                                                         )
@@ -382,6 +400,15 @@ export default function ListPengajuan() {
                         router.reload({ only: ['pengajuanKlaim', 'success', 'error'] }); // reload data table saja
                     }}
                 />
+
+                {
+                    showModalKirim && (
+                        <ModalKirimKlaim
+                            open={showModalKirim}
+                            onOpenChange={setShowModalKirim}
+                        />
+                    )
+                }
             </div>
         </AppLayout>
     );

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Inacbg\InacbgController;
 use App\Models\BPJS\Kunjungan;
 use App\Models\Eklaim\DataKlaim;
 use App\Models\Eklaim\GrouperOne;
@@ -1329,5 +1330,86 @@ class KlaimController extends Controller
         return response()->json([
             'data' => $data
         ]);
+    }
+
+    public function getAmbilDataTarifDiagnosa(PengajuanKlaim $pengajuanKlaim)
+    {
+        $metadata = [
+            'method' => 'grouper',
+            'stage' => '1',
+        ];
+
+        $data = [
+            "nomor_sep" => $pengajuanKlaim->nomor_SEP,
+        ];
+
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        }
+
+        DB::connection('eklaim')->beginTransaction();
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
+        DB::connection('eklaim')->commit();
+        return redirect()->back()->with('success', 'Data tarif dan diagnosa berhasil diambil.');
+    }
+
+    public function kirimDataKolektifHari(Request $request)
+    {
+        $tanggal_awal = $request->input('tanggal_awal');
+        $tanggal_akhir = $request->input('tanggal_akhir');
+        $jenis_rawat = $request->input('jenis_rawat');
+        $date_type = $request->input('date_type');
+
+        $metadata = [
+            'method' => 'send_claim'
+        ];
+
+        $data = [
+            'start_dt' => $tanggal_awal,
+            'stop_dt' => $tanggal_akhir,
+            'jenis_rawat' => $jenis_rawat,
+            'date_type' => $date_type,
+        ];
+
+        dd($data);
+
+        // $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        // $send = $inacbgController->sendToEklaim($metadata, $data);
+        // if ($send['metadata']['code'] != 200) {
+        //     DB::connection('eklaim')->beginTransaction();
+        //     LogKlaim::create([
+        //         'nomor_SEP' => "-",
+        //         'method' => json_encode($metadata),
+        //         'request' => json_encode($data),
+        //         'response' => json_encode($send),
+        //     ]);
+        //     DB::connection('eklaim')->commit();
+        //     return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        // }
+
+        // DB::connection('eklaim')->beginTransaction();
+        // LogKlaim::create([
+        //     'nomor_SEP' => "-",
+        //     'method' => json_encode($metadata),
+        //     'request' => json_encode($data),
+        //     'response' => json_encode($send),
+        // ]);
+        // DB::connection('eklaim')->commit();
+        // return redirect()->back()->with('success', 'Data tarif dan diagnosa berhasil diambil.');
     }
 }

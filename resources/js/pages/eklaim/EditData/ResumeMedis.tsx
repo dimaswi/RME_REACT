@@ -235,17 +235,17 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setSelectedDiagnosa(
                 Array.isArray(kunjungan?.diagnosa_pasien)
                     ? kunjungan.diagnosa_pasien.map((item: any) => ({
-                          id: item.nama_diagnosa?.CODE || '',
-                          description: item.nama_diagnosa?.STR || '',
-                      }))
+                        id: item.nama_diagnosa?.CODE || '',
+                        description: item.nama_diagnosa?.STR || '',
+                    }))
                     : [],
             );
             setSelectedProcedure(
                 Array.isArray(kunjungan?.prosedur_pasien)
                     ? kunjungan.prosedur_pasien.map((item: any) => ({
-                          id: item.nama_prosedur?.CODE || '',
-                          description: item.nama_prosedur?.STR || '',
-                      }))
+                        id: item.nama_prosedur?.CODE || '',
+                        description: item.nama_prosedur?.STR || '',
+                    }))
                     : [],
             );
             setDiagnosaUtama(formatDiagnosaString(selectedDiagnosa));
@@ -415,8 +415,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         const konsulData = Array.isArray(dataKunjungan)
             ? dataKunjungan.flatMap((k: any) => k.permintaan_konsul || [])
             : dataKunjungan?.permintaan_konsul
-              ? dataKunjungan.permintaan_konsul
-              : [];
+                ? dataKunjungan.permintaan_konsul
+                : [];
 
         if (!konsulData || konsulData.length === 0) {
             toast.error('Data permintaan konsul tidak tersedia.');
@@ -1354,104 +1354,117 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         <td></td>
                                     </tr>
 
-                                    {terapiPulang.map((terapi, index) => (
-                                        <tr key={index}>
-                                            <td
-                                                colSpan={2}
-                                                style={{
-                                                    verticalAlign: 'middle',
-                                                    height: 70,
-                                                    width: '20%',
-                                                    border: '1px solid #000',
-                                                    paddingLeft: 10,
-                                                    paddingRight: 10,
-                                                }}
-                                            >
-                                                <SearchableDropdown
-                                                    data={getObatDropdownData(terapi.namaObat, obatOptions)}
-                                                    value={terapi.namaObat}
-                                                    setValue={(val: string) => handleUpdateTerapi(index, 'namaObat', val)}
-                                                    placeholder="Cari nama obat"
-                                                    getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
-                                                    getOptionValue={(item) => item?.DESKRIPSI ?? ''}
-                                                    onSearch={handleSearchObat}
-                                                />
+                                    {(!terapiPulang || terapiPulang.length === 0) ? (
+                                        <tr>
+                                            <td colSpan={8} style={{ textAlign: 'center', border: '1px solid #000', padding: 10 }}>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={handleAddTerapi}
+                                                    className="rounded-md border border-gray-300 bg-blue-500 p-2 text-white hover:bg-blue-600"
+                                                >
+                                                    Tambah Obat
+                                                </Button>
                                             </td>
-                                            <td
-                                                style={{
-                                                    verticalAlign: 'middle',
-                                                    height: 70,
-                                                    width: '20%',
-                                                    border: '1px solid #000',
-                                                    paddingLeft: 10,
-                                                    paddingRight: 10,
-                                                }}
-                                            >
-                                                <Input
-                                                    type="number"
-                                                    value={Number(terapi.jumlah)}
-                                                    onChange={(e) => handleUpdateTerapi(index, 'jumlah', e.target.value)}
-                                                    placeholder="Masukkan jumlah"
-                                                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                            </td>
-                                            <td
-                                                colSpan={2}
-                                                style={{
-                                                    verticalAlign: 'middle',
-                                                    height: 70,
-                                                    width: '20%',
-                                                    border: '1px solid #000',
-                                                    paddingLeft: 10,
-                                                    paddingRight: 10,
-                                                }}
-                                            >
-                                                <Input
-                                                    type="text"
-                                                    value={terapi.frekuensi}
-                                                    onChange={(e) => handleUpdateTerapi(index, 'frekuensi', e.target.value)}
-                                                    placeholder="Masukkan frekuensi"
-                                                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                            </td>
-                                            <td
-                                                colSpan={2}
-                                                style={{
-                                                    verticalAlign: 'middle',
-                                                    height: 70,
-                                                    width: '20%',
-                                                    border: '1px solid #000',
-                                                    paddingLeft: 10,
-                                                    paddingRight: 10,
-                                                }}
-                                            >
-                                                <Input
-                                                    type="text"
-                                                    value={terapi.caraPemberian}
-                                                    onChange={(e) => handleUpdateTerapi(index, 'caraPemberian', e.target.value)}
-                                                    placeholder="Masukkan cara pemberian"
-                                                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                            </td>
-                                            <td
-                                                style={{
-                                                    verticalAlign: 'middle',
-                                                    height: 70,
-                                                    width: '20%',
-                                                    border: '1px solid #000',
-                                                    paddingLeft: 10,
-                                                    paddingRight: 10,
-                                                }}
-                                            >
-                                                <div className="flex h-full items-center gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => handleAddTerapi(index)}
-                                                        className="rounded-md border border-gray-300 bg-green-500 p-2 text-white hover:bg-green-600"
-                                                    >
-                                                        Tambah
-                                                    </Button>
-                                                    {/* {
+                                        </tr>
+                                    ) : (
+                                        terapiPulang.map((terapi, index) => (
+                                            <tr key={index}>
+                                                <td
+                                                    colSpan={2}
+                                                    style={{
+                                                        verticalAlign: 'middle',
+                                                        height: 70,
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 10,
+                                                        paddingRight: 10,
+                                                    }}
+                                                >
+                                                    <SearchableDropdown
+                                                        data={getObatDropdownData(terapi.namaObat, obatOptions)}
+                                                        value={terapi.namaObat}
+                                                        setValue={(val: string) => handleUpdateTerapi(index, 'namaObat', val)}
+                                                        placeholder="Cari nama obat"
+                                                        getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
+                                                        getOptionValue={(item) => item?.DESKRIPSI ?? ''}
+                                                        onSearch={handleSearchObat}
+                                                    />
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        verticalAlign: 'middle',
+                                                        height: 70,
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 10,
+                                                        paddingRight: 10,
+                                                    }}
+                                                >
+                                                    <Input
+                                                        type="number"
+                                                        value={Number(terapi.jumlah)}
+                                                        onChange={(e) => handleUpdateTerapi(index, 'jumlah', e.target.value)}
+                                                        placeholder="Masukkan jumlah"
+                                                        className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </td>
+                                                <td
+                                                    colSpan={2}
+                                                    style={{
+                                                        verticalAlign: 'middle',
+                                                        height: 70,
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 10,
+                                                        paddingRight: 10,
+                                                    }}
+                                                >
+                                                    <Input
+                                                        type="text"
+                                                        value={terapi.frekuensi}
+                                                        onChange={(e) => handleUpdateTerapi(index, 'frekuensi', e.target.value)}
+                                                        placeholder="Masukkan frekuensi"
+                                                        className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </td>
+                                                <td
+                                                    colSpan={2}
+                                                    style={{
+                                                        verticalAlign: 'middle',
+                                                        height: 70,
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 10,
+                                                        paddingRight: 10,
+                                                    }}
+                                                >
+                                                    <Input
+                                                        type="text"
+                                                        value={terapi.caraPemberian}
+                                                        onChange={(e) => handleUpdateTerapi(index, 'caraPemberian', e.target.value)}
+                                                        placeholder="Masukkan cara pemberian"
+                                                        className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        verticalAlign: 'middle',
+                                                        height: 70,
+                                                        width: '20%',
+                                                        border: '1px solid #000',
+                                                        paddingLeft: 10,
+                                                        paddingRight: 10,
+                                                    }}
+                                                >
+                                                    <div className="flex h-full items-center gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() => handleAddTerapi(index)}
+                                                            className="rounded-md border border-gray-300 bg-green-500 p-2 text-white hover:bg-green-600"
+                                                        >
+                                                            Tambah
+                                                        </Button>
+                                                        {/* {
                                                                 index < 1 && (
                                                                     <Button
                                                                         variant="outline"
@@ -1462,20 +1475,21 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                                                     </Button>
                                                                 )
                                                             } */}
-                                                    {terapiPulang.length > 1 &&
-                                                        index > 0 && ( // Tampilkan tombol Hapus hanya jika lebih dari satu item
-                                                            <Button
-                                                                variant="outline"
-                                                                onClick={() => handleRemoveTerapi(index)}
-                                                                className="rounded-md border border-gray-300 bg-red-500 p-2 text-white hover:bg-red-600"
-                                                            >
-                                                                Hapus
-                                                            </Button>
-                                                        )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                        {terapiPulang.length > 1 &&
+                                                            index > 0 && ( // Tampilkan tombol Hapus hanya jika lebih dari satu item
+                                                                <Button
+                                                                    variant="outline"
+                                                                    onClick={() => handleRemoveTerapi(index)}
+                                                                    className="rounded-md border border-gray-300 bg-red-500 p-2 text-white hover:bg-red-600"
+                                                                >
+                                                                    Hapus
+                                                                </Button>
+                                                            )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
 
                                     {/* Intruksi Tidak Lanjut */}
                                     <tr>
