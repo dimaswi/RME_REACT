@@ -24,7 +24,7 @@ services:
       MYSQL_PASSWORD: 'dimas1950'
       MYSQL_ROOT_PASSWORD: 'dimas1950'
     ports:
-      - '3306:3302'
+      - '3307:3306'
     networks:
       - primary_simrs
 
