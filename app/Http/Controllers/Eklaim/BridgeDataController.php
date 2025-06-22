@@ -90,7 +90,7 @@ class BridgeDataController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $send['metadata']['message'],
-            ]);
+            ], 404);
         }
 
         DB::connection('eklaim')->beginTransaction();
@@ -103,8 +103,7 @@ class BridgeDataController extends Controller
         DB::connection('eklaim')->commit();
 
         $pdf = base64_decode($send["data"]);
-        return response($pdf, 200)
-            ->header('Content-Type', 'application/pdf');
+        return response($pdf, 200)->header('Content-Type', 'application/pdf');
     }
 
     public function downloadRadiologi(Pendaftaran $pendaftaran)
@@ -1092,7 +1091,6 @@ class BridgeDataController extends Controller
         }
         $imageData = base64_encode(file_get_contents($imagePath)); // Konversi ke Base64
         $imageBase64 = 'data:image/png;base64,' . $imageData; // Tambahkan prefix Base64
-
 
         $dompdf = new Dompdf();
         $dompdf->loadHtml(

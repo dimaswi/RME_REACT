@@ -728,6 +728,7 @@ class KlaimController extends Controller
 
             PengajuanKlaim::where('id', $pengajuanKlaim->id)->update([
                 'status' => 2, // status 2 untuk klaim sudah digrouper
+                'berkas_klaim' => 1, // berkas klaim sudah lengkap
             ]);
 
             DB::connection('eklaim')->commit();

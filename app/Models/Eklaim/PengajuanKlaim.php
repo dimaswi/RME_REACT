@@ -30,6 +30,8 @@ class PengajuanKlaim extends Model
         'triage',
         'cppt',
         'laboratorium',
+        'berkas_klaim',
+        'tagihan',
     ];
 
     public function penjamin()

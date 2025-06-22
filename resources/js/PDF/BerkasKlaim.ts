@@ -55,6 +55,8 @@ export const cetakBerkasKlaim = async (
             toast.error("Gagal pada pengambilan berkas klaim");
             return;
         }
+        
+        console.log("Response data:", response);
 
         if (jenis === "preview") {
             const pdfBlob = new Blob([response.data], { type: "application/pdf" });
@@ -76,6 +78,6 @@ export const cetakBerkasKlaim = async (
 
     } catch (error) {
         console.error("Error fetching PDF:", error);
-        toast.error("Gagal mengambil PDF");
+        toast.error("Gagal mengambil PDF atau Klaim belum dilakukan grouping");
     }
 };

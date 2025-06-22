@@ -63,7 +63,7 @@ export const mergePDFs = async (
         // Siapkan array dokumen lain yang akan diambil jika value === 1
         const blobPromises: { key: string, name: string, promise: Promise<Blob> }[] = [];
 
-        if (pengajuanKlaim.berkasKlaim === 1) {
+        if (pengajuanKlaim.berkas_klaim === 1) {
             blobPromises.push({
                 key: 'berkasKlaim',
                 name: 'Berkas Klaim',

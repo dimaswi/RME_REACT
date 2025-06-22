@@ -294,7 +294,7 @@ class EditDataController extends Controller
                         $terapi
                     );
 
-                    $obat = Obat::where('NAMA', 'LIKE', '%' . $terapi['namaObat'] . '%')->with('hargaBarang')->first();
+                    $obat = Obat::where('NAMA', $terapi['namaObat'])->with('hargaBarang')->first();
                     RincianTagihan::where('id_tarif', $obat->hargaBarang->ID ?? null)->delete();
                     RincianTagihan::create([
                         'id_pengajuan_klaim' => $resume['id_pengajuan_klaim'] ?? null,
@@ -628,6 +628,7 @@ class EditDataController extends Controller
                 ->first();
 
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
+            DB::connection('eklaim')->beginTransaction();
             foreach ($tagihanPendaftaran->tagihan->rincianTagihan as $rincian) {
                 RincianTagihan::create([
                     'id_pengajuan_klaim' => $pengajuanKlaim->id,
@@ -640,6 +641,10 @@ class EditDataController extends Controller
                     'edit' => 0
                 ]);
             }
+            $pengajuanKlaim->update([
+                'tagihan' => 1,
+            ]);
+            DB::connection('eklaim')->commit();
 
             return redirect()->back()->with('success', 'Data tagihan berhasil disinkronkan.');
         } catch (\Throwable $th) {

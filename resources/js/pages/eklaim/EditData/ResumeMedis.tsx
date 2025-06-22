@@ -235,17 +235,17 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setSelectedDiagnosa(
                 Array.isArray(kunjungan?.diagnosa_pasien)
                     ? kunjungan.diagnosa_pasien.map((item: any) => ({
-                        id: item.nama_diagnosa?.CODE || '',
-                        description: item.nama_diagnosa?.STR || '',
-                    }))
+                          id: item.nama_diagnosa?.CODE || '',
+                          description: item.nama_diagnosa?.STR || '',
+                      }))
                     : [],
             );
             setSelectedProcedure(
                 Array.isArray(kunjungan?.prosedur_pasien)
                     ? kunjungan.prosedur_pasien.map((item: any) => ({
-                        id: item.nama_prosedur?.CODE || '',
-                        description: item.nama_prosedur?.STR || '',
-                    }))
+                          id: item.nama_prosedur?.CODE || '',
+                          description: item.nama_prosedur?.STR || '',
+                      }))
                     : [],
             );
             setDiagnosaUtama(formatDiagnosaString(selectedDiagnosa));
@@ -333,6 +333,29 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                         return Array(count).fill({ id, description: '' });
                     }),
             );
+            const resepPulang = kunjungan?.resume_medis?.terapi_pulang ?? null;
+
+            if (Array.isArray(resepPulang) && resepPulang.length > 0) {
+                setTerapiPulang(
+                    resepPulang.map((resep: any) => ({
+                        namaObat: resep?.nama_obat || '',
+                        jumlah: resep?.jumlah || '',
+                        frekuensi: resep?.frekuensi || '',
+                        caraPemberian: resep?.cara_pemberian || '',
+                    })),
+                );
+            } else if (resepPulang && resepPulang.nama_obat) {
+                setTerapiPulang([
+                    {
+                        namaObat: resepPulang.nama_obat || '',
+                        jumlah: resepPulang.jumlah || '',
+                        frekuensi: resepPulang.frekuensi || '',
+                        caraPemberian: resepPulang.caraPemberian || '',
+                    },
+                ]);
+            } else {
+                setTerapiPulang([]);
+            }
         }
     }, [dataKlaim.edit, dataKunjungan]);
 
@@ -380,6 +403,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         respirasi: respirasi || null,
     };
 
+    console.log('Data Resume Medis:', dataResumeMedis);
+
     function handleLamaDirawat(tanggalMasuk: string | null | undefined, tanggalKeluar: string | null | undefined): string {
         if (tanggalMasuk && tanggalKeluar) {
             const masuk = new Date(tanggalMasuk);
@@ -415,8 +440,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         const konsulData = Array.isArray(dataKunjungan)
             ? dataKunjungan.flatMap((k: any) => k.permintaan_konsul || [])
             : dataKunjungan?.permintaan_konsul
-                ? dataKunjungan.permintaan_konsul
-                : [];
+              ? dataKunjungan.permintaan_konsul
+              : [];
 
         if (!konsulData || konsulData.length === 0) {
             toast.error('Data permintaan konsul tidak tersedia.');
@@ -1354,7 +1379,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         <td></td>
                                     </tr>
 
-                                    {(!terapiPulang || terapiPulang.length === 0) ? (
+                                    {!terapiPulang || terapiPulang.length === 0 ? (
                                         <tr>
                                             <td colSpan={8} style={{ textAlign: 'center', border: '1px solid #000', padding: 10 }}>
                                                 <Button
