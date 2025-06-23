@@ -363,7 +363,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             const klaimData = klaimRes.data;
-
             console.log('Data Klaim:', klaimData);
             if (item.edit == 1) {
                 setSistole(Number(klaimData.klaimData.sistole) || '');
@@ -575,7 +574,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 return; // Stop di sini jika data klaim sudah ada
             }
 
-            Jika data klaim belum ada, fallback ke data kunjungan
             const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             setDataKunjungan(response.data);
             setJenisPerawatan(

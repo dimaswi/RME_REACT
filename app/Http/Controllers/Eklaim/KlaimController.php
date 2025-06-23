@@ -1193,8 +1193,6 @@ class KlaimController extends Controller
             }
         }
 
-        dd($data);
-
         return response()->json([
             'klaimData' => null,
             'kunjungan' => $data,
