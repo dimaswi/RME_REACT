@@ -359,6 +359,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const [dataKunjungan, setDataKunjungan] = useState<any>(null);
     const fetchDataKunjungan = async () => {
         setLoadingKunjungan(true);
+        console.log(item);
         try {
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             if (item.edit == 1) {
