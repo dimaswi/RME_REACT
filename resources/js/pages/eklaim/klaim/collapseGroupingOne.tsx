@@ -89,10 +89,10 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
 
                     {/* SUB ACUTE */}
                     {data &&
-                    data.grouperone &&
-                    data.grouperone.sub_acute &&
-                    Array.isArray(data.grouperone.sub_acute) &&
-                    data.grouperone.sub_acute.length > 0 ? (
+                        data.grouperone &&
+                        data.grouperone.sub_acute &&
+                        Array.isArray(data.grouperone.sub_acute) &&
+                        data.grouperone.sub_acute.length > 0 ? (
                         data.grouperone.sub_acute.map((subacuteItem: any, idx: number) => (
                             <tr key={idx}>
                                 <td className="px-2 py-1 py-2 font-semibold text-black">SUB ACUTE</td>
@@ -112,10 +112,10 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
 
                     {/* CHRONIC */}
                     {data &&
-                    data.grouperone &&
-                    data.grouperone.chronic &&
-                    Array.isArray(data.grouperone.chronic) &&
-                    data.grouperone.chronic.length > 0 ? (
+                        data.grouperone &&
+                        data.grouperone.chronic &&
+                        Array.isArray(data.grouperone.chronic) &&
+                        data.grouperone.chronic.length > 0 ? (
                         data.grouperone.chronic.map((chronicItem: any, idx: number) => (
                             <tr key={idx}>
                                 <td className="px-2 py-1 py-2 font-semibold text-black">CHRONIC</td>
@@ -140,7 +140,7 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                             {data && Array.isArray(data.grouperOneSpecialCmgOption) && data.grouperOneSpecialCmgOption.length > 0 ? (
                                 <MultiSelectDropdown
                                     data={data.grouperOneSpecialCmgOption.filter((item: any) => item.type === 'Special Procedure')}
-                                    value={specialProcedure}
+                                    value={Array.isArray(specialProcedure) ? specialProcedure : []}
                                     setValue={setSpecialProcedure}
                                     placeholder="Pilih Special Procedure"
                                     getOptionLabel={(item) => item?.description || ''}
@@ -153,15 +153,13 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                         <td className="px-2 py-1 py-2">{specialCmgCombinedString}</td>
                         <td className="px-2 py-1 py-2 text-end">{formatRupiah(Number(0))}</td>
                     </tr>
-
-                    {/* SPECIAL PROSTHESIS */}
                     <tr>
                         <td className="px-2 py-1 py-2 font-semibold text-black">SPECIAL PROSTHESIS</td>
                         <td className="px-2 py-1 py-2">
                             {data && Array.isArray(data.grouperOneSpecialCmgOption) && data.grouperOneSpecialCmgOption.length > 0 ? (
                                 <MultiSelectDropdown
                                     data={data.grouperOneSpecialCmgOption.filter((item: any) => item.type === 'Special Prosthesis')}
-                                    value={specialProsthesis}
+                                    value={Array.isArray(specialProsthesis) ? specialProsthesis : []}
                                     setValue={setSpecialProsthesis}
                                     placeholder="Pilih Special Prosthesis"
                                     getOptionLabel={(item) => item?.description || ''}
@@ -239,10 +237,10 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
             ) : (
                 <div className="flex justify-end gap-2 px-4 py-2">
                     {data &&
-                    data.grouperOneSpecialCmgOption &&
-                    Array.isArray(data.grouperone?.special_cmg) &&
-                    data.grouperone.special_cmg.length === 0 &&
-                    data.grouperOneSpecialCmgOption.length > 0 ? (
+                        data.grouperOneSpecialCmgOption &&
+                        Array.isArray(data.grouperone?.special_cmg) &&
+                        data.grouperone.special_cmg.length === 0 &&
+                        data.grouperOneSpecialCmgOption.length > 0 ? (
                         <Button
                             variant="outline"
                             onClick={() => {
