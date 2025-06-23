@@ -362,7 +362,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             const klaimData = klaimRes.data;
-            console.log('Klaim Data:', klaimData);
 
             if (item.edit == 1) {
                 setSistole(Number(klaimData.kunjungan.sistole) || '');

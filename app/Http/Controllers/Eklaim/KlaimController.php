@@ -235,6 +235,8 @@ class KlaimController extends Controller
             'nomor_sep' => $pengajuanKlaim->nomor_SEP,
         ];
 
+        dd($request->all());
+
         // Diagnosa: jika ada duplikat, tambahkan +N pada value yang duplikat (hanya pada kemunculan terakhir)
         $diagnosaArr = $request->input('diagnosa');
         if (is_array($diagnosaArr)) {
@@ -330,10 +332,10 @@ class KlaimController extends Controller
         }
 
         $data = [
-            "nomor_sep" => (string) $pengajuanKlaim->klaim_number,
+            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
             "nomor_kartu" => json_decode($pengajuanKlaim->request)->nomor_kartu,
-            "tgl_masuk" => $request->input('tgl_masuk'),
-            "tgl_pulang" => $request->input('tgl_pulang'),
+            "tgl_masuk" => $request->input('tanggal_masuk'),
+            "tgl_pulang" => $request->input('tanggal_pulang'),
             "cara_masuk" => $request->input('cara_masuk'),
             "jenis_rawat" => $request->input('jenis_rawat'),
             "kelas_rawat" => $request->input('kelas_rawat'),
