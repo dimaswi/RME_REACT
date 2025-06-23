@@ -344,9 +344,16 @@ export default function ListPengajuan() {
 
                                                     {
                                                         item.status === 2 && (
-                                                            <GroupingOneCollapse
-                                                                pengajuanKlaim={item}
-                                                            />
+                                                            <>
+                                                                <PengajuanKlaimCollapse
+                                                                    item={item}
+                                                                    formatTanggal={formatTanggal}
+                                                                    getStatusBadge={getStatusBadge}
+                                                                    expanded={openRow === item.id}
+                                                                /><GroupingOneCollapse
+                                                                    pengajuanKlaim={item}
+                                                                />
+                                                            </>
                                                         )
                                                     }
 
