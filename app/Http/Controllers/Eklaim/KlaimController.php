@@ -234,10 +234,10 @@ class KlaimController extends Controller
 
     public function updateDataKlaim(Request $request, PengajuanKlaim $pengajuanKlaim)
     {
-        // $metadata = [
-        //     'method' => 'set_claim_data',
-        //     'nomor_sep' => $pengajuanKlaim->nomor_SEP,
-        // ];
+        $metadata = [
+            'method' => 'set_claim_data',
+            'nomor_sep' => $pengajuanKlaim->nomor_SEP,
+        ];
 
         // Diagnosa: jika ada duplikat, tambahkan +N pada value yang duplikat (hanya pada kemunculan terakhir)
         $diagnosaArr = $request->input('diagnosa');
