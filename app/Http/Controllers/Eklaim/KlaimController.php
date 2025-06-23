@@ -235,6 +235,8 @@ class KlaimController extends Controller
             'nomor_sep' => $pengajuanKlaim->nomor_SEP,
         ];
 
+        dd($pengajuanKlaim);
+
         // Diagnosa: jika ada duplikat, tambahkan +N pada value yang duplikat (hanya pada kemunculan terakhir)
         $diagnosaArr = $request->input('diagnosa');
         if (is_array($diagnosaArr)) {
