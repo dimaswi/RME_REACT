@@ -10,7 +10,7 @@ use App\Models\Eklaim\GrouperOne;
 use App\Models\Eklaim\GrouperOneCBG;
 use App\Models\Eklaim\GrouperOneChronic;
 use App\Models\Eklaim\GrouperOneInagrouper;
-use App\Models\Eklaim\grouperOneSpecialCmgOption;
+use App\Models\Eklaim\GrouperOneSpecialCmgOption;
 use App\Models\Eklaim\GrouperOneSubAcute;
 use App\Models\Eklaim\GrouperOneTarif;
 use App\Models\Eklaim\LogKlaim;
@@ -697,7 +697,7 @@ class KlaimController extends Controller
             // 6. Simpan grouperOneSpecialCmgOption (special_cmg_option)
             if (!empty($send['special_cmg_option']) && is_array($send['special_cmg_option'])) {
                 foreach ($send['special_cmg_option'] as $cmg) {
-                    \App\Models\Eklaim\grouperOneSpecialCmgOption::updateOrCreate(
+                    \App\Models\Eklaim\GrouperOneSpecialCmgOption::updateOrCreate(
                         [
                             'pengajuan_klaim_id' => $pengajuanKlaim->id,
                             'code' => $cmg['code'] ?? null,
