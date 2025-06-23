@@ -361,12 +361,12 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
         setLoadingKunjungan(true);
         try {
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
-            const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
-            const klaimData = klaimRes.data;
-            console.log('Data Klaim:', klaimData);
             if (item.edit == 1) {
-                setSistole(Number(klaimData.klaimData.sistole) || '');
-                setDiastole(Number(klaimData.klaimData.diastole) || '');
+                const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
+                const klaimData = klaimRes.data;
+                console.log('Data Klaim:', klaimData);
+                setSistole(klaimData.klaimData.sistole || '');
+                setDiastole(klaimData.klaimData.diastole || '');
                 setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
                 setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
                 setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
@@ -421,8 +421,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
             if (item.edit == 0) {
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
-                console.log('Data Kunjungan:', response.data);
-                setDataKunjungan(response.data);
                 setJenisPerawatan(
                     response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
                 );
