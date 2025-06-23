@@ -560,27 +560,27 @@ class KlaimController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
 
-        // $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
-        // $send = $inacbgController->sendToEklaim($metadata, $data);
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
 
-        // if ($send['metadata']['code'] != 200) {
-        //     DB::connection('eklaim')->beginTransaction();
-        //     LogKlaim::create([
-        //         'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-        //         'method' => json_encode($metadata),
-        //         'request' => json_encode($data),
-        //         'response' => json_encode($send),
-        //     ]);
-        //     DB::connection('eklaim')->commit();
-        //     return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
-        // }
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        }
 
-        // LogKlaim::create([
-        //     'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-        //     'method' => json_encode($metadata),
-        //     'request' => json_encode($data),
-        //     'response' => json_encode($send),
-        // ]);
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
         DB::connection('eklaim')->commit();
         return redirect()->back()->with('success', 'Data klaim berhasil diperbarui dan dikirim ke eKlaim.');
     }
