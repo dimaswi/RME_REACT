@@ -550,6 +550,10 @@ class KlaimController extends Controller
                 ]);
             }
 
+            $pengajuanKlaim->update([
+                'edit' => 1, // Update status pengajuan klaim
+            ]);
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();

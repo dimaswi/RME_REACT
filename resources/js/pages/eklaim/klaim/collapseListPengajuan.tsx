@@ -375,8 +375,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
                 setNamaDokter(klaimData.klaimData.nama_dokter || '');
                 // Setelah dapat response dari backend (baik dari klaimData maupun kunjungan)
-                const diagnosaStr = klaimData?.kunjungan?.diagnosa || '';
-                const procedureStr = klaimData?.kunjungan?.prosedur || '';
+                const diagnosaStr = klaimData?.klaimData?.diagnosa || '';
+                const procedureStr = klaimData?.klaimData?.prosedur || '';
 
                 const diagnosaArr = diagnosaStr
                     .split('#')
