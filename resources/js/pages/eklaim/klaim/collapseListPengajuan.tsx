@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import DiagnosaModal from './DiagnosaModal';
 import ProcedureModal from './ProcedureModal';
+import { set } from 'date-fns';
 
 type Props = {
     item: any;
@@ -363,9 +364,16 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             const klaimData = klaimRes.data;
 
+            console.log('Data Klaim:', klaimData);
             if (item.edit == 1) {
-                setSistole(Number(klaimData.kunjungan.sistole) || '');
-                setDiastole(Number(klaimData.kunjungan.diastole) || '');
+                setSistole(Number(klaimData.klaimData.sistole) || '');
+                setDiastole(Number(klaimData.klaimData.diastole) || '');
+                setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
+                setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
+                setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
+                setCaraMasuk(klaimData.klaimData.cara_masuk || '');
+                setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
+                setNamaDokter(klaimData.klaimData.nama_dokter || '');
                 // Setelah dapat response dari backend (baik dari klaimData maupun kunjungan)
                 const diagnosaStr = klaimData?.kunjungan?.diagnosa || '';
                 const procedureStr = klaimData?.kunjungan?.prosedur || '';
@@ -394,10 +402,16 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             }
 
             if (item.edit == 0) {
-                setSistole(Number(klaimData.kunjungan.sistole) || '');
-                setDiastole(Number(klaimData.kunjungan.diastole) || '');
-                const diagnosaStr = klaimData?.kunjungan?.diagnosa || '';
-                const procedureStr = klaimData?.kunjungan?.prosedur || '';
+                setSistole(Number(klaimData.klaimData.sistole) || '');
+                setDiastole(Number(klaimData.klaimData.diastole) || '');
+                setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
+                setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
+                setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
+                setCaraMasuk(klaimData.klaimData.cara_masuk || '');
+                setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
+                setNamaDokter(klaimData.klaimData.nama_dokter || '');
+                const diagnosaStr = klaimData?.klaimData?.diagnosa || '';
+                const procedureStr = klaimData?.klaimData?.prosedur || '';
                 const diagnosaArr = diagnosaStr
                     .split('#')
                     .filter(Boolean)
@@ -421,160 +435,179 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 setSelectedProcedure(procedureArr);
             }
 
-            if (klaimData && klaimData.klaimData) {
-                // Jika data klaim sudah ada di database, set state dari klaimData
-                setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
-                setCaraMasuk(klaimData.klaimData.cara_masuk || '');
-                setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
-                setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
-                setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
-                setNamaDokter(klaimData.klaimData.nama_dokter || '');
-                setKodeTarifRumahSAkit(klaimData.klaimData.kode_tarif || 'DS');
-                setTarifPoliEks(Number(klaimData.klaimData.tarif_poli_eks) || 0);
-                setPayor({ ID: klaimData.klaimData.payor_id || '00003', DESKRIPSI: klaimData.klaimData.payor_cd || 'JKN' });
-                setCobCd(klaimData.klaimData.cob_cd || '');
+            setTarifProsedurNonBedah(Number(klaimData.tarif_rs.prosedur_non_bedah) || 0);
+            setTarifProsedurBedah(Number(klaimData.tarif_rs.prosedur_bedah) || 0);
+            setTarifKonsultasi(Number(klaimData.tarif_rs.konsultasi) || 0);
+            setTarifTenagaAhli(Number(klaimData.tarif_rs.tenaga_ahli) || 0);
+            setTarifKeperawatan(Number(klaimData.tarif_rs.keperawatan) || 0);
+            setTarifPenunjang(Number(klaimData.tarif_rs.penunjang) || 0);
+            setTarifRadiologi(Number(klaimData.tarif_rs.radiologi) || 0);
+            setTarifLaboratorium(Number(klaimData.tarif_rs.laboratorium) || 0);
+            setTarifPelayananDarah(Number(klaimData.tarif_rs.pelayanan_darah) || 0);
+            setTarifRehabilitasi(Number(klaimData.tarif_rs.rehabilitasi) || 0);
+            setTarifKamar(Number(klaimData.tarif_rs.kamar) || 0);
+            setTarifRawatIntensif(Number(klaimData.tarif_rs.rawat_intensif) || 0);
+            setTarifObat(Number(klaimData.tarif_rs.obat) || 0);
+            setTarifObatKronis(Number(klaimData.tarif_rs.obat_kronis) || 0);
+            setTarifObatKemoterapi(Number(klaimData.tarif_rs.obat_kemoterapi) || 0);
+            setTarifAlkes(Number(klaimData.tarif_rs.alkes) || 0);
+            setTarifBMHP(Number(klaimData.tarif_rs.bmhp) || 0);
+            setTarifSewaAlat(Number(klaimData.tarif_rs.sewa_alat) || 0);
 
-                // Diagnosa & Procedure (parsing value1+2#value2 ke array)
-                function klaimStringToArray(str: string) {
-                    if (!str || str === '#') return [];
-                    const result: string[] = [];
-                    const parts = str.split('#');
-                    for (const part of parts) {
-                        const match = part.match(/^(.+)\+(\d+)$/);
-                        if (match) {
-                            const val = match[1];
-                            const count = parseInt(match[2], 10);
-                            for (let i = 0; i < count; i++) result.push(val);
-                        } else {
-                            result.push(part);
-                        }
-                    }
-                    return result;
-                }
+            // if (klaimData && klaimData.klaimData) {
+            //     // Jika data klaim sudah ada di database, set state dari klaimData
+            //     setJenisPerawatan(klaimData.klaimData.jenis_rawat || '');
+            //     setCaraMasuk(klaimData.klaimData.cara_masuk || '');
+            //     setTanggalMasuk(klaimData.klaimData.tgl_masuk || '');
+            //     setTanggalKeluar(klaimData.klaimData.tgl_pulang || '');
+            //     setDataDischargeStatus(klaimData.klaimData.discharge_status || '');
+            //     setNamaDokter(klaimData.klaimData.nama_dokter || '');
+            //     setKodeTarifRumahSAkit(klaimData.klaimData.kode_tarif || 'DS');
+            //     setTarifPoliEks(Number(klaimData.klaimData.tarif_poli_eks) || 0);
+            //     setPayor({ ID: klaimData.klaimData.payor_id || '00003', DESKRIPSI: klaimData.klaimData.payor_cd || 'JKN' });
+            //     setCobCd(klaimData.klaimData.cob_cd || '');
 
-                // Tarif RS
-                if (klaimData.tarif_rs) {
-                    setTarifProsedurNonBedah(Number(klaimData.tarif_rs.prosedur_non_bedah) || 0);
-                    setTarifProsedurBedah(Number(klaimData.tarif_rs.prosedur_bedah) || 0);
-                    setTarifKonsultasi(Number(klaimData.tarif_rs.konsultasi) || 0);
-                    setTarifTenagaAhli(Number(klaimData.tarif_rs.tenaga_ahli) || 0);
-                    setTarifKeperawatan(Number(klaimData.tarif_rs.keperawatan) || 0);
-                    setTarifPenunjang(Number(klaimData.tarif_rs.penunjang) || 0);
-                    setTarifRadiologi(Number(klaimData.tarif_rs.radiologi) || 0);
-                    setTarifLaboratorium(Number(klaimData.tarif_rs.laboratorium) || 0);
-                    setTarifPelayananDarah(Number(klaimData.tarif_rs.pelayanan_darah) || 0);
-                    setTarifRehabilitasi(Number(klaimData.tarif_rs.rehabilitasi) || 0);
-                    setTarifKamar(Number(klaimData.tarif_rs.kamar) || 0);
-                    setTarifRawatIntensif(Number(klaimData.tarif_rs.rawat_intensif) || 0);
-                    setTarifObat(Number(klaimData.tarif_rs.obat) || 0);
-                    setTarifObatKronis(Number(klaimData.tarif_rs.obat_kronis) || 0);
-                    setTarifObatKemoterapi(Number(klaimData.tarif_rs.obat_kemoterapi) || 0);
-                    setTarifAlkes(Number(klaimData.tarif_rs.alkes) || 0);
-                    setTarifBMHP(Number(klaimData.tarif_rs.bmhp) || 0);
-                    setTarifSewaAlat(Number(klaimData.tarif_rs.sewa_alat) || 0);
-                }
+            //     // Diagnosa & Procedure (parsing value1+2#value2 ke array)
+            //     function klaimStringToArray(str: string) {
+            //         if (!str || str === '#') return [];
+            //         const result: string[] = [];
+            //         const parts = str.split('#');
+            //         for (const part of parts) {
+            //             const match = part.match(/^(.+)\+(\d+)$/);
+            //             if (match) {
+            //                 const val = match[1];
+            //                 const count = parseInt(match[2], 10);
+            //                 for (let i = 0; i < count; i++) result.push(val);
+            //             } else {
+            //                 result.push(part);
+            //             }
+            //         }
+            //         return result;
+            //     }
 
-                // Apgar
-                if (klaimData.apgar) {
-                    setApgar({
-                        menit_1: {
-                            appearance: klaimData.apgar.appearance_1 || '',
-                            pulse: klaimData.apgar.pulse_1 || '',
-                            grimace: klaimData.apgar.grimace_1 || '',
-                            activity: klaimData.apgar.activity_1 || '',
-                            respiration: klaimData.apgar.respiration_1 || '',
-                        },
-                        menit_5: {
-                            appearance: klaimData.apgar.appearance_5 || '',
-                            pulse: klaimData.apgar.pulse_5 || '',
-                            grimace: klaimData.apgar.grimace_5 || '',
-                            activity: klaimData.apgar.activity_5 || '',
-                            respiration: klaimData.apgar.respiration_5 || '',
-                        },
-                    });
-                }
+            //     // Tarif RS
+            //     if (klaimData.tarif_rs) {
+            //         setTarifProsedurNonBedah(Number(klaimData.tarif_rs.prosedur_non_bedah) || 0);
+            //         setTarifProsedurBedah(Number(klaimData.tarif_rs.prosedur_bedah) || 0);
+            //         setTarifKonsultasi(Number(klaimData.tarif_rs.konsultasi) || 0);
+            //         setTarifTenagaAhli(Number(klaimData.tarif_rs.tenaga_ahli) || 0);
+            //         setTarifKeperawatan(Number(klaimData.tarif_rs.keperawatan) || 0);
+            //         setTarifPenunjang(Number(klaimData.tarif_rs.penunjang) || 0);
+            //         setTarifRadiologi(Number(klaimData.tarif_rs.radiologi) || 0);
+            //         setTarifLaboratorium(Number(klaimData.tarif_rs.laboratorium) || 0);
+            //         setTarifPelayananDarah(Number(klaimData.tarif_rs.pelayanan_darah) || 0);
+            //         setTarifRehabilitasi(Number(klaimData.tarif_rs.rehabilitasi) || 0);
+            //         setTarifKamar(Number(klaimData.tarif_rs.kamar) || 0);
+            //         setTarifRawatIntensif(Number(klaimData.tarif_rs.rawat_intensif) || 0);
+            //         setTarifObat(Number(klaimData.tarif_rs.obat) || 0);
+            //         setTarifObatKronis(Number(klaimData.tarif_rs.obat_kronis) || 0);
+            //         setTarifObatKemoterapi(Number(klaimData.tarif_rs.obat_kemoterapi) || 0);
+            //         setTarifAlkes(Number(klaimData.tarif_rs.alkes) || 0);
+            //         setTarifBMHP(Number(klaimData.tarif_rs.bmhp) || 0);
+            //         setTarifSewaAlat(Number(klaimData.tarif_rs.sewa_alat) || 0);
+            //     }
 
-                // Persalinan & Delivery
-                if (klaimData.persalinan) {
-                    setShowPersalinan(true);
-                    setPersalinan({
-                        usia_kehamilan: klaimData.persalinan.usia_kehamilan || '',
-                        gravida: klaimData.persalinan.gravida || '',
-                        partus: klaimData.persalinan.partus || '',
-                        abortus: klaimData.persalinan.abortus || '',
-                        onset_kontraksi: klaimData.persalinan.onset_kontraksi || '',
-                        delivery: Array.isArray(klaimData.delivery)
-                            ? klaimData.delivery.map((d: any) => ({
-                                  delivery_sequence: d.delivery_sequence || '',
-                                  delivery_method: d.delivery_method || '',
-                                  delivery_dttm: d.delivery_dttm || '',
-                                  letak_janin: d.letak_janin || '',
-                                  kondisi: d.kondisi || '',
-                                  use_manual: d.use_manual || '',
-                                  use_forcep: d.use_forcep || '',
-                                  use_vacuum: d.use_vacuum || '',
-                                  shk_spesimen_ambil: d.shk_spesimen_ambil || '',
-                                  shk_lokasi: d.shk_lokasi || '',
-                                  shk_spesimen_dttm: d.shk_spesimen_dttm || '',
-                                  shk_alasan: d.shk_alasan || '',
-                              }))
-                            : [
-                                  {
-                                      delivery_sequence: '',
-                                      delivery_method: '',
-                                      delivery_dttm: '',
-                                      letak_janin: '',
-                                      kondisi: '',
-                                      use_manual: '',
-                                      use_forcep: '',
-                                      use_vacuum: '',
-                                      shk_spesimen_ambil: '',
-                                      shk_lokasi: '',
-                                      shk_spesimen_dttm: '',
-                                      shk_alasan: '',
-                                  },
-                              ],
-                    });
-                } else {
-                    setShowPersalinan(false);
-                }
+            //     // Apgar
+            //     if (klaimData.apgar) {
+            //         setApgar({
+            //             menit_1: {
+            //                 appearance: klaimData.apgar.appearance_1 || '',
+            //                 pulse: klaimData.apgar.pulse_1 || '',
+            //                 grimace: klaimData.apgar.grimace_1 || '',
+            //                 activity: klaimData.apgar.activity_1 || '',
+            //                 respiration: klaimData.apgar.respiration_1 || '',
+            //             },
+            //             menit_5: {
+            //                 appearance: klaimData.apgar.appearance_5 || '',
+            //                 pulse: klaimData.apgar.pulse_5 || '',
+            //                 grimace: klaimData.apgar.grimace_5 || '',
+            //                 activity: klaimData.apgar.activity_5 || '',
+            //                 respiration: klaimData.apgar.respiration_5 || '',
+            //             },
+            //         });
+            //     }
 
-                return; // Stop di sini jika data klaim sudah ada
-            }
+            //     // Persalinan & Delivery
+            //     if (klaimData.persalinan) {
+            //         setShowPersalinan(true);
+            //         setPersalinan({
+            //             usia_kehamilan: klaimData.persalinan.usia_kehamilan || '',
+            //             gravida: klaimData.persalinan.gravida || '',
+            //             partus: klaimData.persalinan.partus || '',
+            //             abortus: klaimData.persalinan.abortus || '',
+            //             onset_kontraksi: klaimData.persalinan.onset_kontraksi || '',
+            //             delivery: Array.isArray(klaimData.delivery)
+            //                 ? klaimData.delivery.map((d: any) => ({
+            //                       delivery_sequence: d.delivery_sequence || '',
+            //                       delivery_method: d.delivery_method || '',
+            //                       delivery_dttm: d.delivery_dttm || '',
+            //                       letak_janin: d.letak_janin || '',
+            //                       kondisi: d.kondisi || '',
+            //                       use_manual: d.use_manual || '',
+            //                       use_forcep: d.use_forcep || '',
+            //                       use_vacuum: d.use_vacuum || '',
+            //                       shk_spesimen_ambil: d.shk_spesimen_ambil || '',
+            //                       shk_lokasi: d.shk_lokasi || '',
+            //                       shk_spesimen_dttm: d.shk_spesimen_dttm || '',
+            //                       shk_alasan: d.shk_alasan || '',
+            //                   }))
+            //                 : [
+            //                       {
+            //                           delivery_sequence: '',
+            //                           delivery_method: '',
+            //                           delivery_dttm: '',
+            //                           letak_janin: '',
+            //                           kondisi: '',
+            //                           use_manual: '',
+            //                           use_forcep: '',
+            //                           use_vacuum: '',
+            //                           shk_spesimen_ambil: '',
+            //                           shk_lokasi: '',
+            //                           shk_spesimen_dttm: '',
+            //                           shk_alasan: '',
+            //                       },
+            //                   ],
+            //         });
+            //     } else {
+            //         setShowPersalinan(false);
+            //     }
+
+            //     return; // Stop di sini jika data klaim sudah ada
+            // }
 
             // Jika data klaim belum ada, fallback ke data kunjungan
-            const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
-            setDataKunjungan(response.data);
-            setJenisPerawatan(
-                response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? 'Rawat Jalan' : response.data.kunjungan.jenis_perawatan === 'IGD' ? 'IGD' : 'Rawat Inap',
-            );
-            setDataPenjaminKlaim(3);
-            const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
-            const keluar = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
-            setTanggalMasuk(masuk);
-            setTanggalKeluar(keluar);
-            setDataDischargeStatus('1');
-            setLamaKunjungan(hitungLamaKunjungan(masuk, keluar));
-            setDataDokter(Array.isArray(response.data.kunjungan.dokter) ? response.data.kunjungan.dokter : []);
-            setTarifProsedurBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_BEDAH) || 0);
-            setTarifProsedurNonBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_NON_BEDAH) || 0);
-            setTarifKonsultasi(Number(response.data.kunjungan.tagihan.KONSULTASI) || 0);
-            setTarifTenagaAhli(Number(response.data.kunjungan.tagihan.TENAGA_AHLI) || 0);
-            setTarifKeperawatan(Number(response.data.kunjungan.tagihan.KEPERAWATAN) || 0);
-            setTarifPenunjang(Number(response.data.kunjungan.tagihan.PENUNJANG) || 0);
-            setTarifRadiologi(Number(response.data.kunjungan.tagihan.RADIOLOGI) || 0);
-            setTarifLaboratorium(Number(response.data.kunjungan.tagihan.LABORATORIUM) || 0);
-            setTarifPelayananDarah(Number(response.data.kunjungan.tagihan.PELAYANAN_DARAH) || 0);
-            setTarifRehabilitasi(Number(response.data.kunjungan.tagihan.REHABILITASI) || 0);
-            setTarifKamar(Number(response.data.kunjungan.tagihan.KAMAR) || 0);
-            setTarifRawatIntensif(Number(response.data.kunjungan.tagihan.RAWAT_INTENSIF) || 0);
-            setTarifObat(Number(response.data.kunjungan.tagihan.OBAT) || 0);
-            setTarifObatKronis(Number(response.data.kunjungan.tagihan.OBAT_KRONIS) || 0);
-            setTarifObatKemoterapi(Number(response.data.kunjungan.tagihan.OBAT_KEMOTERAPI) || 0);
-            setTarifAlkes(Number(response.data.kunjungan.tagihan.ALKES) || 0);
-            setTarifBMHP(Number(response.data.kunjungan.tagihan.BMHP) || 0);
-            setTarifSewaAlat(Number(response.data.kunjungan.tagihan.SEWA_ALAT) || 0);
-            setTarifKamar(Number(response.data.kunjungan.tagihan.AKOMODASI) || 0);
+            // const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
+            // setDataKunjungan(response.data);
+            // setJenisPerawatan(
+            //     response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? 'Rawat Jalan' : response.data.kunjungan.jenis_perawatan === 'IGD' ? 'IGD' : 'Rawat Inap',
+            // );
+            // setDataPenjaminKlaim(3);
+            // const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
+            // const keluar = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
+            // setTanggalMasuk(masuk);
+            // setTanggalKeluar(keluar);
+            // setDataDischargeStatus('1');
+            // setLamaKunjungan(hitungLamaKunjungan(masuk, keluar));
+            // setDataDokter(Array.isArray(response.data.kunjungan.dokter) ? response.data.kunjungan.dokter : []);
+            // setTarifProsedurBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_BEDAH) || 0);
+            // setTarifProsedurNonBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_NON_BEDAH) || 0);
+            // setTarifKonsultasi(Number(response.data.kunjungan.tagihan.KONSULTASI) || 0);
+            // setTarifTenagaAhli(Number(response.data.kunjungan.tagihan.TENAGA_AHLI) || 0);
+            // setTarifKeperawatan(Number(response.data.kunjungan.tagihan.KEPERAWATAN) || 0);
+            // setTarifPenunjang(Number(response.data.kunjungan.tagihan.PENUNJANG) || 0);
+            // setTarifRadiologi(Number(response.data.kunjungan.tagihan.RADIOLOGI) || 0);
+            // setTarifLaboratorium(Number(response.data.kunjungan.tagihan.LABORATORIUM) || 0);
+            // setTarifPelayananDarah(Number(response.data.kunjungan.tagihan.PELAYANAN_DARAH) || 0);
+            // setTarifRehabilitasi(Number(response.data.kunjungan.tagihan.REHABILITASI) || 0);
+            // setTarifKamar(Number(response.data.kunjungan.tagihan.KAMAR) || 0);
+            // setTarifRawatIntensif(Number(response.data.kunjungan.tagihan.RAWAT_INTENSIF) || 0);
+            // setTarifObat(Number(response.data.kunjungan.tagihan.OBAT) || 0);
+            // setTarifObatKronis(Number(response.data.kunjungan.tagihan.OBAT_KRONIS) || 0);
+            // setTarifObatKemoterapi(Number(response.data.kunjungan.tagihan.OBAT_KEMOTERAPI) || 0);
+            // setTarifAlkes(Number(response.data.kunjungan.tagihan.ALKES) || 0);
+            // setTarifBMHP(Number(response.data.kunjungan.tagihan.BMHP) || 0);
+            // setTarifSewaAlat(Number(response.data.kunjungan.tagihan.SEWA_ALAT) || 0);
+            // setTarifKamar(Number(response.data.kunjungan.tagihan.AKOMODASI) || 0);
         } catch (error) {
             setDataKunjungan(null);
             console.error('Gagal mengambil data kunjungan:', error);
@@ -2049,7 +2082,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                     <Save className="mr-2 h-4 w-4 text-blue-400" /> Grouper
                                 </>
                             )}
-                            
+
                         </Button>
                         <Button
                             variant="outline"
@@ -2063,7 +2096,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                     <Banknote className="mr-2 h-4 w-4 text-yellow-400" /> Ambil Tarif
                                 </>
                             )}
-  
+
                         </Button>
                     </div>
 

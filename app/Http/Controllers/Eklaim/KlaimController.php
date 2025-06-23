@@ -230,12 +230,10 @@ class KlaimController extends Controller
 
     public function updateDataKlaim(Request $request, PengajuanKlaim $pengajuanKlaim)
     {
-        $metadata = [
-            'method' => 'set_claim_data',
-            'nomor_sep' => $pengajuanKlaim->nomor_SEP,
-        ];
-
-        dd($pengajuanKlaim);
+        // $metadata = [
+        //     'method' => 'set_claim_data',
+        //     'nomor_sep' => $pengajuanKlaim->nomor_SEP,
+        // ];
 
         // Diagnosa: jika ada duplikat, tambahkan +N pada value yang duplikat (hanya pada kemunculan terakhir)
         $diagnosaArr = $request->input('diagnosa');
@@ -552,27 +550,27 @@ class KlaimController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
 
-        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
-        $send = $inacbgController->sendToEklaim($metadata, $data);
+        // $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        // $send = $inacbgController->sendToEklaim($metadata, $data);
 
-        if ($send['metadata']['code'] != 200) {
-            DB::connection('eklaim')->beginTransaction();
-            LogKlaim::create([
-                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-                'method' => json_encode($metadata),
-                'request' => json_encode($data),
-                'response' => json_encode($send),
-            ]);
-            DB::connection('eklaim')->commit();
-            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
-        }
+        // if ($send['metadata']['code'] != 200) {
+        //     DB::connection('eklaim')->beginTransaction();
+        //     LogKlaim::create([
+        //         'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+        //         'method' => json_encode($metadata),
+        //         'request' => json_encode($data),
+        //         'response' => json_encode($send),
+        //     ]);
+        //     DB::connection('eklaim')->commit();
+        //     return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        // }
 
-        LogKlaim::create([
-            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-            'method' => json_encode($metadata),
-            'request' => json_encode($data),
-            'response' => json_encode($send),
-        ]);
+        // LogKlaim::create([
+        //     'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+        //     'method' => json_encode($metadata),
+        //     'request' => json_encode($data),
+        //     'response' => json_encode($send),
+        // ]);
         DB::connection('eklaim')->commit();
         return redirect()->back()->with('success', 'Data klaim berhasil diperbarui dan dikirim ke eKlaim.');
     }
@@ -1194,6 +1192,8 @@ class KlaimController extends Controller
                 }
             }
         }
+
+        dd($data);
 
         return response()->json([
             'klaimData' => null,
