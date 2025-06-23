@@ -426,6 +426,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 setJenisPerawatan(
                     response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
                 );
+                setSistole(response.data.kunjungan.sistole || '');
+                setDiastole(response.data.kunjungan.diastole || '');
                 setDataPenjaminKlaim("3");
                 const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
                 const keluar = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
