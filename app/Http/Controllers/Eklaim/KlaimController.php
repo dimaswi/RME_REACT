@@ -35,66 +35,70 @@ class KlaimController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $q = $request->input('q');
-        $poli = $request->input('poli');
-        $tanggalAwal = $request->input('tanggal_awal');
-        $tanggalAkhir = $request->input('tanggal_akhir');
-        $kelas = $request->input('kelas');
+        try {
+            $perPage = $request->input('per_page', 10);
+            $q = $request->input('q');
+            $poli = $request->input('poli');
+            $tanggalAwal = $request->input('tanggal_awal');
+            $tanggalAkhir = $request->input('tanggal_akhir');
+            $kelas = $request->input('kelas');
 
+            $query = Kunjungan::query();
 
-        // $query = Pasien::query();
-        $query = Kunjungan::query();
-
-        if ($q) {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('noSEP', 'like', "%$q%")
-                    ->orWhere('noKartu', 'like', "%$q%");
-            });
-        }
-
-        if ($poli) {
-            // Jika $poli adalah string JSON array, decode
-            if (is_string($poli) && str_starts_with($poli, '[')) {
-                $poliArr = json_decode($poli, true);
-            } else {
-                // Jika string biasa, jadikan array
-                $poliArr = [$poli];
+            if ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('noSEP', 'like', "%$q%")
+                        ->orWhere('noKartu', 'like', "%$q%");
+                });
             }
-            $query->whereIn('poliTujuan', $poliArr);
+
+            if ($poli) {
+                if (is_string($poli) && str_starts_with($poli, '[')) {
+                    $poliArr = json_decode($poli, true);
+                } else {
+                    $poliArr = [$poli];
+                }
+                $query->whereIn('poliTujuan', $poliArr);
+            }
+
+            if ($kelas) {
+                $query->whereHas('dataPeserta', function ($q) use ($kelas) {
+                    $q->where('kdKelas', $kelas);
+                });
+            }
+
+            if ($tanggalAwal && $tanggalAkhir) {
+                $query->whereBetween('tglSEP', [$tanggalAwal, $tanggalAkhir]);
+            } elseif ($tanggalAwal) {
+                $query->whereDate('tglSEP', '>=', $tanggalAwal);
+            } elseif ($tanggalAkhir) {
+                $query->whereDate('tglSEP', '<=', $tanggalAkhir);
+            }
+
+            $dataPendaftaran = $query
+                ->with([
+                    'dataPeserta',
+                    'kartuAsuransiPasien',
+                    'penjaminPendaftaran'
+                ])
+                ->orderByDesc('tglSEP')
+                ->paginate($perPage)
+                ->withQueryString();
+
+            return Inertia::render('eklaim/klaim/index', [
+                'dataPendaftaran' => $dataPendaftaran,
+                'filters' => [
+                    'q' => $q,
+                    'perPage' => $perPage,
+                ],
+                'tanggal_awal' => $tanggalAwal,
+                'tanggal_akhir' => $tanggalAkhir,
+                'kelas' => $kelas,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Error klaim index: ' . $e->getMessage());
+            abort(500, 'Terjadi error pada server: ' . $e->getMessage());
         }
-
-        if ($kelas) {
-            $query->whereHas('dataPeserta', function ($q) use ($kelas) {
-                $q->where('kdKelas', $kelas);
-            });
-        }
-
-        // Filter tanggal_pengajuan
-        if ($tanggalAwal && $tanggalAkhir) {
-            $query->whereBetween('tglSEP', [$tanggalAwal, $tanggalAkhir]);
-        } elseif ($tanggalAwal) {
-            $query->whereDate('tglSEP', '>=', $tanggalAwal);
-        } elseif ($tanggalAkhir) {
-            $query->whereDate('tglSEP', '<=', $tanggalAkhir);
-        }
-
-        $dataPendaftaran = $query
-            ->with(['dataPeserta', 'kartuAsuransiPasien', 'penjaminPendaftaran'])
-            ->orderByDesc('tglSEP')
-            ->paginate($perPage)
-            ->withQueryString();
-
-        return Inertia::render('eklaim/klaim/index', [
-            'dataPendaftaran' => $dataPendaftaran,
-            'filters' => [
-                'q' => $q,
-                'perPage' => $perPage,
-            ],
-            'tanggal_awal' => $tanggalAwal,
-            'tanggal_akhir' => $tanggalAkhir,
-            'kelas' => $kelas,
-        ]);
     }
 
     public function show(Request $request, $pasien)
@@ -242,7 +246,8 @@ class KlaimController extends Controller
             $diagnosaResult = [];
             $used = [];
             foreach ($diagnosaArr as $val) {
-                if (!isset($used[$val])) $used[$val] = 0;
+                if (!isset($used[$val]))
+                    $used[$val] = 0;
                 $used[$val]++;
                 if ($diagnosaCount[$val] > 1 && $used[$val] == $diagnosaCount[$val]) {
                     // Hanya tambahkan +N pada kemunculan terakhir
@@ -268,7 +273,8 @@ class KlaimController extends Controller
             $procedureResult = [];
             $usedProc = [];
             foreach ($procedureArr as $val) {
-                if (!isset($usedProc[$val])) $usedProc[$val] = 0;
+                if (!isset($usedProc[$val]))
+                    $usedProc[$val] = 0;
                 $usedProc[$val]++;
                 if ($procedureCount[$val] > 1 && $usedProc[$val] == $procedureCount[$val]) {
                     $procedureResult[] = $val . '+' . $procedureCount[$val];
@@ -1152,7 +1158,7 @@ class KlaimController extends Controller
             'NAMA' => $gelarDepan . $dokter->pegawai->NAMA . $gelarBelakang,
         ];
 
-        $tagihanPendaftaran = \App\Models\Pembayaran\TagihanPendaftaran::where('PENDAFTARAN',  $pengajuanKlaim->nomor_pendaftaran)->first();
+        $tagihanPendaftaran = \App\Models\Pembayaran\TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)->first();
         $tagihan = \App\Models\Pembayaran\Tagihan::where('ID', $tagihanPendaftaran->TAGIHAN)->first();
         $data->tagihan = $tagihan;
 
@@ -1187,7 +1193,7 @@ class KlaimController extends Controller
                         $data['diastole'] = $diastole;
                         $data['diagnosa'] = $diagnosa ? $diagnosa->KODE : null;
                         $data['prosedur'] = $prosedur ? $prosedur->KODE : null;
-                        
+
                     }
                 }
             }
