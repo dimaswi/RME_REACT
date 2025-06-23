@@ -800,7 +800,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                         setValue={setJenisPerawatan}
                                         placeholder="Pilih Jenis Perawatan"
                                         getOptionLabel={(item) => item.DESKRIPSI}
-                                        getOptionValue={(item) => item.ID}
+                                        getOptionValue={(item) => item.DESKRIPSI}
                                     />
                                 </td>
                                 {/* <td colSpan={2} className="relative px-4 py-2">
