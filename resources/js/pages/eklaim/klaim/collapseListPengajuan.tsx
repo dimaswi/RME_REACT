@@ -421,9 +421,10 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
             if (item.edit == 0) {
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
+                console.log('Data Kunjungan:', response.data);
                 setDataKunjungan(response.data);
                 setJenisPerawatan(
-                    response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? 'Rawat Jalan' : response.data.kunjungan.jenis_perawatan === 'IGD' ? 'IGD' : 'Rawat Inap',
+                    response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
                 );
                 setDataPenjaminKlaim("3");
                 const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
@@ -799,8 +800,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                         value={jenisPerawatan}
                                         setValue={setJenisPerawatan}
                                         placeholder="Pilih Jenis Perawatan"
-                                        getOptionLabel={(item) => item.DESKRIPSI}
-                                        getOptionValue={(item) => item.DESKRIPSI}
+                                        getOptionLabel={(item) => (item && typeof item === 'object' ? item.DESKRIPSI : '')}
+                                        getOptionValue={(item) => (item && typeof item === 'object' ? item.ID : '')}
                                     />
                                 </td>
                                 {/* <td colSpan={2} className="relative px-4 py-2">
