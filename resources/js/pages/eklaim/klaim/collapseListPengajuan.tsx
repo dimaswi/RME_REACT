@@ -362,6 +362,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             const klaimData = klaimRes.data;
+            console.log('Klaim Data:', klaimData);
 
             if (item.edit == 1) {
                 setSistole(Number(klaimData.kunjungan.sistole) || '');
@@ -2042,12 +2043,14 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         <Button variant="outline" onClick={handleGrouper} disabled={loadingSimpan || loadingGrouper}>
                             {loadingGrouper ? (
                                 <>
-                                    <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan Grouper ....
+                                    <Loader className="mr-2 h-4 w-4 animate-spin" /> Menyimpan Data ....
                                 </>
                             ) : (
-                                <Save className="mr-2 h-4 w-4 text-blue-400" />
+                                <>
+                                    <Save className="mr-2 h-4 w-4 text-blue-400" /> Grouper
+                                </>
                             )}
-                            Grouper
+                            
                         </Button>
                         <Button
                             variant="outline"

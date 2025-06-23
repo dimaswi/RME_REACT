@@ -562,10 +562,7 @@ class KlaimController extends Controller
                 'response' => json_encode($send),
             ]);
             DB::connection('eklaim')->commit();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal mengirim data klaim: ' . $send['metadata']['message']
-            ], 500);
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
         }
 
         LogKlaim::create([
@@ -575,10 +572,7 @@ class KlaimController extends Controller
             'response' => json_encode($send),
         ]);
         DB::connection('eklaim')->commit();
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data klaim berhasil diperbarui.'
-        ]);
+        return redirect()->back()->with('success', 'Data klaim berhasil diperbarui dan dikirim ke eKlaim.');
     }
 
     public function groupStageOneKlaim(PengajuanKlaim $pengajuanKlaim)
