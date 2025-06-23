@@ -422,6 +422,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
             if (item.edit == 0) {
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
+                console.log('Data Kunjungan:', response.data);
                 setJenisPerawatan(
                     response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
                 );
@@ -454,6 +455,30 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 setTarifBMHP(Number(response.data.kunjungan.tagihan.BMHP) || 0);
                 setTarifSewaAlat(Number(response.data.kunjungan.tagihan.SEWA_ALAT) || 0);
                 setTarifKamar(Number(response.data.kunjungan.tagihan.AKOMODASI) || 0);
+                const diagnosaStr = response?.data.kunjungan?.diagnosa || '';
+                const procedureStr = response?.data.kunjungan?.prosedur || '';
+
+                const diagnosaArr = diagnosaStr
+                    .split('#')
+                    .filter(Boolean)
+                    .flatMap((item: string) => {
+                        const [codeDesc, countStr] = item.split('+');
+                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                        const count = countStr ? parseInt(countStr, 10) : 1;
+                        return Array(count).fill({ id: id.trim() });
+                    });
+                setSelectedDiagnosa(diagnosaArr);
+
+                const procedureArr = procedureStr
+                    .split('#')
+                    .filter(Boolean)
+                    .flatMap((item: string) => {
+                        const [codeDesc, countStr] = item.split('+');
+                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                        const count = countStr ? parseInt(countStr, 10) : 1;
+                        return Array(count).fill({ id: id.trim() });
+                    });
+                setSelectedProcedure(procedureArr);
             }
 
             // if (klaimData && klaimData.klaimData) {
