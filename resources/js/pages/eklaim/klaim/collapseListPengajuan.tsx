@@ -546,7 +546,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
             setDataKunjungan(response.data);
             setJenisPerawatan(
-                response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
+                response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? 'Rawat Jalan' : response.data.kunjungan.jenis_perawatan === 'IGD' ? 'IGD' : 'Rawat Inap',
             );
             setDataPenjaminKlaim(3);
             const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
