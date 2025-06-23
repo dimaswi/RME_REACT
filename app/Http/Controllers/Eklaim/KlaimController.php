@@ -1218,6 +1218,8 @@ class KlaimController extends Controller
         $data->grouperOneTarif = GrouperOneTarif::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
         $data->grouperOneSpecialCmgOption = GrouperOneSpecialCmgOption::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
 
+        dd($data);
+
         return response()->json($data);
     }
 
