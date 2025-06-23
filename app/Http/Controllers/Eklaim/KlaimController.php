@@ -364,8 +364,8 @@ class KlaimController extends Controller
             "discharge_status" => $request->input('discharge_status'),
             "diagnosa" => $diagnosa,
             "procedure" => $procedure,
-            "diagnosa_inagrouper" => $request->input('diagnosa_inagrouper'),
-            "procedure_inagrouper" => $request->input('procedure_inagrouper'),
+            "diagnosa_inagrouper" => $diagnosa,
+            "procedure_inagrouper" => $procedure,
             "tarif_rs" => [
                 "prosedur_non_bedah" => $request->input('tarif_rs.prosedur_non_bedah'),
                 "prosedur_bedah" => $request->input('tarif_rs.prosedur_bedah'),
@@ -1216,7 +1216,7 @@ class KlaimController extends Controller
         $data->grouperone = GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->with(['cbg', 'subAcute', 'chronic', 'specialCmg'])->first();
         $data->grouperOneInagrouper = GrouperOneInagrouper::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
         $data->grouperOneTarif = GrouperOneTarif::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
-        $data->grouperOneSpecialCmgOption = grouperOneSpecialCmgOption::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
+        $data->grouperOneSpecialCmgOption = GrouperOneSpecialCmgOption::where('pengajuan_klaim_id', $pengajuanKlaim->id)->get();
 
         return response()->json($data);
     }
