@@ -439,7 +439,13 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
                 // Kondisi jika data klaim belum ada, ambil dari resume medis
                 if (klaimData && klaimData.resumeMedis) {
-                    setJenisPerawatan(klaimData.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan' ? '2' : klaimData.pengajuanKlaim.jenis_perawatan === 'IGD' ? '3' : '1');
+                    setJenisPerawatan(
+                        klaimData.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan'
+                            ? '2'
+                            : klaimData.pengajuanKlaim.jenis_perawatan === 'IGD'
+                              ? '3'
+                              : '1',
+                    );
                     setSistole(klaimData.resumeMedis.sistole || '');
                     setDiastole(klaimData.resumeMedis.diastole || '');
                     setTanggalMasuk(klaimData.resumeMedis.tanggal_masuk || '');
@@ -511,17 +517,19 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
                 console.log('Response Kunjungan:', response.data);
                 setJenisPerawatan(
-                    response.data.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.pengajuanKlaim.jenis_perawatan === 'IGD' ? '3' : '1',
+                    response.data.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan'
+                        ? '2'
+                        : response.data.pengajuanKlaim.jenis_perawatan === 'IGD'
+                          ? '3'
+                          : '1',
                 );
                 setSistole(response.data.resumeMedis.sistole || '');
                 setDiastole(response.data.resumeMedis.diastole || '');
                 setDataPenjaminKlaim('3');
-                const masuk = response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].MASUK;
-                const keluar = response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
-                setTanggalMasuk(masuk);
-                setTanggalKeluar(keluar);
+                setTanggalMasuk(response.data.resumeMedis.tanggal_masuk || '');
+                setTanggalKeluar(response.data.resumeMedis.tanggal_keluar || '');
                 setDataDischargeStatus('1');
-                setLamaKunjungan(hitungLamaKunjungan(masuk, keluar));
+                // setLamaKunjungan(hitungLamaKunjungan(response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].MASUK, response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].KELUAR));
                 setDataDokter(Array.isArray(response.data.resumeMedis.dokter) ? response.data.resumeMedis.dokter : []);
                 setTarifProsedurBedah(Number(response.data.resumeMedis.tagihan.PROSEDUR_BEDAH) || 0);
                 setTarifProsedurNonBedah(Number(response.data.resumeMedis.tagihan.PROSEDUR_NON_BEDAH) || 0);
