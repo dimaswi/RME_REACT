@@ -1117,11 +1117,11 @@ class KlaimController extends Controller
 
     public function listPengajuanKlaim(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
+        $perPage = (int) $request->input('perPage', 10); // gunakan 'perPage' dari frontend
         $tanggalAwal = $request->input('tanggal_awal');
         $tanggalAkhir = $request->input('tanggal_akhir');
         $status = $request->input('status');
-        $jenisKunjungan = $request->input('jenis_kunjungan'); // Tambahkan ini
+        $jenisKunjungan = $request->input('jenis_kunjungan');
 
         $query = PengajuanKlaim::with('pendaftaranPoli.pasien');
 
@@ -1164,12 +1164,12 @@ class KlaimController extends Controller
             'filters' => [
                 'perPage' => $perPage,
                 'status' => $status,
-                'jenis_kunjungan' => $jenisKunjungan, // Tambahkan ini agar state filter tetap
+                'jenis_kunjungan' => $jenisKunjungan,
             ],
             'tanggal_awal' => $tanggalAwal,
             'tanggal_akhir' => $tanggalAkhir,
             'status' => $status,
-            'jenis_kunjungan' => $jenisKunjungan, // Tambahkan ini agar state filter tetap
+            'jenis_kunjungan' => $jenisKunjungan,
         ]);
     }
 
