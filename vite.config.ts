@@ -14,7 +14,7 @@ export default defineConfig({
             credentials: true,
         },
         hmr: {
-            host: 'localhost',
+            host: 'http://147.93.104.139',
         },
     },
     plugins: [
