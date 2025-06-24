@@ -82,13 +82,25 @@ export default function ListPengajuan() {
 
     const handlePageChange = (url: string | null) => {
         if (url) {
+            // Ambil query params dari url pagination
+            const urlObj = new URL(url, window.location.origin);
+            const params = Object.fromEntries(urlObj.searchParams.entries());
+
+            // Kirim filter aktif + page baru ke backend
             router.get(
                 route('eklaim.klaim.indexPengajuanKlaim'),
                 {
                     ...filters,
+                    ...params, // page, perPage, dll dari url pagination
                     tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
                     tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                    status,
+                    status: (() => {
+                        try {
+                            const arr = JSON.parse(status);
+                            if (Array.isArray(arr)) return arr;
+                        } catch { }
+                        return status;
+                    })(),
                     jenis_kunjungan: jenisKunjungan === 'all' ? undefined : jenisKunjungan,
                 },
                 { preserveState: true },
