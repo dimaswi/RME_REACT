@@ -99,15 +99,13 @@ export default function KlaimIndex() {
             jenis_perawatan: modalData.poliTujuan == 'IGD' ? 'Gawat Darurat' : modalData.poliTujuan == '' ? 'Rawat Inap' : 'Rawat Jalan',
         };
         
-        console.log('Data yang akan diajukan:', data);
-
-        // router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
-        //     onStart: () => setLoadingAjukan(true),
-        //     onFinish: () => {
-        //         setLoadingAjukan(false);
-        //         setShowModal(false);
-        //     },
-        // });
+        router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
+            onStart: () => setLoadingAjukan(true),
+            onFinish: () => {
+                setLoadingAjukan(false);
+                setShowModal(false);
+            },
+        });
     };
 
     const tanggal_awal = usePage().props.tanggal_awal || '';
