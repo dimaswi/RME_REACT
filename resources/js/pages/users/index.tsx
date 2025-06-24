@@ -95,7 +95,6 @@ export default function UsersIndex() {
         }
 
         if (confirm('Are you sure you want to delete the selected users?')) {
-            console.log(`Users with IDs ${selectedUsers.join(', ')} deleted`);
             setSelectedUsers([]);
             toast.success('Selected users deleted successfully!');
         }

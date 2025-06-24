@@ -17,7 +17,6 @@ export default function EditTagihan() {
     const fetchTagihan = async () => {
         try {
             const response = await axios.get(route('eklaim.editData.tagihan', { pengajuanKlaim: dataKlaim?.id }));
-            console.log('Fetched tagihan:', response);
         } catch (error) {
             console.error('Error fetching tagihan:', error);
         }
@@ -50,7 +49,6 @@ export default function EditTagihan() {
     });
 
     const getDetailByJenis = (item: any) => {
-        console.log(item.jenis);
         switch (item.jenis) {
             case 1:
                 return item.tarif_administrasi;

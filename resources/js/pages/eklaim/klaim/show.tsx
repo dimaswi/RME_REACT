@@ -150,7 +150,6 @@ const daftarSEP = React.useMemo(() => {
         return `${parseInt(tanggal)} ${bulan[parseInt(bulanIdx, 10) - 1]} ${tahun}`;
     }
 
-    console.log("Daftar SEP:", daftarSEP);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

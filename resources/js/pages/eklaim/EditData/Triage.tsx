@@ -90,13 +90,12 @@ export default function Triage({ imageBase64, onChange, nomorKunjungan, mode }: 
                     console.error("Error fetching data:", error);
                 });
 
-                console.log("Response data:", response);
 
         }
 
 
         if (mode === 0) {
-            const response = await axios.get(route('eklaim.getDataTriage', { nomorKunjungan: nomorKunjungan }))
+            await axios.get(route('eklaim.getDataTriage', { nomorKunjungan: nomorKunjungan }))
                 .then(response => {
                     setForm({
                         namaPasien: namaPasien || "",
@@ -177,8 +176,6 @@ export default function Triage({ imageBase64, onChange, nomorKunjungan, mode }: 
                 .catch(error => {
                     console.error("Error fetching data:", error);
                 });
-
-                console.log("Response data:", response);
         }
     }
 

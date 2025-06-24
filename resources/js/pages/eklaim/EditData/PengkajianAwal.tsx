@@ -26,8 +26,6 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
         if (error) toast.error(error);
     }, [success, error]);
 
-    console.log("Nomor Kunjungan:", nomorKunjungan);
-
     const handleLoadData = async () => {
         try {
             if (mode == 0) {

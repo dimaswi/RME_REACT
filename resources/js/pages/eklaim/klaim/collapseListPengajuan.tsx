@@ -359,13 +359,11 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     const [dataKunjungan, setDataKunjungan] = useState<any>(null);
     const fetchDataKunjungan = async () => {
         setLoadingKunjungan(true);
-        console.log(item);
         try {
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
             if (item.edit == 1) {
                 const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
                 const klaimData = klaimRes.data;
-                console.log('Data Klaim:', klaimData);
                 // Kodisi jika data klaim sudah ada
                 if (klaimData && klaimData.klaimData) {
                     setSistole(klaimData.klaimData.sistole || '');
@@ -510,7 +508,6 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
             if (item.edit == 0) {
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
-                console.log('Data Kunjungan:', response.data);
                 setJenisPerawatan(
                     response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
                 );

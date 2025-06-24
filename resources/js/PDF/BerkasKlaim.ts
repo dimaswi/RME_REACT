@@ -56,7 +56,6 @@ export const cetakBerkasKlaim = async (
             return;
         }
         
-        console.log("Response data:", response);
 
         if (jenis === "preview") {
             const pdfBlob = new Blob([response.data], { type: "application/pdf" });

@@ -25,7 +25,6 @@ export const cetakSEP = async (
         // Ubah ukuran halaman menjadi A5 (148 x 210 mm) dengan orientasi landscape
         const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: [120, 300] });
 
-        console.log("Data yang diterima:", data); // Log data untuk debugging
         // Tambahkan Gambar BPJS
         const imgWidth = 85; // Lebar gambar (mm)
         const imgHeight = 14; // Tinggi gambar (mm)

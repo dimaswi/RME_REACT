@@ -79,7 +79,6 @@ export default function ModalBuatPengajuanBaru({ open, onOpenChange, onSuccess }
         setLoadingSEP(false);
     };
 
-    console.log(usePage().props);
 
     const handleSimpan = async () => {
         if (!selectedSEP || !selectedPasien || !jenisPerawatan || saving) return;

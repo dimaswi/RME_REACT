@@ -97,7 +97,6 @@ export default function DataKlaim() {
                                                     try {
                                                         const data = await fetchSEPData(dataPendaftaran.NOMOR); // Panggil fungsi untuk mengambil data
                                                         toast.success('Data SEP berhasil diambil');
-                                                        console.log('Data SEP:', data);
                                                         cetakSEP(data, 'preview', setPreviewSEPData, setPreviewPDF, setBerkasKlaimUrl); // Panggil fungsi untuk membuat PDF
                                                     } catch (error) {
                                                         console.log(error);
@@ -347,7 +346,6 @@ export default function DataKlaim() {
                                                                 pendaftaran: dataPendaftaran.NOMOR,
                                                             }),
                                                         );
-                                                        console.log('Ambil Data Resume Medis', response.data);
                                                         toast.success('Data resume medis berhasil diambil');
                                                     } catch (error) {
                                                         console.error('Error:', error);
@@ -471,7 +469,6 @@ export default function DataKlaim() {
                                                                 pendaftaran: dataPendaftaran.NOMOR,
                                                             }),
                                                         );
-                                                        console.log('Ambil Data Tagihan', response.data);
                                                         setTarifProsedurBedah(Number(response.data.pendaftaran_tagihan.tagihan.PROSEDUR_BEDAH));
                                                         setTarifProsedurNonBedah(
                                                             Number(response.data.pendaftaran_tagihan.tagihan.PROSEDUR_NON_BEDAH),
