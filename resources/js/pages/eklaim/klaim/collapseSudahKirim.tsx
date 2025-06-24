@@ -15,8 +15,6 @@ export default function SudahTerkirimCollapse({ pengajuanKlaim }: { pengajuanKla
 
     return (
         <>
-            <GroupingOneCollapse pengajuanKlaim={pengajuanKlaim} />
-
             <div className="mb-4 flex justify-end gap-2">
                 {loadingEditUlang ? (
                     <Button variant="outline" disabled>
