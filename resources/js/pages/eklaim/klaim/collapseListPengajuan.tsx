@@ -531,27 +531,27 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 setDataDischargeStatus('1');
                 // setLamaKunjungan(hitungLamaKunjungan(response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].MASUK, response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].KELUAR));
                 setDataDokter(Array.isArray(response.data.resumeMedis.dokter) ? response.data.resumeMedis.dokter : []);
-                setTarifProsedurBedah(Number(response.data.resumeMedis.tagihan.PROSEDUR_BEDAH) || 0);
-                setTarifProsedurNonBedah(Number(response.data.resumeMedis.tagihan.PROSEDUR_NON_BEDAH) || 0);
-                setTarifKonsultasi(Number(response.data.resumeMedis.tagihan.KONSULTASI) || 0);
-                setTarifTenagaAhli(Number(response.data.resumeMedis.tagihan.TENAGA_AHLI) || 0);
-                setTarifKeperawatan(Number(response.data.resumeMedis.tagihan.KEPERAWATAN) || 0);
-                setTarifPenunjang(Number(response.data.resumeMedis.tagihan.PENUNJANG) || 0);
-                setTarifRadiologi(Number(response.data.resumeMedis.tagihan.RADIOLOGI) || 0);
-                setTarifLaboratorium(Number(response.data.resumeMedis.tagihan.LABORATORIUM) || 0);
-                setTarifPelayananDarah(Number(response.data.resumeMedis.tagihan.PELAYANAN_DARAH) || 0);
-                setTarifRehabilitasi(Number(response.data.resumeMedis.tagihan.REHABILITASI) || 0);
-                setTarifKamar(Number(response.data.resumeMedis.tagihan.KAMAR) || 0);
-                setTarifRawatIntensif(Number(response.data.resumeMedis.tagihan.RAWAT_INTENSIF) || 0);
-                setTarifObat(Number(response.data.resumeMedis.tagihan.OBAT) || 0);
-                setTarifObatKronis(Number(response.data.resumeMedis.tagihan.OBAT_KRONIS) || 0);
-                setTarifObatKemoterapi(Number(response.data.resumeMedis.tagihan.OBAT_KEMOTERAPI) || 0);
-                setTarifAlkes(Number(response.data.resumeMedis.tagihan.ALKES) || 0);
-                setTarifBMHP(Number(response.data.resumeMedis.tagihan.BMHP) || 0);
-                setTarifSewaAlat(Number(response.data.resumeMedis.tagihan.SEWA_ALAT) || 0);
-                setTarifKamar(Number(response.data.resumeMedis.tagihan.AKOMODASI) || 0);
-                const diagnosaStr = response?.data.kunjungan?.diagnosa || '';
-                const procedureStr = response?.data.kunjungan?.prosedur || '';
+                setTarifProsedurBedah(Number(response.data.tagihan.PROSEDUR_BEDAH) || 0);
+                setTarifProsedurNonBedah(Number(response.data.tagihan.PROSEDUR_NON_BEDAH) || 0);
+                setTarifKonsultasi(Number(response.data.tagihan.KONSULTASI) || 0);
+                setTarifTenagaAhli(Number(response.data.tagihan.TENAGA_AHLI) || 0);
+                setTarifKeperawatan(Number(response.data.tagihan.KEPERAWATAN) || 0);
+                setTarifPenunjang(Number(response.data.tagihan.PENUNJANG) || 0);
+                setTarifRadiologi(Number(response.data.tagihan.RADIOLOGI) || 0);
+                setTarifLaboratorium(Number(response.data.tagihan.LABORATORIUM) || 0);
+                setTarifPelayananDarah(Number(response.data.tagihan.PELAYANAN_DARAH) || 0);
+                setTarifRehabilitasi(Number(response.data.tagihan.REHABILITASI) || 0);
+                setTarifKamar(Number(response.data.tagihan.KAMAR) || 0);
+                setTarifRawatIntensif(Number(response.data.tagihan.RAWAT_INTENSIF) || 0);
+                setTarifObat(Number(response.data.tagihan.OBAT) || 0);
+                setTarifObatKronis(Number(response.data.tagihan.OBAT_KRONIS) || 0);
+                setTarifObatKemoterapi(Number(response.data.tagihan.OBAT_KEMOTERAPI) || 0);
+                setTarifAlkes(Number(response.data.tagihan.ALKES) || 0);
+                setTarifBMHP(Number(response.data.tagihan.BMHP) || 0);
+                setTarifSewaAlat(Number(response.data.tagihan.SEWA_ALAT) || 0);
+                setTarifKamar(Number(response.data.tagihan.AKOMODASI) || 0);
+                const diagnosaStr = response.data.resumeMedis?.diagnosa_utama || '';
+                const procedureStr = response.data.resumeMedis?.tindakan_prosedur || '';
 
                 const diagnosaArr = diagnosaStr
                     .split('#')
