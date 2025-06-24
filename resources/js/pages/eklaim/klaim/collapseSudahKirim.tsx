@@ -7,7 +7,7 @@ import { cetakBerkasKlaim } from '@/PDF/BerkasKlaim';
 import { set } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKlaim: any }) {
+export default function SudahTerkirimCollapse({ pengajuanKlaim }: { pengajuanKlaim: any }) {
     const [loadingEditUlang, setLoadingEditUlang] = React.useState(false);
     const [loadingHapus, setLoadingHapus] = React.useState(false);
     const [loadingCetak, setLoadingCetak] = React.useState(false);
@@ -18,41 +18,6 @@ export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKla
             <GroupingOneCollapse pengajuanKlaim={pengajuanKlaim} />
 
             <div className="mb-4 flex justify-end gap-2">
-                {loadingKirim ? (
-                    <Button variant="outline" disabled>
-                        <Loader className="mr-2 h-4 w-4 animate-spin text-green-500" />
-                        Mengirim...
-                    </Button>
-                ) : (
-                    <Button
-                        variant="outline"
-                        onClick={async () => {
-                            setLoadingKirim(true);
-                            try {
-                                await router.post(route('eklaim.klaim.kirimDataKlaimPerSep', { pengajuanKlaim: pengajuanKlaim.id }), {}, {
-                                    preserveState: true,
-                                    preserveScroll: true,
-                                    onStart: () => {
-                                        setLoadingKirim(true);
-                                    },
-                                    onFinish: () => {
-                                        setLoadingKirim(false);
-                                    },
-                                    onError: () => {
-                                        setLoadingKirim(false);
-                                    },
-                                });
-                            } catch (error) {
-                                toast.error("Gagal Mengirim Klaim");
-                            } finally {
-                                setLoadingKirim(false);
-                            }
-                        }}
-                    >
-                        <Send className="mr-2 h-4 w-4 text-green-500" />
-                        Kirim
-                    </Button>
-                )}
                 {loadingEditUlang ? (
                     <Button variant="outline" disabled>
                         <Loader className="mr-2 h-4 w-4 animate-spin text-blue-500" />

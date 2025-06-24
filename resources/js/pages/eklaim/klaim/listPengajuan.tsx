@@ -34,7 +34,7 @@ const getStatusBadge = (status: number, id: string) => {
         1: { label: 'Sudah Diajukan', color: 'yellow', text: 'white' },
         2: { label: 'Grouper', color: 'blue', text: 'white' },
         3: { label: 'Final', color: 'green', text: 'white' },
-        4: { label: 'Dikirim', color: 'purple', text: 'white' },
+        4: { label: 'Dikirim', color: 'green', text: 'white' },
     };
     const statusInfo = statusMap[status] || { label: 'Unknown', color: 'gray', text: 'gray-800' };
     return (
@@ -364,6 +364,17 @@ export default function ListPengajuan() {
                                                                 pengajuanKlaim={item}
                                                             />
                                                         )
+                                                    }
+
+                                                    {
+                                                        item.status === 4 && (
+                                                            <div className="p-4">
+                                                                <h3 className="text-lg font-semibold mb-2">Klaim Sudah Dikirim</h3>
+                                                                <p>Nomor SEP: {item.nomor_SEP}</p>
+                                                                <p>Tanggal Pengajuan: {formatTanggal(item.tanggal_pengajuan)}</p>
+                                                                <p>Status: {getStatusBadge(item.status, item.id)}</p>
+                                                            </div>
+                                                        )}
                                                     }
                                                 </TableCell>
                                             </TableRow>
