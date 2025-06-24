@@ -6,12 +6,14 @@ import GroupingOneCollapse from './collapseGroupingOne';
 import { cetakBerkasKlaim } from '@/PDF/BerkasKlaim';
 import { set } from 'date-fns';
 import { toast } from 'sonner';
+import { mergePDFs } from '@/PDF/MergePDF';
 
 export default function SudahTerkirimCollapse({ pengajuanKlaim }: { pengajuanKlaim: any }) {
     const [loadingEditUlang, setLoadingEditUlang] = React.useState(false);
     const [loadingHapus, setLoadingHapus] = React.useState(false);
     const [loadingCetak, setLoadingCetak] = React.useState(false);
     const [loadingKirim, setLoadingKirim] = React.useState(false);
+    const [loadingDownloadAll, setLoadingDownloadAll] = React.useState(false);
 
     return (
         <>
@@ -76,6 +78,38 @@ export default function SudahTerkirimCollapse({ pengajuanKlaim }: { pengajuanKla
                         Cetak
                     </Button>
                 )}
+
+                {
+                    loadingDownloadAll ? (
+                        <Button variant="outline" disabled>
+                            <Loader className="mr-2 h-4 w-4 animate-spin text-blue-500" />
+                            Mengunduh...
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                setLoadingDownloadAll(true);
+                                try {
+                                    await mergePDFs(
+                                        pengajuanKlaim.nomor_pendaftaran, // pastikan ini ID pendaftaran
+                                        pengajuanKlaim.nomor_SEP,
+                                        pengajuanKlaim,
+                                        'download'
+                                    );
+                                } catch (error) {
+                                    console.error("Error fetching PDF:", error);
+                                    toast.error("Gagal mengunduh PDF");
+                                } finally {
+                                    setLoadingDownloadAll(false);
+                                }
+                            }}
+                        >
+                            <Printer className="mr-2 h-4 w-4 text-blue-500" />
+                            Unduh
+                        </Button>
+                    )
+                }
             </div>
         </>
     );
