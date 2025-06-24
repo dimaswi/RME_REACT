@@ -1,7 +1,7 @@
 import AppLayoutTemplate from '@/layouts/app/app-header-layout';
 import { type BreadcrumbItem } from '@/types';
-import { type ReactNode, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
+import { type ReactNode, useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
 
 interface AppLayoutProps {
@@ -16,19 +16,28 @@ export default ({ children, breadcrumbs, pasien, ruangan, ...props }: AppLayoutP
 
     useEffect(() => {
         if (success) {
-            toast.success(success);
-            // Reset flash agar toast bisa muncul lagi pada pesan yang sama
-            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            // Event ID berdasarkan waktu sekarang
+            const eventId = Date.now().toString();
+            toast.success(success, { id: eventId });
         }
         if (error) {
-            toast.error(error);
-            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            const eventId = Date.now().toString();
+            toast.error(error, { id: eventId });
         }
     }, [success, error]);
 
     return (
         <>
-            <Toaster position="top-right" richColors />
+            <Toaster
+                position="top-right"
+                richColors
+                toastOptions={{
+                    // Gunakan 'dismissible' bukan 'enableDismiss'
+                    dismissible: true,
+                    // Pastikan toast baru tidak ditumpuk di atas yang lama
+                    duration: 4000,
+                }}
+            />
             <AppLayoutTemplate breadcrumbs={breadcrumbs} pasien={pasien} ruangan={ruangan} {...props}>
                 {children}
             </AppLayoutTemplate>

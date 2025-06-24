@@ -79,12 +79,12 @@ export default function ListPengajuan() {
         };
     };
 
+    // Perbaiki getInitialData agar selalu return struktur default jika parsing gagal
     const getInitialData = () => {
         const saved = localStorage.getItem(DATA_STORAGE_KEY);
         if (saved && saved !== '') {
             try {
                 const parsed = JSON.parse(saved);
-                // Pastikan struktur data table sesuai kebutuhan
                 return {
                     data: Array.isArray(parsed.data) ? parsed.data : [],
                     links: Array.isArray(parsed.links) ? parsed.links : [],
@@ -96,6 +96,7 @@ export default function ListPengajuan() {
                 localStorage.removeItem(DATA_STORAGE_KEY);
             }
         }
+        // Struktur default
         return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10 };
     };
 
@@ -118,7 +119,7 @@ export default function ListPengajuan() {
         to: filters?.tanggal_akhir ? parseDate(filters.tanggal_akhir) : undefined,
     });
     const [filtersState, setFilters] = useState(getInitialFilters);
-    const [data, setData] = useState(getInitialData);
+    const [data, setData] = useState(getInitialData); // <-- pastikan fungsi dipanggil
     const [loading, setLoading] = useState(false);
     const [openModalBaru, setOpenModalBaru] = useState(false);
     const [openRow, setOpenRow] = useState<number | null>(null);
@@ -140,20 +141,33 @@ export default function ListPengajuan() {
 
     // Fetch data manual (bukan useEffect otomatis)
     const fetchData = async (customFilters = filtersState) => {
-        toast.loading('Mengambil data pengajuan klaim...')
-        setLoading(true);
-        await axios
-            .post('/eklaim/klaim/list-pengajuan/filter', customFilters)
-            .then((response) => {
-                setData(response.data.dataPendaftaran); // <-- ambil dataPendaftaran saja!
+    toast.loading('Mengambil data pengajuan klaim...');
+    setLoading(true);
+    await axios
+        .post('/eklaim/klaim/list-pengajuan/filter', customFilters)
+        .then((response) => {
+            const resp = response.data.pengajuanKlaim;
+            if (resp && Array.isArray(resp.data)) {
+                setData({
+                    data: resp.data,
+                    links: Array.isArray(resp.links) ? resp.links : [],
+                    current_page: resp.current_page ?? 1,
+                    last_page: resp.last_page ?? 1,
+                    perPage: resp.perPage ?? 10,
+                });
                 toast.dismiss();
                 toast.success('Data berhasil diambil');
-            })
-            .catch((error) => {
-                toast.error('Gagal mengambil data');
-            })
-            .finally(() => setLoading(false));
-    };
+            } else {
+                toast.dismiss();
+                toast.error('Format data tidak sesuai');
+            }
+        })
+        .catch((error) => {
+            toast.dismiss();
+            toast.error('Gagal mengambil data');
+        })
+        .finally(() => setLoading(false));
+};
 
     // Handler submit filter
     const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -311,7 +325,7 @@ export default function ListPengajuan() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {data.data && data.data.length > 0 ? (
+                            {Array.isArray(data.data) && data.data.length > 0 ? (
                                 data.data.map((item: any, idx: number) => (
                                     <React.Fragment key={item.id}>
                                         <TableRow className="cursor-pointer hover:bg-blue-50" onClick={() => handleToggleRow(item.id)}>

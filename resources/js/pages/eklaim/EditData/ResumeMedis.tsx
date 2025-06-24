@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Home } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -113,7 +113,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const [tanggalLahir, setTanggalLahir] = useState<string | null>(null);
     const [jenisKelamin, setJenisKelamin] = useState<number | null>(null);
     const [ruangRawat, setRuangRawat] = useState<string | null>(null);
-    const [indikasiRawatInap, setIndikasiRawatInap] = useState<string | null>("Perbaikan Kondisi");
+    const [indikasiRawatInap, setIndikasiRawatInap] = useState<string | null>('Perbaikan Kondisi');
     const [penjamin, setPenjamin] = useState<string | null>(null);
     const [tanggalMasuk, setTanggalMasuk] = useState<string | null>(null);
     const [tanggalKeluar, setTanggalKeluar] = useState<string | null>(null);
@@ -131,9 +131,9 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const [tindakanProsedurSekunder, setTindakanProsedurSekunder] = useState<string | null>(null);
     const [icd9Sekunder, setIcd9Sekunder] = useState<string | null>(null);
     const [riwayatAlergi, setRiwayatAlergi] = useState<string | null>(null);
-    const [keadaanPulang, setKeadaanPulang] = useState<string | null>("1");
-    const [caraPulang, setCaraPulang] = useState<string | null>("1");
-    const [poliTujuan, setPoliTujuan] = useState<string | null>("1");
+    const [keadaanPulang, setKeadaanPulang] = useState<string | null>('1');
+    const [caraPulang, setCaraPulang] = useState<string | null>('1');
+    const [poliTujuan, setPoliTujuan] = useState<string | null>('1');
     const [tanggalKontrol, setTanggalKontrol] = useState<string | null>(null);
     const [jamKontrol, setJamKontrol] = useState<string | null>(null);
     const [noSuratBPJS, setNoSuratBPJS] = useState<string | null>(null);
@@ -226,7 +226,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setLamaDirawat(handleLamaDirawat(kunjungan?.MASUK, kunjungan?.KELUAR || toDatetimeLocal(new Date())));
             setRuangRawat(kunjungan?.ruangan?.DESKRIPSI || null);
             setPenjamin(kunjungan?.penjamin_pasien?.jenis_penjamin.DESKRIPSI || null);
-            setIndikasiRawatInap("Perbaikan Kondisi");
+            setIndikasiRawatInap('Perbaikan Kondisi');
             setRiwayatPenyakitSekarang(kunjungan?.anamnesis_pasien?.DESKRIPSI || null);
             setRiwayatPenyakitLalu(kunjungan?.rpp?.DESKRIPSI || null);
             setPemeriksaanFisik(kunjungan?.pemeriksaan_fisik?.DESKRIPSI || null);
@@ -236,17 +236,17 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setSelectedDiagnosa(
                 Array.isArray(kunjungan?.diagnosa_pasien)
                     ? kunjungan.diagnosa_pasien.map((item: any) => ({
-                        id: item.nama_diagnosa?.CODE || '',
-                        description: item.nama_diagnosa?.STR || '',
-                    }))
+                          id: item.nama_diagnosa?.CODE || '',
+                          description: item.nama_diagnosa?.STR || '',
+                      }))
                     : [],
             );
             setSelectedProcedure(
                 Array.isArray(kunjungan?.prosedur_pasien)
                     ? kunjungan.prosedur_pasien.map((item: any) => ({
-                        id: item.nama_prosedur?.CODE || '',
-                        description: item.nama_prosedur?.STR || '',
-                    }))
+                          id: item.nama_prosedur?.CODE || '',
+                          description: item.nama_prosedur?.STR || '',
+                      }))
                     : [],
             );
             setDiagnosaUtama(formatDiagnosaString(selectedDiagnosa));
@@ -295,6 +295,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         }
 
         if (dataKlaim.edit === 1 && kunjungan) {
+            setNamaDokter(kunjungan?.resume_medis?.dokter || null);
             setNamaPasien(kunjungan?.resume_medis?.nama_pasien || null);
             setNoRM(kunjungan?.resume_medis?.no_rm || null);
             setTanggalLahir(kunjungan?.resume_medis?.tanggal_lahir || null);
@@ -444,8 +445,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         const konsulData = Array.isArray(dataKunjungan)
             ? dataKunjungan.flatMap((k: any) => k.permintaan_konsul || [])
             : dataKunjungan?.permintaan_konsul
-                ? dataKunjungan.permintaan_konsul
-                : [];
+              ? dataKunjungan.permintaan_konsul
+              : [];
 
         if (!konsulData || konsulData.length === 0) {
             toast.error('Data permintaan konsul tidak tersedia.');
@@ -504,25 +505,39 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         setDokumenCPPT(data === false ? false : data);
     };
 
+    console.log('props:', props);
+
     const handleSave = async () => {
         try {
             console.log('Data Resume Medis:', dataResumeMedis);
-            // const response = await axios.post(
-            //     route('eklaim.editData.storeResumeMedis'),
-            //     {
-            //         jenisSave: dataKlaim.edit,
-            //         resumeMedis: dataResumeMedis,
-            //         pengkajianAwal: dokumenPengkajianAwal,
-            //         triage: dokumenTriage,
-            //         cppt: dokumenCPPT,
-            //     },
-            //     { headers: { 'Content-Type': 'application/json' } },
-            // );
-            // if (response.data.success) {
-            //     toast.success(response.data.success);
-            //     window.location.reload(); // Reload halaman setelah sukses
-            // }
-            if (response.data.error) toast.error(response.data.error);
+            await router.post(
+                route('eklaim.editData.storeResumeMedis'),
+                {
+                    jenisSave: dataKlaim.edit,
+                    resumeMedis: dataResumeMedis,
+                    pengkajianAwal: dokumenPengkajianAwal,
+                    triage: dokumenTriage,
+                    cppt: dokumenCPPT,
+                },
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onStart: () => {
+                        toast.loading('Menyimpan data resume medis...');
+                    },
+                    onSuccess: () => {
+                        toast.dismiss();
+                        toast.success('Data resume medis berhasil disimpan.');
+                    },
+                    onFinish: () => {
+                        toast.dismiss();
+                    },
+                    onError: () => {
+                        toast.dismiss();
+                        toast.error('Gagal menyimpan data resume medis.');
+                    },
+                },
+            );
         } catch (error: any) {
             // Tangani error dari axios
             if (error.response && error.response.data && error.response.data.error) {
@@ -1582,9 +1597,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         </td>
                                     </tr>
 
-                                    <tr>
-                                        {namaDokter}
-                                    </tr>
+                                    <tr>{namaDokter}</tr>
 
                                     {/* Tambahan Dokumen Lainnya */}
                                     <tr

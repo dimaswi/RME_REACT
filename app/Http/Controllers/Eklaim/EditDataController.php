@@ -552,10 +552,11 @@ class EditDataController extends Controller
             }
 
             DB::connection('eklaim')->commit();
-            return response()->json(['success' => 'Data Resume Medis berhasil disimpan.']);
+            $request->session()->flash('success', 'Data Resume Medis berhasil disimpan.');
+            return redirect()->back()->with('success', 'Data Resume Medis berhasil disimpan.');
         } catch (\Exception $e) {
             DB::connection('eklaim')->rollBack();
-            return response()->json(['error' => 'Gagal menyimpan data: ' . $e->getMessage()], 500);
+            return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
