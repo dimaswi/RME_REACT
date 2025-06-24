@@ -35,8 +35,9 @@ class KlaimController extends Controller
 {
     public function index(Request $request)
     {
+        // dd($request->input('per_page'));
         try {
-            $perPage = $request->input('per_page', 100);
+            $perPage = $request->input('perPage', 10);
             $q = $request->input('q');
             $poli = $request->input('poli');
             $tanggalAwal = $request->input('tanggal_awal');
@@ -76,7 +77,7 @@ class KlaimController extends Controller
                 $query->whereDate('tglSEP', '<=', $tanggalAkhir);
             }
 
-            if ($status) {
+            if ($status !== null && $status !== '') {
                 $query->where('klaimStatus', $status);
             }
 

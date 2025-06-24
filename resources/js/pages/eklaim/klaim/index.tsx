@@ -18,7 +18,7 @@ export default function KlaimIndex() {
             links: any[];
             current_page: number;
             last_page: number;
-            per_page: number;
+            perPage: number;
         };
         filters?: {
             q?: string;
@@ -42,7 +42,7 @@ export default function KlaimIndex() {
     const defaultPoli = filters?.poli || 'ALL';
 
     // State filter
-    const [itemsPerPage, setItemsPerPage] = useState(filters?.perPage || dataPendaftaran.per_page || 10);
+    const [itemsPerPage, setItemsPerPage] = useState(filters?.perPage || dataPendaftaran.perPage || 10);
     const [query, setQuery] = useState(filters?.q || '');
     const [selectedKelas, setSelectedKelas] = useState(defaultKelas);
     const [selectedPoli, setSelectedPoli] = useState(defaultPoli);
@@ -78,6 +78,7 @@ export default function KlaimIndex() {
 
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setItemsPerPage(Number(e.target.value));
+        console.log('Items per page changed:', e.target.value);
         router.get(route('eklaim.klaim.index'), {
             page: 1,
             perPage: e.target.value,
@@ -170,7 +171,7 @@ export default function KlaimIndex() {
                         onClick={() =>
                             router.get(
                                 route('eklaim.klaim.indexPengajuanKlaim'),
-                                { page: 1, per_page: itemsPerPage, q: query },
+                                { page: 1, perPage: itemsPerPage, q: query },
                                 { preserveState: true },
                             )
                         }
@@ -339,7 +340,7 @@ export default function KlaimIndex() {
                                                         poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
                                                         q: query,
                                                         page: 1,
-                                                        per_page: itemsPerPage,
+                                                        perPage: itemsPerPage,
                                                     },
                                                     { preserveState: true },
                                                 );
@@ -362,7 +363,7 @@ export default function KlaimIndex() {
                                                     poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
                                                     q: query,
                                                     page: 1,
-                                                    per_page: itemsPerPage,
+                                                    perPage: itemsPerPage,
                                                 },
                                                 { preserveState: true },
                                             );
