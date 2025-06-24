@@ -81,7 +81,7 @@ class KlaimController extends Controller
                     'kartuAsuransiPasien',
                     'penjaminPendaftaran'
                 ])
-                ->orderBy('tglSEP', 'asc')
+                ->orderBy('tglSEP', 'desc')
                 ->paginate($perPage)
                 ->withQueryString();
 

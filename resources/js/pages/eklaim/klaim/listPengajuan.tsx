@@ -139,14 +139,6 @@ export default function ListPengajuan() {
                 </div>
                 <div className="w-full overflow-x-auto rounded-md border">
                     <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
-                        {/* <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-green-400 text-white hover:bg-green-600"
-                            onClick={() => setOpenModalBaru(true)}
-                        >
-                            Buat Pengajuan Klaim Baru
-                        </Button> */}
                         <Select
                             value={status}
                             onValueChange={(val) => {
