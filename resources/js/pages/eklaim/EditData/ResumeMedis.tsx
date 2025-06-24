@@ -37,6 +37,10 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             href: route('eklaim.klaim.indexPengajuanKlaim'),
         },
         {
+            title: dataKlaim.nomor_SEP,
+            href: route('eklaim.klaim.dataKlaim', { dataKlaim: dataKlaim.id }),
+        },
+        {
             title: 'Edit Data Resume Medis',
             href: '#',
         },

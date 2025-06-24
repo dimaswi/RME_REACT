@@ -6,7 +6,7 @@ import { cetakRadiologiPDF } from '@/PDF/Radiologi';
 import { cetakTagihanPDF } from '@/PDF/Tagihan';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Download, Loader, Pencil, Search, Upload } from 'lucide-react';
+import { Download, Home, Loader, Pencil, Search, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import '../../../../css/dataKlaim.css';
@@ -67,8 +67,23 @@ export default function DataKlaim() {
     const [showUpload, setShowUpload] = useState(false);
     const [uploadUrl, setUploadUrl] = useState('');
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: <Home className="mr-1 inline" />,
+            href: route('eklaim.klaim.index'),
+        },
+        {
+            title: 'List Pengajuan Klaim',
+            href: route('eklaim.klaim.indexPengajuanKlaim'),
+        },
+        {
+            title: dataKlaim.nomor_SEP,
+            href: '#',
+        },
+    ];
+
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pengisian Data Klaim" />
             <div className="p-4">
                 <div className="mb-4">
