@@ -132,8 +132,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const [icd9Sekunder, setIcd9Sekunder] = useState<string | null>(null);
     const [riwayatAlergi, setRiwayatAlergi] = useState<string | null>(null);
     const [keadaanPulang, setKeadaanPulang] = useState<string | null>(null);
-    const [caraPulang, setCaraPulang] = useState<string | null>(null);
-    const [poliTujuan, setPoliTujuan] = useState<string | null>(null);
+    const [caraPulang, setCaraPulang] = useState<string | null>("1");
+    const [poliTujuan, setPoliTujuan] = useState<string | null>("1");
     const [tanggalKontrol, setTanggalKontrol] = useState<string | null>(null);
     const [jamKontrol, setJamKontrol] = useState<string | null>(null);
     const [noSuratBPJS, setNoSuratBPJS] = useState<string | null>(null);
