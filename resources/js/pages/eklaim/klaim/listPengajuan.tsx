@@ -51,8 +51,7 @@ const getStatusBadge = (status: number, id: string) => {
 
 export default function ListPengajuan() {
     const props = usePage().props as any;
-    const tanggal_awal = props.tanggal_awal || '';
-    const tanggal_akhir = props.tanggal_akhir || '';
+    const { pengajuanKlaim, filters } = props;
 
     function parseDate(str: string): Date | undefined {
         if (!str) return undefined;
@@ -60,14 +59,18 @@ export default function ListPengajuan() {
         return isNaN(d.getTime()) ? undefined : d;
     }
 
-    const { pengajuanKlaim, filters } = usePage().props as any;
-
-    const [status, setStatus] = useState<string>(filters?.status ?? JSON.stringify([0, 1, 2, 3, 4]));
+    // Inisialisasi state filter dari props agar filter tidak hilang saat kembali ke halaman
+    const [status, setStatus] = useState<string>(
+        typeof filters?.status === 'string'
+            ? filters.status
+            : JSON.stringify([0, 1, 2, 3, 4])
+    );
     const [jenisKunjungan, setJenisKunjungan] = useState<string>(filters?.jenis_kunjungan ?? 'all');
     const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
         from: filters?.tanggal_awal ? parseDate(filters.tanggal_awal) : undefined,
         to: filters?.tanggal_akhir ? parseDate(filters.tanggal_akhir) : undefined,
     });
+    const [perPage, setPerPage] = useState<string>(filters?.perPage?.toString() || "10");
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -80,42 +83,44 @@ export default function ListPengajuan() {
         },
     ];
 
+    // Helper untuk mengirim filter yang valid ke backend
+    const buildFilterParams = (extra: Record<string, any> = {}) => ({
+        ...filters,
+        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+        status: (() => {
+            try {
+                const arr = JSON.parse(status);
+                if (Array.isArray(arr)) return arr;
+            } catch { }
+            return status;
+        })(),
+        jenis_kunjungan: jenisKunjungan === 'all' ? undefined : jenisKunjungan,
+        perPage,
+        ...extra,
+    });
+
     const handlePageChange = (url: string | null) => {
         if (url) {
             router.get(
                 route('eklaim.klaim.indexPengajuanKlaim'),
-                {
-                    ...filters,
-                    tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                    tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                    status,
-                    jenis_kunjungan: jenisKunjungan === 'all' ? undefined : jenisKunjungan,
-                },
+                buildFilterParams(),
                 { preserveState: true },
             );
         }
     };
 
     const handlePerPageChange = (value: string) => {
+        setPerPage(value);
         router.get(
             route('eklaim.klaim.indexPengajuanKlaim'),
-            {
-                ...filters,
-                tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                status,
-                jenis_kunjungan: jenisKunjungan === 'all' ? undefined : jenisKunjungan,
-            },
+            buildFilterParams({ perPage: value }),
             { preserveState: true },
         );
     };
 
-    const prevLink = pengajuanKlaim.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous');
-    const nextLink = pengajuanKlaim.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;');
-
     const [openRow, setOpenRow] = useState<number | null>(null);
     const [openModalBaru, setOpenModalBaru] = useState(false);
-
     const [showModalKirim, setShowModalKirim] = useState(false);
 
     return (
@@ -139,6 +144,7 @@ export default function ListPengajuan() {
                 </div>
                 <div className="w-full overflow-x-auto rounded-md border">
                     <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
+                        {/* Filter Status */}
                         <Select
                             value={status}
                             onValueChange={(val) => {
@@ -150,12 +156,7 @@ export default function ListPengajuan() {
                                 } catch { }
                                 router.get(
                                     route('eklaim.klaim.indexPengajuanKlaim'),
-                                    {
-                                        ...filters,
-                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                                        status: statusParam,
-                                    },
+                                    buildFilterParams({ status: statusParam }),
                                     { preserveState: true },
                                 );
                             }}
@@ -181,20 +182,14 @@ export default function ListPengajuan() {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        {/* FILTER JENIS KUNJUNGAN */}
+                        {/* Filter Jenis Kunjungan */}
                         <Select
                             value={jenisKunjungan}
                             onValueChange={(val) => {
                                 setJenisKunjungan(val);
                                 router.get(
                                     route('eklaim.klaim.indexPengajuanKlaim'),
-                                    {
-                                        ...filters,
-                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                                        status,
-                                        jenis_kunjungan: val === 'all' ? undefined : val, // Jangan kirim ke backend jika "Semua"
-                                    },
+                                    buildFilterParams({ jenis_kunjungan: val === 'all' ? undefined : val }),
                                     { preserveState: true },
                                 );
                             }}
@@ -235,12 +230,10 @@ export default function ListPengajuan() {
                                             if (range.from && range.to) {
                                                 router.get(
                                                     route('eklaim.klaim.indexPengajuanKlaim'),
-                                                    {
-                                                        ...filters,
+                                                    buildFilterParams({
                                                         tanggal_awal: format(range.from, 'yyyy-MM-dd'),
                                                         tanggal_akhir: format(range.to, 'yyyy-MM-dd'),
-                                                        status,
-                                                    },
+                                                    }),
                                                     { preserveState: true },
                                                 );
                                             }
@@ -255,12 +248,7 @@ export default function ListPengajuan() {
                                             setDateRange({ from: undefined, to: undefined });
                                             router.get(
                                                 route('eklaim.klaim.indexPengajuanKlaim'),
-                                                {
-                                                    ...filters,
-                                                    tanggal_awal: '',
-                                                    tanggal_akhir: '',
-                                                    status,
-                                                },
+                                                buildFilterParams({ tanggal_awal: '', tanggal_akhir: '' }),
                                                 { preserveState: true },
                                             );
                                         }}
@@ -298,7 +286,7 @@ export default function ListPengajuan() {
                                             onClick={() => setOpenRow(openRow === item.id ? null : item.id)}
                                         >
                                             <TableCell>
-                                                <div className="pl-5">{idx + 1 + (pengajuanKlaim.current_page - 1) * filters.perPage}</div>
+                                                <div className="pl-5">{idx + 1 + (pengajuanKlaim.current_page - 1) * (parseInt(perPage) || 10)}</div>
                                             </TableCell>
                                             <TableCell>{item.NORM}</TableCell>
                                             <TableCell>{item.pendaftaran_poli.pasien.NAMA}</TableCell>
@@ -325,7 +313,6 @@ export default function ListPengajuan() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent>
                                                             <DropdownMenuItem
-
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     router.get(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }));
@@ -399,7 +386,7 @@ export default function ListPengajuan() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center">
+                                    <TableCell colSpan={7} className="text-center">
                                         Data tidak ditemukan
                                     </TableCell>
                                 </TableRow>
@@ -409,7 +396,7 @@ export default function ListPengajuan() {
                 </div>
                 {/* Pagination */}
                 <div className="mt-4 flex items-center justify-end gap-2">
-                    <Select defaultValue={filters.perPage.toString()} onValueChange={handlePerPageChange}>
+                    <Select value={perPage} onValueChange={handlePerPageChange}>
                         <SelectTrigger className="w-24">
                             <SelectValue placeholder="Per Page" />
                         </SelectTrigger>
@@ -420,10 +407,10 @@ export default function ListPengajuan() {
                             <SelectItem value="100">100</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" size="sm" onClick={() => handlePageChange(prevLink?.url)} disabled={!prevLink?.url}>
+                    <Button variant="outline" size="sm" onClick={() => handlePageChange(pengajuanKlaim.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous')?.url)} disabled={!pengajuanKlaim.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous')?.url}>
                         Previous
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handlePageChange(nextLink?.url)} disabled={!nextLink?.url}>
+                    <Button variant="outline" size="sm" onClick={() => handlePageChange(pengajuanKlaim.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;')?.url)} disabled={!pengajuanKlaim.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;')?.url}>
                         Next
                     </Button>
                 </div>
@@ -432,7 +419,7 @@ export default function ListPengajuan() {
                     onOpenChange={setOpenModalBaru}
                     onSuccess={() => {
                         setOpenModalBaru(false);
-                        router.reload({ only: ['pengajuanKlaim', 'success', 'error'] }); // reload data table saja
+                        router.reload({ only: ['pengajuanKlaim', 'success', 'error'] });
                     }}
                 />
 
