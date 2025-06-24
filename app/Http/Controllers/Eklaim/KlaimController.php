@@ -42,6 +42,7 @@ class KlaimController extends Controller
             $tanggalAwal = $request->input('tanggal_awal');
             $tanggalAkhir = $request->input('tanggal_akhir');
             $kelas = $request->input('kelas');
+            $status = $request->input('status');
 
             $query = Kunjungan::query();
 
@@ -75,6 +76,10 @@ class KlaimController extends Controller
                 $query->whereDate('tglSEP', '<=', $tanggalAkhir);
             }
 
+            if ($status) {
+                $query->where('klaimStatus', $status);
+            }
+
             $dataPendaftaran = $query
                 ->with([
                     'dataPeserta',
@@ -94,6 +99,7 @@ class KlaimController extends Controller
                     'tanggal_awal' => $tanggalAwal,
                     'tanggal_akhir' => $tanggalAkhir,
                     'perPage' => $perPage,
+                    'status' => $status
                 ],
             ]);
         } catch (\Throwable $e) {

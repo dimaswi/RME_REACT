@@ -50,6 +50,8 @@ export default function KlaimIndex() {
         from: filters?.tanggal_awal ? parseDate(filters.tanggal_awal) : undefined,
         to: filters?.tanggal_akhir ? parseDate(filters.tanggal_akhir) : undefined,
     });
+    // Tambahkan state klaim status
+    const [selectedStatus, setSelectedStatus] = useState(filters?.status ?? 'ALL');
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -64,10 +66,11 @@ export default function KlaimIndex() {
         setQuery(value);
         router.get(route('eklaim.klaim.index'), {
             page: 1,
-            per_page: itemsPerPage,
+            perPage: itemsPerPage,
             q: value,
             kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-            poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+            poli: selectedPoli === 'ALL' ? '' : selectedPoli,
+            status: selectedStatus === 'ALL' ? '' : selectedStatus,
             tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
             tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
         }, { preserveState: true, replace: true });
@@ -77,10 +80,11 @@ export default function KlaimIndex() {
         setItemsPerPage(Number(e.target.value));
         router.get(route('eklaim.klaim.index'), {
             page: 1,
-            per_page: e.target.value,
+            perPage: e.target.value,
             q: query,
             kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-            poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+            poli: selectedPoli === 'ALL' ? '' : selectedPoli,
+            status: selectedStatus === 'ALL' ? '' : selectedStatus,
             tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
             tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
         }, { preserveState: true });
@@ -89,10 +93,11 @@ export default function KlaimIndex() {
     const handlePageChange = (url: string | null) => {
         if (url) {
             const urlObj = new URL(url, window.location.origin);
-            urlObj.searchParams.set('per_page', String(itemsPerPage));
+            urlObj.searchParams.set('perPage', String(itemsPerPage));
             urlObj.searchParams.set('q', query);
-            urlObj.searchParams.set('kelas', selectedKelas);
-            urlObj.searchParams.set('poli', selectedPoli);
+            urlObj.searchParams.set('kelas', selectedKelas === 'ALL' ? '' : selectedKelas);
+            urlObj.searchParams.set('poli', selectedPoli === 'ALL' ? '' : selectedPoli);
+            urlObj.searchParams.set('status', selectedStatus === 'ALL' ? '' : selectedStatus);
             urlObj.searchParams.set('tanggal_awal', dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '');
             urlObj.searchParams.set('tanggal_akhir', dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '');
             router.get(urlObj.pathname + urlObj.search, {}, { preserveState: true });
@@ -185,10 +190,11 @@ export default function KlaimIndex() {
                                     route('eklaim.klaim.index'),
                                     {
                                         page: 1,
-                                        per_page: itemsPerPage,
+                                        perPage: itemsPerPage,
                                         q: query,
                                         kelas: val === 'ALL' ? '' : val,
-                                        poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+                                        poli: selectedPoli === 'ALL' ? '' : selectedPoli,
+                                        status: selectedStatus === 'ALL' ? '' : selectedStatus,
                                         tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
                                         tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
                                     },
@@ -226,7 +232,7 @@ export default function KlaimIndex() {
                                     route('eklaim.klaim.index'),
                                     {
                                         page: 1,
-                                        per_page: itemsPerPage,
+                                        perPage: itemsPerPage,
                                         q: query,
                                         poli: val === 'ALL' ? '' : val === 'RAWAT_INAP' ? '' : val,
                                         kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
@@ -264,6 +270,45 @@ export default function KlaimIndex() {
                                 <SelectItem value="OBG">Poli Obgyn</SelectItem>
                                 <SelectItem value="BED">Poli Bedah</SelectItem>
                                 <SelectItem value="IGD">Gawat Darurat</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {/* Filter Status Klaim */}
+                        <Select
+                            value={selectedStatus}
+                            onValueChange={(val) => {
+                                setSelectedStatus(val);
+                                router.get(
+                                    route('eklaim.klaim.index'),
+                                    {
+                                        page: 1,
+                                        perPage: itemsPerPage,
+                                        q: query,
+                                        kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
+                                        poli: selectedPoli === 'ALL' ? '' : selectedPoli,
+                                        status: val === 'ALL' ? '' : val,
+                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                                    },
+                                    { preserveState: true, replace: true },
+                                );
+                            }}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue>
+                                    {selectedStatus === 'ALL'
+                                        ? 'Semua Status'
+                                        : selectedStatus == 0
+                                        ? 'Belum Diajukan'
+                                        : selectedStatus == 1
+                                        ? 'Sudah Diajukan'
+                                        : selectedStatus}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">Semua Status</SelectItem>
+                                <SelectItem value="0">Belum Diajukan</SelectItem>
+                                <SelectItem value="1">Sudah Diajukan</SelectItem>
                             </SelectContent>
                         </Select>
 
