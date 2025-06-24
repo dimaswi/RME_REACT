@@ -131,7 +131,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const [tindakanProsedurSekunder, setTindakanProsedurSekunder] = useState<string | null>(null);
     const [icd9Sekunder, setIcd9Sekunder] = useState<string | null>(null);
     const [riwayatAlergi, setRiwayatAlergi] = useState<string | null>(null);
-    const [keadaanPulang, setKeadaanPulang] = useState<string | null>(null);
+    const [keadaanPulang, setKeadaanPulang] = useState<string | null>("1");
     const [caraPulang, setCaraPulang] = useState<string | null>("1");
     const [poliTujuan, setPoliTujuan] = useState<string | null>("1");
     const [tanggalKontrol, setTanggalKontrol] = useState<string | null>(null);
@@ -231,7 +231,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setRiwayatPenyakitLalu(kunjungan?.rpp?.DESKRIPSI || null);
             setPemeriksaanFisik(kunjungan?.pemeriksaan_fisik?.DESKRIPSI || null);
             setRiwayatAlergi(kunjungan?.riwayat_alergi?.DESKRIPSI || null);
-            setKeadaanPulang(kunjungan?.pasien_pulang?.keadaan_pulang?.DESKRIPSI || 'Belum Pulang');
+            setKeadaanPulang(kunjungan?.pasien_pulang?.keadaan_pulang?.DESKRIPSI || '1');
             setCaraPulang(kunjungan?.pasien_pulang?.cara_pulang?.DESKRIPSI || 'Belum Pulang');
             setSelectedDiagnosa(
                 Array.isArray(kunjungan?.diagnosa_pasien)
@@ -311,8 +311,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setRiwayatPenyakitLalu(kunjungan?.resume_medis?.riwayat_penyakit_lalu || null);
             setPemeriksaanFisik(kunjungan?.resume_medis?.pemeriksaan_fisik || null);
             setRiwayatAlergi(kunjungan?.resume_medis?.riwayat_alergi || null);
-            setKeadaanPulang(kunjungan?.resume_medis?.keadaan_pulang || 'Sembuh');
-            setCaraPulang(kunjungan?.resume_medis?.cara_pulang || 'Atas Persetujuan Dokter');
+            setKeadaanPulang(kunjungan?.resume_medis?.keadaan_pulang || '1');
+            setCaraPulang(kunjungan?.resume_medis?.cara_pulang || '1');
             setKeadaanUmum(kunjungan?.resume_medis?.keadaan_umum || null);
             setNadi(kunjungan?.resume_medis?.nadi || null);
             setSuhu(kunjungan?.resume_medis?.suhu || null);
