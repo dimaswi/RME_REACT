@@ -288,7 +288,7 @@ class EditDataController extends Controller
                         ],
                         $terapi
                     );
-
+                    
                     $obat = Obat::where('NAMA', $terapi['namaObat'])->with('hargaBarang')->first();
                     RincianTagihan::where('id_tarif', $obat->hargaBarang->ID ?? null)->delete();
                     RincianTagihan::create([
