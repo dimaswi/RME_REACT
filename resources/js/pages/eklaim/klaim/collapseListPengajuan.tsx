@@ -383,10 +383,18 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         .split('#')
                         .filter(Boolean)
                         .flatMap((item: string) => {
-                            const [codeDesc, countStr] = item.split('+');
-                            const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
-                            const count = countStr ? parseInt(countStr, 10) : 1;
-                            return Array(count).fill({ id: id.trim() });
+                            if (!item) return [];
+                            // Jika ada '+', berarti ada count
+                            if (item.includes('+')) {
+                                const [codeDesc, countStr] = item.split('+');
+                                const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                                const count = parseInt(countStr, 10) || 1;
+                                return Array(count).fill({ id: id.trim() });
+                            } else {
+                                // Hanya value1 saja
+                                const id = item.includes('-') ? item.split('-')[0] : item;
+                                return [{ id: id.trim() }];
+                            }
                         });
                     setSelectedDiagnosa(diagnosaArr);
 
@@ -394,10 +402,18 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         .split('#')
                         .filter(Boolean)
                         .flatMap((item: string) => {
-                            const [codeDesc, countStr] = item.split('+');
-                            const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
-                            const count = countStr ? parseInt(countStr, 10) : 1;
-                            return Array(count).fill({ id: id.trim() });
+                            if (!item) return [];
+                            // Jika ada '+', berarti ada count
+                            if (item.includes('+')) {
+                                const [codeDesc, countStr] = item.split('+');
+                                const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                                const count = parseInt(countStr, 10) || 1;
+                                return Array(count).fill({ id: id.trim() });
+                            } else {
+                                // Hanya value1 saja
+                                const id = item.includes('-') ? item.split('-')[0] : item;
+                                return [{ id: id.trim() }];
+                            }
                         });
                     setSelectedProcedure(procedureArr);
 
@@ -493,10 +509,18 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     .split('#')
                     .filter(Boolean)
                     .flatMap((item: string) => {
-                        const [codeDesc, countStr] = item.split('+');
-                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
-                        const count = countStr ? parseInt(countStr, 10) : 1;
-                        return Array(count).fill({ id: id.trim() });
+                        if (!item) return [];
+                        // Jika ada '+', berarti ada count
+                        if (item.includes('+')) {
+                            const [codeDesc, countStr] = item.split('+');
+                            const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                            const count = parseInt(countStr, 10) || 1;
+                            return Array(count).fill({ id: id.trim() });
+                        } else {
+                            // Hanya value1 saja
+                            const id = item.includes('-') ? item.split('-')[0] : item;
+                            return [{ id: id.trim() }];
+                        }
                     });
                 setSelectedDiagnosa(diagnosaArr);
 
@@ -504,10 +528,18 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     .split('#')
                     .filter(Boolean)
                     .flatMap((item: string) => {
-                        const [codeDesc, countStr] = item.split('+');
-                        const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
-                        const count = countStr ? parseInt(countStr, 10) : 1;
-                        return Array(count).fill({ id: id.trim() });
+                        if (!item) return [];
+                        // Jika ada '+', berarti ada count
+                        if (item.includes('+')) {
+                            const [codeDesc, countStr] = item.split('+');
+                            const id = codeDesc.includes('-') ? codeDesc.split('-')[0] : codeDesc;
+                            const count = parseInt(countStr, 10) || 1;
+                            return Array(count).fill({ id: id.trim() });
+                        } else {
+                            // Hanya value1 saja
+                            const id = item.includes('-') ? item.split('-')[0] : item;
+                            return [{ id: id.trim() }];
+                        }
                     });
                 setSelectedProcedure(procedureArr);
             }
