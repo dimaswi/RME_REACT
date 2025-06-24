@@ -143,7 +143,7 @@ export default function ListPengajuan() {
         toast.loading('Mengambil data pengajuan klaim...')
         setLoading(true);
         await axios
-            .post('/eklaim/klaim/pengajuan/filter', customFilters)
+            .post('/eklaim/klaim/list-pengajuan/filter', customFilters)
             .then((response) => {
                 setData(response.data.dataPendaftaran); // <-- ambil dataPendaftaran saja!
                 toast.dismiss();

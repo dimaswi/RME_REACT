@@ -78,6 +78,6 @@ Route::middleware('auth')->group(function () {
 
 //filter table
 Route::middleware('auth')->group(function () {
-    Route::post('/eklaim/klaim/filter', [KlaimController::class, 'indexFilter'])->name('eklaim.klaim.filter');
-    Route::post('/eklaim/klaim/pengajuan/filter', [KlaimController::class, 'listPengajuanIndexFilter']);
+    Route::get('eklaim/klaim/filter', [KlaimController::class, 'filterPengajuanKlaim'])->name('eklaim.klaim.filterPengajuanKlaim');
+    Route::get('eklaim/klaim/filter/riwayat', [KlaimController::class, 'filterRiwayatPengajuanKlaim'])->name('eklaim.klaim.filterRiwayatPengajuanKlaim');
 });
