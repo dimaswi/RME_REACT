@@ -511,7 +511,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
                 console.log('Response Kunjungan:', response.data);
                 setJenisPerawatan(
-                    response.data.kunjungan.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.kunjungan.jenis_perawatan === 'IGD' ? '3' : '1',
+                    response.data.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.pengajuanKlaim.jenis_perawatan === 'IGD' ? '3' : '1',
                 );
                 setSistole(response.data.kunjungan.sistole || '');
                 setDiastole(response.data.kunjungan.diastole || '');
