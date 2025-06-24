@@ -1021,8 +1021,6 @@ class EditDataController extends Controller
             ])
             ->first();
 
-            dd($data);
-
         if ($data) {
             return response()->json($data);
         } else {
