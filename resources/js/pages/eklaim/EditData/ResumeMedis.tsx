@@ -215,7 +215,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     useEffect(() => {
         const kunjungan = Array.isArray(dataKunjungan) ? dataKunjungan[0] : dataKunjungan;
-        console.log('Kunjungan Data:', kunjungan);
         if (dataKlaim.edit !== 1 && kunjungan) {
             setNamaPasien(kunjungan?.pendaftaran_pasien?.pasien?.NAMA || null);
             setNoRM(kunjungan?.pendaftaran_pasien?.pasien?.NORM || null);
@@ -236,17 +235,17 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setSelectedDiagnosa(
                 Array.isArray(kunjungan?.diagnosa_pasien)
                     ? kunjungan.diagnosa_pasien.map((item: any) => ({
-                          id: item.nama_diagnosa?.CODE || '',
-                          description: item.nama_diagnosa?.STR || '',
-                      }))
+                        id: item.nama_diagnosa?.CODE || '',
+                        description: item.nama_diagnosa?.STR || '',
+                    }))
                     : [],
             );
             setSelectedProcedure(
                 Array.isArray(kunjungan?.prosedur_pasien)
                     ? kunjungan.prosedur_pasien.map((item: any) => ({
-                          id: item.nama_prosedur?.CODE || '',
-                          description: item.nama_prosedur?.STR || '',
-                      }))
+                        id: item.nama_prosedur?.CODE || '',
+                        description: item.nama_prosedur?.STR || '',
+                    }))
                     : [],
             );
             setDiagnosaUtama(formatDiagnosaString(selectedDiagnosa));
@@ -446,8 +445,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         const konsulData = Array.isArray(dataKunjungan)
             ? dataKunjungan.flatMap((k: any) => k.permintaan_konsul || [])
             : dataKunjungan?.permintaan_konsul
-              ? dataKunjungan.permintaan_konsul
-              : [];
+                ? dataKunjungan.permintaan_konsul
+                : [];
 
         if (!konsulData || konsulData.length === 0) {
             toast.error('Data permintaan konsul tidak tersedia.');
@@ -649,7 +648,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         >
                                             <strong>Nama Pasien :</strong>
                                             <br />
-                                            {namaPasien || 'Tidak ada nama'}
+                                            {typeof namaPasien === 'object' ? JSON.stringify(namaPasien) : namaPasien || 'Tidak ada nama'}
                                         </td>
                                         <td
                                             colSpan={2}
@@ -663,7 +662,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         >
                                             <strong>No. RM :</strong>
                                             <br />
-                                            {noRM || 'Tidak ada No. RM'}
+                                            {typeof noRM === 'object' ? JSON.stringify(noRM) : noRM || 'Tidak ada No. RM'}
                                         </td>
                                         <td
                                             colSpan={2}
@@ -831,7 +830,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         >
                                             <strong>Ruang Rawat :</strong>
                                             <br />
-                                            {ruangRawat || 'Tidak ada Ruang Rawat'}
+                                            {typeof ruangRawat === 'object' ? JSON.stringify(ruangRawat) : ruangRawat || 'Tidak ada Ruang Rawat'}
                                         </td>
                                     </tr>
 
@@ -848,7 +847,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         >
                                             <strong>Penjamin :</strong>
                                             <br />
-                                            {penjamin || 'Tidak ada Penjamin'}
+                                            {typeof penjamin === 'object' ? JSON.stringify(penjamin) : penjamin || 'Tidak ada Penjamin'}
                                         </td>
                                         <td
                                             colSpan={4}
@@ -862,7 +861,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         >
                                             <strong>Indikasi Rawat Inap :</strong>
                                             <br />
-                                            {indikasiRawatInap || 'Tidak ada Indikasi Rawat Inap'}
+                                            {typeof indikasiRawatInap === 'object' ? JSON.stringify(indikasiRawatInap) : indikasiRawatInap || 'Tidak ada Indikasi Rawat Inap'}
                                         </td>
                                     </tr>
 
@@ -1400,7 +1399,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         <td></td>
                                     </tr>
 
-                                    {/* {!terapiPulang || terapiPulang.length === 0 ? (
+                                    {!terapiPulang || terapiPulang.length === 0 ? (
                                         <tr>
                                             <td colSpan={8} style={{ textAlign: 'center', border: '1px solid #000', padding: 10 }}>
                                                 <Button
@@ -1524,7 +1523,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                                 </td>
                                             </tr>
                                         ))
-                                    )} */}
+                                    )}
 
                                     {/* Intruksi Tidak Lanjut */}
                                     <tr>
