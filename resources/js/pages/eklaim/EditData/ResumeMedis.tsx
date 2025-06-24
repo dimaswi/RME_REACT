@@ -861,7 +861,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         >
                                             <strong>Indikasi Rawat Inap :</strong>
                                             <br />
-                                            {typeof indikasiRawatInap === 'object' ? JSON.stringify(indikasiRawatInap) : indikasiRawatInap || 'Tidak ada Indikasi Rawat Inap'}
+                                            Perbaikan Kondisi
+                                            {/* {typeof indikasiRawatInap === 'object' ? JSON.stringify(indikasiRawatInap) : indikasiRawatInap || 'Tidak ada Indikasi Rawat Inap'} */}
                                         </td>
                                     </tr>
 
