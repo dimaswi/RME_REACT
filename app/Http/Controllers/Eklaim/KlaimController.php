@@ -885,6 +885,40 @@ class KlaimController extends Controller
         return redirect()->back()->with('success', 'Data klaim berhasil dikirim untuk tahap final.');
     }
 
+    public function kirimKolektifDataKlaim(PengajuanKlaim $pengajuanKlaim)
+    {
+        $metadata = [
+            'method' => 'send_claim_individual'
+        ];
+
+        $data = [
+            "nomor_sep" => (string) $pengajuanKlaim->nomor_SEP,
+        ];
+
+        $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+        $send = $inacbgController->sendToEklaim($metadata, $data);
+        if ($send['metadata']['code'] != 200) {
+            DB::connection('eklaim')->beginTransaction();
+            LogKlaim::create([
+                'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+                'method' => json_encode($metadata),
+                'request' => json_encode($data),
+                'response' => json_encode($send),
+            ]);
+            DB::connection('eklaim')->commit();
+            return redirect()->back()->with('error', 'Gagal mengirim data klaim: ' . $send['metadata']['message']);
+        }
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
+
+        DB::connection('eklaim')->commit();
+        return redirect()->back()->with('success', 'Data klaim berhasil dikirim.');
+    }
+
     public function hapusDataKlaim(PengajuanKlaim $pengajuanKlaim)
     {
         $metadata = [
@@ -1136,6 +1170,19 @@ class KlaimController extends Controller
             'tarifRs'
         ])->where('pengajuan_klaim_id', $pengajuanKlaim->id)->first();
 
+        if (!$klaimData) {
+            $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
+            $tagihanPendaftaran = \App\Models\Pembayaran\TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)->first();
+            $tagihan = \App\Models\Pembayaran\Tagihan::where('ID', $tagihanPendaftaran->TAGIHAN)->first();
+
+            return response()->json([
+                'pengajuanKlaim' => $pengajuanKlaim,
+                'resumeMedis' => $resumeMedis,
+                'tagihan' => $tagihan,
+                'from' => 'db'
+            ]);
+        }
+
         if ($klaimData) {
             return response()->json([
                 'klaimData' => $klaimData,
@@ -1197,11 +1244,12 @@ class KlaimController extends Controller
                         $data['diastole'] = $diastole;
                         $data['diagnosa'] = $diagnosa ? $diagnosa->KODE : null;
                         $data['prosedur'] = $prosedur ? $prosedur->KODE : null;
-
                     }
                 }
             }
         }
+
+        dd($data);
 
         return response()->json([
             'klaimData' => null,

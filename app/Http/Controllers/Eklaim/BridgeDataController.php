@@ -651,26 +651,74 @@ class BridgeDataController extends Controller
         if (!$dataResumeMedis) {
             throw new \Exception("Data Resume Medis tidak ditemukan");
         }
+        $diagnosaArr = [];
+        if (!empty($dataResumeMedis->diagnosa_utama)) {
+            $diagnosaArr = collect(explode('#', $dataResumeMedis->diagnosa_utama))
+                ->filter()
+                ->flatMap(function ($item) {
+                    [$val, $count] = array_pad(explode('+', $item), 2, 1);
+                    $count = (int)$count ?: 1;
+                    return array_fill(0, $count, $val);
+                })
+                ->map(function ($code) {
+                    $desc = \App\Models\Master\MrConso::where('CODE', $code)->value('STR') ?? '';
+                    return [
+                        'id' => $code,
+                        'description' => $desc,
+                    ];
+                })
+                ->values()
+                ->toArray();
+        }
+
+        $prosedurArr = [];
+        if (!empty($dataResumeMedis->prosedur_utama)) {
+            $prosedurArr = collect(explode('#', $dataResumeMedis->prosedur_utama))
+                ->filter()
+                ->flatMap(function ($item) {
+                    [$val, $count] = array_pad(explode('+', $item), 2, 1);
+                    $count = (int)$count ?: 1;
+                    return array_fill(0, $count, $val);
+                })
+                ->map(function ($code) {
+                    $desc = \App\Models\Master\MrConso::where('CODE', $code)->value('STR') ?? '';
+                    return [
+                        'id' => $code,
+                        'description' => $desc,
+                    ];
+                })
+                ->values()
+                ->toArray();
+        }
+
+        if ($dataResumeMedis->cara_pulang == 1) {
+            $dataResumeMedis->cara_pulang = 'Atas Persetujuan Dokter';
+        } elseif ($dataResumeMedis->cara_pulang == 2) {
+            $dataResumeMedis->cara_pulang = 'Dirujuk';
+        } elseif ($dataResumeMedis->cara_pulang == 3) {
+            $dataResumeMedis->cara_pulang = 'Atas Permintaan Sendiri';
+        } elseif ($dataResumeMedis->cara_pulang == 4) {
+            $dataResumeMedis->cara_pulang = 'Meninggal';
+        } else {
+            $dataResumeMedis->cara_pulang = 'Lain-lain';
+        }
 
         $resumeMedis = [
             'nama_pasien' => $dataResumeMedis->nama_pasien ?? 'Tidak ada data nama pasien',
             'no_rm' => $dataResumeMedis->no_rm ?? 'Tidak ada data nomor rekam medis',
-            'ruang_rawat_terakhir' => $dataResumeMedis->ruang_rawat_terakhir ?? 'Tidak ada data ruang rawat',
+            'ruang_rawat_terakhir' => $dataResumeMedis->ruang_rawat ?? 'Tidak ada data ruang rawat',
             'jenis_kelamin' => $dataResumeMedis->jenis_kelamin ?? 'Tidak ada data jenis kelamin',
             'tanggal_lahir' => $dataResumeMedis->tanggal_lahir ?? 'Tidak ada data tanggal lahir',
             'tanggal_masuk' => $dataResumeMedis->tanggal_masuk ?? 'Tidak ada data tanggal masuk',
             'tanggal_keluar' => $dataResumeMedis->tanggal_keluar ?? 'Tidak ada data tanggal keluar',
-            'ruang_rawat_terakhir' => $dataResumeMedis->ruang_rawat_terakhir ?? 'Tidak ada data ruang rawat',
             'penjamin' => $dataResumeMedis->penjamin ?? 'Tidak ada data penjamin',
             'indikasi_rawat_inap' => $dataResumeMedis->indikasi_rawat_inap ?? 'Tidak ada data indikasi rawat inap',
             'riwayat_penyakit_sekarang' => $dataResumeMedis->riwayat_penyakit_sekarang ?? 'Tidak ada data riwayat penyakit sekarang',
             'riwayat_penyakit_dahulu' => $dataResumeMedis->riwayat_penyakit_dahulu ?? 'Tidak ada data ringkasan penyakit dahulu',
             'pemeriksaan_fisik' => $dataResumeMedis->pemeriksaan_fisik ?? 'Tidak ada data pemeriksaan fisik',
             'hasil_konsultasi' => $getKonsultasi ?? 'Tidak ada data hasil konsultasi',
-            'diagnosa_utama' => $dataResumeMedis->diagnosa_utama ?? 'Tidak ada data diagnosa utama',
-            'icd_10_diagnosa_utama' => $dataResumeMedis->icd_10_diagnosa_utama ?? 'Tidak ada data ICD 10 diagnosa utama',
-            'prosedur_utama' => $dataResumeMedis->prosedur_utama ?? 'Tidak ada data prosedur',
-            'icd_9_prosedur_utama' => $dataResumeMedis->icd_9_prosedur_utama ?? 'Tidak ada data prosedur',
+            'diagnosa_utama' => $diagnosaArr ?? 'Tidak ada data diagnosa utama',
+            'prosedur_utama' => $prosedurArr ?? 'Tidak ada data prosedur',
             'keadaan_pulang' => $dataResumeMedis->keadaan_pulang ?? 'Tidak ada data keadaan pulang',
             'cara_pulang' => $dataResumeMedis->cara_pulang ?? 'Tidak ada data cara pulang',
             'tekanan_darah' => $dataTTV->tekanan_darah ?? '0/0',
@@ -682,8 +730,16 @@ class BridgeDataController extends Controller
             'terapi_pulang' => $getTerapiPulang,
             'nama_dokter' => $dataResumeMedis->dokter ?? 'Tidak ada data nama dokter',
             'nip_dokter' => $dataResumeMedis->NIP ?? '-',
+            'keadaan_umum' => $dataResumeMedis->keadaan_umum ?? 'Tidak ada data keadaan umum',
+            'suhu' => $dataResumeMedis->suhu ?? 'Tidak ada data suhu',
+            'nadi' => $dataResumeMedis->nadi ?? 'Tidak ada data nadi',
+            'sistole' => $dataResumeMedis->sistole ?? 'Tidak ada data sistolik',
+            'diastole' => $dataResumeMedis->diastole ?? 'Tidak ada data diastolik',
+            'respirasi' => $dataResumeMedis->respirasi ?? 'Tidak ada data pernafasan',
 
         ];
+
+        // dd($resumeMedis);
 
         $namaDokter = $dataResumeMedis['dokter'] ?? '-';
         $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(

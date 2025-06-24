@@ -81,7 +81,8 @@ class EditDataController extends Controller
                             'orderResepPulang.orderResepDetil.frekuensiObat',
                             'jadwalKontrol.ruangan',
                             'tagihanPendaftaran.gabungTagihan',
-                            'dokterDPJP.pegawai'
+                            'dokterDPJP.pegawai',
+                            'tandaVital'
                         ]);
                         $dataKunjungan = $kunjungan;
                     }
@@ -120,7 +121,8 @@ class EditDataController extends Controller
                             'orderResepPulang.orderResepDetil.frekuensiObat',
                             'jadwalKontrol.ruangan',
                             'tagihanPendaftaran.gabungTagihan',
-                            'dokterDPJP.pegawai'
+                            'dokterDPJP.pegawai',
+                            'tandaVital'
                         ]);
                         $dataKunjungan = $kunjungan;
                     }

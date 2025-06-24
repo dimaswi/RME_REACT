@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/react';
-import { Loader, Pencil, Printer, Trash } from 'lucide-react';
+import { Loader, Pencil, Printer, Send, Trash } from 'lucide-react';
 import React from 'react';
 import GroupingOneCollapse from './collapseGroupingOne';
 import { cetakBerkasKlaim } from '@/PDF/BerkasKlaim';
@@ -11,12 +11,36 @@ export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKla
     const [loadingEditUlang, setLoadingEditUlang] = React.useState(false);
     const [loadingHapus, setLoadingHapus] = React.useState(false);
     const [loadingCetak, setLoadingCetak] = React.useState(false);
+    const [loadingKirim, setLoadingKirim] = React.useState(false);
 
     return (
         <>
             <GroupingOneCollapse pengajuanKlaim={pengajuanKlaim} />
 
             <div className="mb-4 flex justify-end gap-2">
+                {loadingCetak ? (
+                    <Button variant="outline" disabled>
+                        <Loader className="mr-2 h-4 w-4 animate-spin text-green-500" />
+                        Mengirim...
+                    </Button>
+                ) : (
+                    <Button
+                        variant="outline"
+                        onClick={async () => {
+                            setLoadingKirim(true);
+                            try {
+                                await cetakBerkasKlaim(pengajuanKlaim.nomor_SEP, "preview");
+                            } catch (error) {
+                                toast.error("Gagal Mengirim Klaim");
+                            } finally {
+                                setLoadingKirim(false);
+                            }
+                        }}
+                    >
+                        <Send className="mr-2 h-4 w-4 text-green-500" />
+                        Kirim
+                    </Button>
+                )}
                 {loadingEditUlang ? (
                     <Button variant="outline" disabled>
                         <Loader className="mr-2 h-4 w-4 animate-spin text-blue-500" />

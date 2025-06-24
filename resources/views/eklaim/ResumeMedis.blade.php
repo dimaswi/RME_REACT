@@ -88,25 +88,25 @@
     <table>
         <tr style="font-size: 13px; text-align: left;">
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Nama Pasien :</strong>
                 <br>
                 {{ $resumeMedis['nama_pasien'] }}
             </td>
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Nomor RM :</strong>
                 <br>
                 {{ $resumeMedis['no_rm'] }}
             </td>
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Tanggal Lahir :</strong>
                 <br>
                 {{ formatTanggalIndo($resumeMedis['tanggal_lahir']) }}
             </td>
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Jenis Kelamin :</strong>
                 <br>
                 {{ $resumeMedis['jenis_kelamin'] }}
@@ -114,25 +114,25 @@
         </tr>
         <tr style="font-size: 13px; text-align: left;">
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Tanggal Masuk :</strong>
                 <br>
                 {{ formatTanggalIndo($resumeMedis['tanggal_masuk']) }}
             </td>
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Tanggal Keluar :</strong>
                 <br>
                 {{ formatTanggalIndo($resumeMedis['tanggal_keluar']) }}
             </td>
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Lama Dirawat :</strong>
                 <br>
                 {{ hitungLamaDirawat($resumeMedis['tanggal_masuk'], $resumeMedis['tanggal_keluar'] ?? null) }} hari
             </td>
             <td colspan="2"
-                style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong>Ruang Rawat Terakhir :</strong>
                 <br>
                 {{ $resumeMedis['ruang_rawat_terakhir'] }}
@@ -141,13 +141,13 @@
 
         <tr style="font-size: 13px; text-align: left;">
             <td colspan="4"
-                style="vertical-align: top; height: 70px; width: 50%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 50%; border: 1px solid #000; padding-left: 5px">
                 <strong>Penjamin :</strong>
                 <br>
                 {{ $resumeMedis['penjamin'] }}
             </td>
             <td colspan="4"
-                style="vertical-align: top; height: 70px; width: 50%; border: 1px solid #000; padding-left: 5px">
+                style="vertical-align: top; width: 50%; border: 1px solid #000; padding-left: 5px">
                 <strong>Indikasi Rawat Inap :</strong>
                 <br>
                 {{ $resumeMedis['indikasi_rawat_inap'] ?? 'Tidak ada' }}
@@ -155,10 +155,10 @@
         </tr>
 
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Riwayat Penyakit Sekarang :</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Ringkasan Penyakit Sekarang :</strong>
                 <br>
                 {{ $resumeMedis['riwayat_penyakit_sekarang'] }}
@@ -169,18 +169,18 @@
             </td>
         </tr>
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Pemeriksaan Fisik :</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 {{ $resumeMedis['pemeriksaan_fisik'] }}
             </td>
         </tr>
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Hasil Konsultasi :</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <ol>
                     @if (count($resumeMedis['hasil_konsultasi']) > 0)
                         {{-- Loop through hasil_konsultasi and display each item --}}
@@ -194,87 +194,97 @@
             </td>
         </tr>
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                <strong>
-                    <center>Diagnosa</center>
-                </strong>
-            </td>
-            <td colspan="1" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
                 <strong>
                     <center>ICD 10</center>
                 </strong>
             </td>
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
                 <strong>
-                    <center>Terapi</center>
+                    <center>Diagnosa</center>
                 </strong>
             </td>
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                <strong>
-                    <center>Prosedur</center>
-                </strong>
-            </td>
-            <td colspan="1" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+        </tr>
+        @foreach ($resumeMedis['diagnosa_utama'] as $index => $diagnosa)
+            <tr style="font-size: 13px; text-align: left;">
+                <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+                    {{ $diagnosa['id'] }}
+                    @if ($index == 0)
+                        <span style="color: red;">(Diagnosa Primer)</span>
+                    @else
+                        <span style="color: blue;">(Diagnosa Sekunder)</span>
+                    @endif
+                </td>
+                <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+                    {{ $diagnosa['description'] }}
+                </td>
+            </tr>
+        @endforeach
+
+        <tr style="font-size: 13px; text-align: left;">
+            <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
                 <strong>
                     <center>ICD 9</center>
                 </strong>
             </td>
-        </tr>
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{ $resumeMedis['diagnosa_utama'] }}
-            </td>
-            <td colspan="1" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{ $resumeMedis['icd_10_diagnosa_utama'] }}
-            </td>
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{-- {{ $resumeMedis['terapi_utama'] }} --}}
-            </td>
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{ $resumeMedis['prosedur_utama'] }}
-            </td>
-            <td colspan="1" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{ $resumeMedis['icd_9_prosedur_utama'] }}
+            <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+                <strong>
+                    <center>Prosedur</center>
+                </strong>
             </td>
         </tr>
+        @foreach ($resumeMedis['prosedur_utama'] as $index => $prosedur)
+            <tr style="font-size: 13px; text-align: left;">
+                <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+                    {{ $prosedur['id'] }}
+                    @if ($index == 0)
+                        <span style="color: red;">(Prosedur Primer)</span>
+                    @else
+                        <span style="color: blue;">(Prosedur Sekunder)</span>
+                    @endif
+                </td>
+                <td colspan="4" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+                    {{ $prosedur['description'] }}
+                </td>
+            </tr>
+        @endforeach
+
+        @empty($resumeMedis['prosedur_utama'])
+            <tr style="font-size: 13px; text-align: left;">
+                <td colspan="8" style="vertical-align: top; border: 1px solid #000; padding-left: 5px">
+                    <center>Tidak ada prosedur yang dilakukan</center>
+                </td>
+            </tr>
+        @endempty
 
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Keadaan Pulang :</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 {{ $resumeMedis['keadaan_pulang'] }}
             </td>
 
         </tr>
 
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Cara Pulang :</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 {{ $resumeMedis['cara_pulang'] }}
             </td>
         </tr>
 
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                <strong>Cara Pulang :</strong>
-            </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
-                {{ $resumeMedis['cara_pulang'] }}
-            </td>
-        </tr>
-
-        <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Keadaan Umum :</strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <div>
                     <div>
                         <strong>Tekanan Darah</strong>
-                        <span>: {{ $resumeMedis['tekanan_darah'] }} mmHg</span>
+                        <span>: {{ $resumeMedis['sistole'] }} / {{ $resumeMedis['diastole'] }} mmHg</span>
                     </div>
                     <div>
                         <strong>Nadi</strong>
@@ -282,29 +292,29 @@
                     </div>
                     <div>
                         <strong>Pernafasan</strong>
-                        <span>: {{ $resumeMedis['pernafasan'] }} kali/menit</span>
+                        <span>: {{ $resumeMedis['respirasi'] }} kali/menit</span>
                     </div>
                     <div>
                         <strong>Suhu</strong>
                         <span>: {{ $resumeMedis['suhu'] }} °C</span>
                     </div>
-                    <div>
+                    {{-- <div>
                         <strong>Kesadaran</strong>
                         <span>: {{ $resumeMedis['kesadaran'] }}</span>
                     </div>
                     <div>
                         <strong>Skala Nyeri</strong>
                         <span>: {{ $resumeMedis['skala_nyeri'] }}</span>
-                    </div>
+                    </div> --}}
                 </div>
             </td>
         </tr>
 
         <tr style="font-size: 13px; text-align: left;">
-            <td colspan="2" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="2" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <strong>Terapi Pulang </strong>
             </td>
-            <td colspan="6" style="vertical-align: top; height: 70px;border: 1px solid #000; padding-left: 5px">
+            <td colspan="6" style="vertical-align: top;border: 1px solid #000; padding-left: 5px">
                 <ol>
                     @foreach ($resumeMedis['terapi_pulang'] as $terapi)
                         <li>{{ $terapi['nama_obat'] }} ({{ (int)$terapi['jumlah'] }}) - {{ $terapi['frekuensi'] }} - {{ $terapi['cara_pakai'] }}

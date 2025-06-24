@@ -215,6 +215,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     useEffect(() => {
         const kunjungan = Array.isArray(dataKunjungan) ? dataKunjungan[0] : dataKunjungan;
+        console.log('Kunjungan Data:', kunjungan);
         if (dataKlaim.edit !== 1 && kunjungan) {
             setNamaPasien(kunjungan?.pendaftaran_pasien?.pasien?.NAMA || null);
             setNoRM(kunjungan?.pendaftaran_pasien?.pasien?.NORM || null);
@@ -261,7 +262,12 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             const gelarBelakang = kunjungan?.dokter_d_p_j_p?.pegawai?.GELAR_BELAKANG ? ', ' + kunjungan.dokter_d_p_j_p.pegawai.GELAR_BELAKANG : '';
             const namaDokterLengkap = `${gelarDepan} ${kunjungan?.dokter_d_p_j_p?.pegawai?.NAMA || ''}${gelarBelakang}`;
             setNamaDokter(namaDokterLengkap);
-
+            setKeadaanUmum(kunjungan?.tanda_vital?.KEADAAN_UMUM || null);
+            setNadi(kunjungan?.tanda_vital?.FREKUENSI_NADI || null);
+            setSuhu(kunjungan?.tanda_vital?.SUHU || null);
+            setSistole(kunjungan?.tanda_vital?.SISTOLIK || null);
+            setDiastole(kunjungan?.tanda_vital?.DISTOLIK || null);
+            setRespirasi(kunjungan?.tanda_vital?.FREKUENSI_NAFAS || null);
             const resepPulang =
                 Array.isArray(kunjungan?.order_resep_pulang) && kunjungan.order_resep_pulang.length > 0 ? kunjungan.order_resep_pulang[0] : null;
 
@@ -305,8 +311,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setRiwayatPenyakitLalu(kunjungan?.resume_medis?.riwayat_penyakit_lalu || null);
             setPemeriksaanFisik(kunjungan?.resume_medis?.pemeriksaan_fisik || null);
             setRiwayatAlergi(kunjungan?.resume_medis?.riwayat_alergi || null);
-            setKeadaanPulang(kunjungan?.resume_medis?.keadaan_pulang || 'Belum Pulang');
-            setCaraPulang(kunjungan?.resume_medis?.cara_pulang || 'Belum Pulang');
+            setKeadaanPulang(kunjungan?.resume_medis?.keadaan_pulang || 'Sembuh');
+            setCaraPulang(kunjungan?.resume_medis?.cara_pulang || 'Atas Persetujuan Dokter');
             setKeadaanUmum(kunjungan?.resume_medis?.keadaan_umum || null);
             setNadi(kunjungan?.resume_medis?.nadi || null);
             setSuhu(kunjungan?.resume_medis?.suhu || null);
@@ -1263,12 +1269,19 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                             }}
                                         >
                                             <div className="flex gap-2 px-2 py-4">
-                                                <Input
-                                                    type="text"
-                                                    value={keadaanPulang || ''}
-                                                    onChange={(e) => setKeadaanPulang(e.target.value)}
-                                                    placeholder="Masukkan keadaan pulang"
-                                                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                <SearchableDropdown
+                                                    data={[
+                                                        { ID: 'Sembuh', DESKRIPSI: 'Sembuh' },
+                                                        { ID: 'Membaik', DESKRIPSI: 'Membaik' },
+                                                        { ID: 'Memburuk', DESKRIPSI: 'Memburuk' },
+                                                        { ID: 'Meninggal', DESKRIPSI: 'Meninggal' },
+                                                    ]}
+                                                    value={keadaanPulang}
+                                                    setValue={setKeadaanPulang}
+                                                    placeholder="Cari keadaan pulang"
+                                                    getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
+                                                    getOptionValue={(item) => item?.ID ?? ''}
+                                                    onSearch={handleSearchObat}
                                                 />
                                             </div>
                                         </td>
@@ -1297,12 +1310,20 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                             }}
                                         >
                                             <div className="flex gap-2 px-2 py-4">
-                                                <Input
-                                                    type="text"
-                                                    value={caraPulang || ''}
-                                                    onChange={(e) => setCaraPulang(e.target.value)}
-                                                    placeholder="Masukkan cara pulang"
-                                                    className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                <SearchableDropdown
+                                                    data={[
+                                                        { ID: 1, DESKRIPSI: 'Atas Persetujuan Dokter' },
+                                                        { ID: 2, DESKRIPSI: 'Dirujuk' },
+                                                        { ID: 3, DESKRIPSI: 'Atas Permintaan Sendiri' },
+                                                        { ID: 4, DESKRIPSI: 'Meninggal' },
+                                                        { ID: 5, DESKRIPSI: 'Lain-Lain' },
+                                                    ]}
+                                                    value={caraPulang}
+                                                    setValue={setCaraPulang}
+                                                    placeholder="Cari cara pulang"
+                                                    getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
+                                                    getOptionValue={(item) => item?.ID ?? ''}
+                                                    onSearch={handleSearchObat}
                                                 />
                                             </div>
                                         </td>
