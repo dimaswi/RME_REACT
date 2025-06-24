@@ -409,8 +409,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         respirasi: respirasi || null,
     };
 
-    console.log('Data Resume Medis:', dataResumeMedis);
-
     function handleLamaDirawat(tanggalMasuk: string | null | undefined, tanggalKeluar: string | null | undefined): string {
         if (tanggalMasuk && tanggalKeluar) {
             const masuk = new Date(tanggalMasuk);
@@ -508,21 +506,22 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     const handleSave = async () => {
         try {
-            const response = await axios.post(
-                route('eklaim.editData.storeResumeMedis'),
-                {
-                    jenisSave: dataKlaim.edit,
-                    resumeMedis: dataResumeMedis,
-                    pengkajianAwal: dokumenPengkajianAwal,
-                    triage: dokumenTriage,
-                    cppt: dokumenCPPT,
-                },
-                { headers: { 'Content-Type': 'application/json' } },
-            );
-            if (response.data.success) {
-                toast.success(response.data.success);
-                window.location.reload(); // Reload halaman setelah sukses
-            }
+            console.log('Data Resume Medis:', dataResumeMedis);
+            // const response = await axios.post(
+            //     route('eklaim.editData.storeResumeMedis'),
+            //     {
+            //         jenisSave: dataKlaim.edit,
+            //         resumeMedis: dataResumeMedis,
+            //         pengkajianAwal: dokumenPengkajianAwal,
+            //         triage: dokumenTriage,
+            //         cppt: dokumenCPPT,
+            //     },
+            //     { headers: { 'Content-Type': 'application/json' } },
+            // );
+            // if (response.data.success) {
+            //     toast.success(response.data.success);
+            //     window.location.reload(); // Reload halaman setelah sukses
+            // }
             if (response.data.error) toast.error(response.data.error);
         } catch (error: any) {
             // Tangani error dari axios
