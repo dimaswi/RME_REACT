@@ -290,6 +290,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
         { ID: 'dr Ilham munandar, Sp.PD', DESKRIPSI: 'dr Ilham munandar, Sp.PD' },
         { ID: 'dr. Akhmad Ikhwan Baidlowi, Sp.OG noname', DESKRIPSI: 'dr. Akhmad Ikhwan Baidlowi, Sp.OG noname' },
         { ID: 'dr Suhasta nova', DESKRIPSI: 'dr Suhasta nova' },
+        { ID: 'dr.ALVI CHOMARIYATI,Sp.PD', DESKRIPSI: 'dr.ALVI CHOMARIYATI,Sp.PD' },
     ];
 
     // --- Utility ---
