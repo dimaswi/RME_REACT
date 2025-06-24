@@ -60,22 +60,13 @@ export default function ListPengajuan() {
         return isNaN(d.getTime()) ? undefined : d;
     }
 
-    const { pengajuanKlaim, filters } = usePage().props as unknown as {
-        pengajuanKlaim: {
-            data: any[];
-            links: any[];
-            current_page: number;
-            last_page: number;
-        };
-        filters: {
-            perPage: number;
-        };
-    };
+    const { pengajuanKlaim, filters } = usePage().props as any;
 
-    console.log(pengajuanKlaim);
+    const [status, setStatus] = useState<string>(filters?.status ?? JSON.stringify([0, 1, 2, 3, 4]));
+    const [jenisKunjungan, setJenisKunjungan] = useState<string>(filters?.jenis_kunjungan ?? 'all');
     const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-        from: parseDate(tanggal_awal),
-        to: parseDate(tanggal_akhir),
+        from: filters?.tanggal_awal ? parseDate(filters.tanggal_awal) : undefined,
+        to: filters?.tanggal_akhir ? parseDate(filters.tanggal_akhir) : undefined,
     });
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -89,18 +80,16 @@ export default function ListPengajuan() {
         },
     ];
 
-    const statusFilter = props.status ?? '';
-    const [status, setStatus] = useState<string>(statusFilter);
-    const [jenisKunjungan, setJenisKunjungan] = useState<string>(filters?.jenis_kunjungan ?? 'all');
-
     const handlePageChange = (url: string | null) => {
         if (url) {
             router.get(
-                url,
+                route('eklaim.klaim.indexPengajuanKlaim'),
                 {
+                    ...filters,
                     tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
                     tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
                     status,
+                    jenis_kunjungan: jenisKunjungan === 'all' ? undefined : jenisKunjungan,
                 },
                 { preserveState: true },
             );
@@ -111,10 +100,11 @@ export default function ListPengajuan() {
         router.get(
             route('eklaim.klaim.indexPengajuanKlaim'),
             {
-                per_page: value,
+                ...filters,
                 tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
                 tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
                 status,
+                jenis_kunjungan: jenisKunjungan === 'all' ? undefined : jenisKunjungan,
             },
             { preserveState: true },
         );
