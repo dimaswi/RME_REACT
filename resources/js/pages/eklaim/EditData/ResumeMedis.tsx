@@ -113,7 +113,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const [tanggalLahir, setTanggalLahir] = useState<string | null>(null);
     const [jenisKelamin, setJenisKelamin] = useState<number | null>(null);
     const [ruangRawat, setRuangRawat] = useState<string | null>(null);
-    const [indikasiRawatInap, setIndikasiRawatInap] = useState<string | null>(null);
+    const [indikasiRawatInap, setIndikasiRawatInap] = useState<string | null>("Perbaikan Kondisi");
     const [penjamin, setPenjamin] = useState<string | null>(null);
     const [tanggalMasuk, setTanggalMasuk] = useState<string | null>(null);
     const [tanggalKeluar, setTanggalKeluar] = useState<string | null>(null);
@@ -225,7 +225,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setLamaDirawat(handleLamaDirawat(kunjungan?.MASUK, kunjungan?.KELUAR || toDatetimeLocal(new Date())));
             setRuangRawat(kunjungan?.ruangan?.DESKRIPSI || null);
             setPenjamin(kunjungan?.penjamin_pasien?.jenis_penjamin.DESKRIPSI || null);
-            setIndikasiRawatInap(kunjungan?.resume_medis || null);
+            setIndikasiRawatInap("Perbaikan Kondisi");
             setRiwayatPenyakitSekarang(kunjungan?.anamnesis_pasien?.DESKRIPSI || null);
             setRiwayatPenyakitLalu(kunjungan?.rpp?.DESKRIPSI || null);
             setPemeriksaanFisik(kunjungan?.pemeriksaan_fisik?.DESKRIPSI || null);
