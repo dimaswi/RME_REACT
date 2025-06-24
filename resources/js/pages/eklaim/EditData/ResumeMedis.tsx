@@ -1583,6 +1583,10 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         </td>
                                     </tr>
 
+                                    <tr>
+                                        {namaDokter}
+                                    </tr>
+
                                     {/* Tambahan Dokumen Lainnya */}
                                     <tr
                                         style={{
