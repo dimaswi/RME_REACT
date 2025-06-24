@@ -361,7 +361,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
         setLoadingKunjungan(true);
         try {
             // Ambil data klaim dari backend (akan otomatis fallback ke kunjungan jika belum ada)
-            if (item.edit === '1') {
+            if (item.edit == 1) {
                 const klaimRes = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
                 const klaimData = klaimRes.data;
                 console.log('Klaim Data:', klaimData);
@@ -507,41 +507,41 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 }
             }
 
-            if (item.edit === '0') {
+            if (item.edit == 0) {
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
                 console.log('Response Kunjungan:', response.data);
                 setJenisPerawatan(
                     response.data.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan' ? '2' : response.data.pengajuanKlaim.jenis_perawatan === 'IGD' ? '3' : '1',
                 );
-                setSistole(response.data.kunjungan.sistole || '');
-                setDiastole(response.data.kunjungan.diastole || '');
+                setSistole(response.data.resumeMedis.sistole || '');
+                setDiastole(response.data.resumeMedis.diastole || '');
                 setDataPenjaminKlaim('3');
-                const masuk = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].MASUK;
-                const keluar = response.data.kunjungan.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
+                const masuk = response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].MASUK;
+                const keluar = response.data.resumeMedis.pendaftaran_poli.kunjungan_pasien[0].KELUAR;
                 setTanggalMasuk(masuk);
                 setTanggalKeluar(keluar);
                 setDataDischargeStatus('1');
                 setLamaKunjungan(hitungLamaKunjungan(masuk, keluar));
-                setDataDokter(Array.isArray(response.data.kunjungan.dokter) ? response.data.kunjungan.dokter : []);
-                setTarifProsedurBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_BEDAH) || 0);
-                setTarifProsedurNonBedah(Number(response.data.kunjungan.tagihan.PROSEDUR_NON_BEDAH) || 0);
-                setTarifKonsultasi(Number(response.data.kunjungan.tagihan.KONSULTASI) || 0);
-                setTarifTenagaAhli(Number(response.data.kunjungan.tagihan.TENAGA_AHLI) || 0);
-                setTarifKeperawatan(Number(response.data.kunjungan.tagihan.KEPERAWATAN) || 0);
-                setTarifPenunjang(Number(response.data.kunjungan.tagihan.PENUNJANG) || 0);
-                setTarifRadiologi(Number(response.data.kunjungan.tagihan.RADIOLOGI) || 0);
-                setTarifLaboratorium(Number(response.data.kunjungan.tagihan.LABORATORIUM) || 0);
-                setTarifPelayananDarah(Number(response.data.kunjungan.tagihan.PELAYANAN_DARAH) || 0);
-                setTarifRehabilitasi(Number(response.data.kunjungan.tagihan.REHABILITASI) || 0);
-                setTarifKamar(Number(response.data.kunjungan.tagihan.KAMAR) || 0);
-                setTarifRawatIntensif(Number(response.data.kunjungan.tagihan.RAWAT_INTENSIF) || 0);
-                setTarifObat(Number(response.data.kunjungan.tagihan.OBAT) || 0);
-                setTarifObatKronis(Number(response.data.kunjungan.tagihan.OBAT_KRONIS) || 0);
-                setTarifObatKemoterapi(Number(response.data.kunjungan.tagihan.OBAT_KEMOTERAPI) || 0);
-                setTarifAlkes(Number(response.data.kunjungan.tagihan.ALKES) || 0);
-                setTarifBMHP(Number(response.data.kunjungan.tagihan.BMHP) || 0);
-                setTarifSewaAlat(Number(response.data.kunjungan.tagihan.SEWA_ALAT) || 0);
-                setTarifKamar(Number(response.data.kunjungan.tagihan.AKOMODASI) || 0);
+                setDataDokter(Array.isArray(response.data.resumeMedis.dokter) ? response.data.resumeMedis.dokter : []);
+                setTarifProsedurBedah(Number(response.data.resumeMedis.tagihan.PROSEDUR_BEDAH) || 0);
+                setTarifProsedurNonBedah(Number(response.data.resumeMedis.tagihan.PROSEDUR_NON_BEDAH) || 0);
+                setTarifKonsultasi(Number(response.data.resumeMedis.tagihan.KONSULTASI) || 0);
+                setTarifTenagaAhli(Number(response.data.resumeMedis.tagihan.TENAGA_AHLI) || 0);
+                setTarifKeperawatan(Number(response.data.resumeMedis.tagihan.KEPERAWATAN) || 0);
+                setTarifPenunjang(Number(response.data.resumeMedis.tagihan.PENUNJANG) || 0);
+                setTarifRadiologi(Number(response.data.resumeMedis.tagihan.RADIOLOGI) || 0);
+                setTarifLaboratorium(Number(response.data.resumeMedis.tagihan.LABORATORIUM) || 0);
+                setTarifPelayananDarah(Number(response.data.resumeMedis.tagihan.PELAYANAN_DARAH) || 0);
+                setTarifRehabilitasi(Number(response.data.resumeMedis.tagihan.REHABILITASI) || 0);
+                setTarifKamar(Number(response.data.resumeMedis.tagihan.KAMAR) || 0);
+                setTarifRawatIntensif(Number(response.data.resumeMedis.tagihan.RAWAT_INTENSIF) || 0);
+                setTarifObat(Number(response.data.resumeMedis.tagihan.OBAT) || 0);
+                setTarifObatKronis(Number(response.data.resumeMedis.tagihan.OBAT_KRONIS) || 0);
+                setTarifObatKemoterapi(Number(response.data.resumeMedis.tagihan.OBAT_KEMOTERAPI) || 0);
+                setTarifAlkes(Number(response.data.resumeMedis.tagihan.ALKES) || 0);
+                setTarifBMHP(Number(response.data.resumeMedis.tagihan.BMHP) || 0);
+                setTarifSewaAlat(Number(response.data.resumeMedis.tagihan.SEWA_ALAT) || 0);
+                setTarifKamar(Number(response.data.resumeMedis.tagihan.AKOMODASI) || 0);
                 const diagnosaStr = response?.data.kunjungan?.diagnosa || '';
                 const procedureStr = response?.data.kunjungan?.prosedur || '';
 
