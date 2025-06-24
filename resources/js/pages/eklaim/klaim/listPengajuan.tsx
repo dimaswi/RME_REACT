@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import FinalGroupingCollapse from './collapseFinalGrouping';
 import CollapseBelumDiajukan from './collapseBelumDiajukan';
 import ModalKirimKlaim from './modalKirimKlaim';
+import SudahTerkirimCollapse from './collapseSudahKirim';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -368,13 +369,10 @@ export default function ListPengajuan() {
 
                                                     {
                                                         item.status === 4 && (
-                                                            <div className="p-4">
-                                                                <h3 className="text-lg font-semibold mb-2">Klaim Sudah Dikirim</h3>
-                                                                <p>Nomor SEP: {item.nomor_SEP}</p>
-                                                                <p>Tanggal Pengajuan: {formatTanggal(item.tanggal_pengajuan)}</p>
-                                                                <p>Status: {getStatusBadge(item.status, item.id)}</p>
-                                                            </div>
-                                                        )}
+                                                            <SudahTerkirimCollapse
+                                                                pengajuanKlaim={item}
+                                                            />
+                                                        )
                                                     }
                                                 </TableCell>
                                             </TableRow>
