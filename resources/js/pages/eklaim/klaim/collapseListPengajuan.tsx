@@ -834,8 +834,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                                         value={dataDischargeStatus}
                                         setValue={setDataDischargeStatus}
                                         placeholder="Pilih Cara Pulang"
-                                        getOptionLabel={(item) => item.DESKRIPSI}
-                                        getOptionValue={(item) => item.ID}
+                                        getOptionLabel={(item) => (item && typeof item === 'object' ? item.DESKRIPSI : '')}
+                                        getOptionValue={(item) => (item && typeof item === 'object' ? item.ID : '')}
                                     />
                                 </td>
                             </tr>

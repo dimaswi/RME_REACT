@@ -474,7 +474,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         return html.replace(/<\/?[^>]+(>|$)/g, ''); // Hapus semua tag HTML
     }
 
-    const handleAddTerapi = () => {
+    const handleAddTerapi = (index: number) => {
         setTerapiPulang([...terapiPulang, { namaObat: '', jumlah: '', frekuensi: '', caraPemberian: '' }]);
     };
 
@@ -1400,7 +1400,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         <td></td>
                                     </tr>
 
-                                    {!terapiPulang || terapiPulang.length === 0 ? (
+                                    {/* {!terapiPulang || terapiPulang.length === 0 ? (
                                         <tr>
                                             <td colSpan={8} style={{ textAlign: 'center', border: '1px solid #000', padding: 10 }}>
                                                 <Button
@@ -1428,7 +1428,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                                 >
                                                     <SearchableDropdown
                                                         data={getObatDropdownData(terapi.namaObat, obatOptions)}
-                                                        value={typeof terapi.namaObat === 'object' ? terapi.namaObat?.DESKRIPSI ?? '' : terapi.namaObat}
+                                                        value={terapi.namaObat}
                                                         setValue={(val: string) => handleUpdateTerapi(index, 'namaObat', val)}
                                                         placeholder="Cari nama obat"
                                                         getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
@@ -1510,17 +1510,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                                         >
                                                             Tambah
                                                         </Button>
-                                                        {/* {
-                                                                index < 1 && (
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        onClick={() => handleLoadObat(k.order_resep)}
-                                                                        className="border border-gray-300 rounded-md p-2 bg-blue-500 text-white hover:bg-blue-600"
-                                                                    >
-                                                                        Load
-                                                                    </Button>
-                                                                )
-                                                            } */}
                                                         {terapiPulang.length > 1 &&
                                                             index > 0 && ( // Tampilkan tombol Hapus hanya jika lebih dari satu item
                                                                 <Button
@@ -1535,7 +1524,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                                 </td>
                                             </tr>
                                         ))
-                                    )}
+                                    )} */}
 
                                     {/* Intruksi Tidak Lanjut */}
                                     <tr>
