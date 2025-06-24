@@ -1109,7 +1109,6 @@ class KlaimController extends Controller
         return redirect()->back()->with('success', 'Data pasien berhasil diupdate.');
     }
 
-
     public function listPengajuanKlaim(Request $request)
     {
 
