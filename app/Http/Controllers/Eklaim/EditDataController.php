@@ -134,19 +134,12 @@ class EditDataController extends Controller
                 ->with(['gabungTagihan.kunjunganPasien.ruangan'])
                 ->get();
 
-
             foreach ($tagihanPendaftaran as $tp) {
-                if (!empty($tp->gabungTagihan)) {
-                    foreach ($tp->gabungTagihan as $tagihan) {
-                        if (!empty($tagihan->kunjunganPasien)) {
-                            foreach ($tagihan->kunjunganPasien as $kunjungan) {
-                                if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
-                                    $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
-                                }
-                            }
-                        }
+                foreach($tp->gabungTagihan->kunjunganPasien as $kunjungan) {
+                    if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
+                        $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
                     }
-                }
+                } 
             }
         }
 
@@ -186,7 +179,7 @@ class EditDataController extends Controller
                 }
             }
         }
-
+ 
         //Kop
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {

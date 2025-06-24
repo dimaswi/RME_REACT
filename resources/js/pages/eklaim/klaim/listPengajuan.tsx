@@ -91,6 +91,8 @@ export default function ListPengajuan() {
 
     const statusFilter = props.status ?? '';
     const [status, setStatus] = useState<string>(statusFilter);
+    const [jenisKunjungan, setJenisKunjungan] = useState<string>(filters?.jenis_kunjungan ?? 'all');
+
     const handlePageChange = (url: string | null) => {
         if (url) {
             router.get(
@@ -194,6 +196,40 @@ export default function ListPengajuan() {
                                 </SelectItem>
                                 <SelectItem value="3">
                                     <Badge className="bg-green-500 text-white">Final</Badge>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {/* FILTER JENIS KUNJUNGAN */}
+                        <Select
+                            value={jenisKunjungan}
+                            onValueChange={(val) => {
+                                setJenisKunjungan(val);
+                                router.get(
+                                    route('eklaim.klaim.indexPengajuanKlaim'),
+                                    {
+                                        ...filters,
+                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+                                        status,
+                                        jenis_kunjungan: val === 'all' ? undefined : val, // Jangan kirim ke backend jika "Semua"
+                                    },
+                                    { preserveState: true },
+                                );
+                            }}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter Jenis Kunjungan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Jenis Kunjungan</SelectItem>
+                                <SelectItem value="Rawat Jalan">
+                                    <Badge className="bg-red-500 text-white">Rawat Jalan</Badge>
+                                </SelectItem>
+                                <SelectItem value="Rawat Inap">
+                                    <Badge className="bg-yellow-500 text-white">Rawat Inap</Badge>
+                                </SelectItem>
+                                <SelectItem value="Gawat Darurat">
+                                    <Badge className="bg-blue-500 text-white">Gawat Darurat</Badge>
                                 </SelectItem>
                             </SelectContent>
                         </Select>

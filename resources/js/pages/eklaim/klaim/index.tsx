@@ -23,13 +23,33 @@ export default function KlaimIndex() {
         filters?: {
             q?: string;
             perPage?: number;
+            kelas?: string;
+            poli?: string;
+            tanggal_awal?: string;
+            tanggal_akhir?: string;
         };
     };
 
-    const [itemsPerPage, setItemsPerPage] = useState(dataPendaftaran.per_page || 10);
+    // Helper untuk parsing tanggal dari string
+    function parseDate(str: string): Date | undefined {
+        if (!str) return undefined;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? undefined : d;
+    }
+
+    // Nilai default filter
+    const defaultKelas = filters?.kelas || 'ALL';
+    const defaultPoli = filters?.poli || 'ALL';
+
+    // State filter
+    const [itemsPerPage, setItemsPerPage] = useState(filters?.perPage || dataPendaftaran.per_page || 10);
     const [query, setQuery] = useState(filters?.q || '');
-    const [selectedPoli, setSelectedPoli] = useState('');
-    const [selectedKelas, setSelectedKelas] = useState('');
+    const [selectedKelas, setSelectedKelas] = useState(defaultKelas);
+    const [selectedPoli, setSelectedPoli] = useState(defaultPoli);
+    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+        from: filters?.tanggal_awal ? parseDate(filters.tanggal_awal) : undefined,
+        to: filters?.tanggal_akhir ? parseDate(filters.tanggal_akhir) : undefined,
+    });
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -42,12 +62,28 @@ export default function KlaimIndex() {
     const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setQuery(value);
-        router.get(route('eklaim.klaim.index'), { page: 1, per_page: itemsPerPage, q: value }, { preserveState: true, replace: true });
+        router.get(route('eklaim.klaim.index'), {
+            page: 1,
+            per_page: itemsPerPage,
+            q: value,
+            kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
+            poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+            tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+            tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+        }, { preserveState: true, replace: true });
     };
 
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setItemsPerPage(Number(e.target.value));
-        router.get(route('eklaim.klaim.index'), { page: 1, per_page: e.target.value, q: query }, { preserveState: true });
+        router.get(route('eklaim.klaim.index'), {
+            page: 1,
+            per_page: e.target.value,
+            q: query,
+            kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
+            poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+            tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+            tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
+        }, { preserveState: true });
     };
 
     const handlePageChange = (url: string | null) => {
@@ -55,6 +91,10 @@ export default function KlaimIndex() {
             const urlObj = new URL(url, window.location.origin);
             urlObj.searchParams.set('per_page', String(itemsPerPage));
             urlObj.searchParams.set('q', query);
+            urlObj.searchParams.set('kelas', selectedKelas);
+            urlObj.searchParams.set('poli', selectedPoli);
+            urlObj.searchParams.set('tanggal_awal', dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '');
+            urlObj.searchParams.set('tanggal_akhir', dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '');
             router.get(urlObj.pathname + urlObj.search, {}, { preserveState: true });
         }
     };
@@ -86,7 +126,6 @@ export default function KlaimIndex() {
         }
     };
 
-
     const handleAjukanKlaim = async () => {
         const data = {
             nomor_kartu: modalData.noKartu,
@@ -107,20 +146,6 @@ export default function KlaimIndex() {
             },
         });
     };
-
-    const tanggal_awal = usePage().props.tanggal_awal || '';
-    const tanggal_akhir = usePage().props.tanggal_akhir || '';
-
-    function parseDate(str: string): Date | undefined {
-        if (!str) return undefined;
-        const d = new Date(str);
-        return isNaN(d.getTime()) ? undefined : d;
-    }
-
-    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-        from: parseDate(tanggal_awal),
-        to: parseDate(tanggal_akhir),
-    });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -159,12 +184,11 @@ export default function KlaimIndex() {
                                 router.get(
                                     route('eklaim.klaim.index'),
                                     {
-                                        ...filters,
                                         page: 1,
                                         per_page: itemsPerPage,
                                         q: query,
                                         kelas: val === 'ALL' ? '' : val,
-                                        poli: selectedPoli === 'ALL' ? '' : selectedPoli,
+                                        poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
                                         tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
                                         tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
                                     },
@@ -173,7 +197,17 @@ export default function KlaimIndex() {
                             }}
                         >
                             <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Filter Kelas" />
+                                <SelectValue>
+                                    {selectedKelas === 'ALL' || !selectedKelas
+                                        ? 'Semua Kelas'
+                                        : selectedKelas === '1'
+                                        ? 'Kelas 1'
+                                        : selectedKelas === '2'
+                                        ? 'Kelas 2'
+                                        : selectedKelas === '3'
+                                        ? 'Kelas 3'
+                                        : selectedKelas}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="ALL">Semua Kelas</SelectItem>
@@ -191,12 +225,10 @@ export default function KlaimIndex() {
                                 router.get(
                                     route('eklaim.klaim.index'),
                                     {
-                                        ...filters,
                                         page: 1,
                                         per_page: itemsPerPage,
                                         q: query,
-                                        // Rawat Inap = '', ALL = 'ALL', lainnya = kode poli
-                                        poli: val === 'RAWAT_INAP' ? '' : val === 'ALL' ? '' : val,
+                                        poli: val === 'ALL' ? '' : val === 'RAWAT_INAP' ? '' : val,
                                         kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
                                         tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
                                         tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
@@ -206,16 +238,32 @@ export default function KlaimIndex() {
                             }}
                         >
                             <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Filter Poli" />
+                                <SelectValue>
+                                    {selectedPoli === 'ALL'
+                                        ? 'Semua Poli'
+                                        : selectedPoli === 'RAWAT_INAP'
+                                        ? 'Rawat Inap'
+                                        : selectedPoli === 'INT'
+                                        ? 'Poli Penyakit Dalam'
+                                        : selectedPoli === 'ANA'
+                                        ? 'Poli Anak'
+                                        : selectedPoli === 'OBG'
+                                        ? 'Poli Obgyn'
+                                        : selectedPoli === 'BED'
+                                        ? 'Poli Bedah'
+                                        : selectedPoli === 'IGD'
+                                        ? 'Gawat Darurat'
+                                        : selectedPoli}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD'])}>Semua Poli</SelectItem>
-                                <SelectItem value={JSON.stringify([''])}>Rawat Inap</SelectItem>
-                                <SelectItem value={JSON.stringify(['INT'])}>Poli Penyakit Dalam</SelectItem>
-                                <SelectItem value={JSON.stringify(['ANA'])}>Poli Anak</SelectItem>
-                                <SelectItem value={JSON.stringify(['OBG'])}>Poli Obgyn</SelectItem>
-                                <SelectItem value={JSON.stringify(['BED'])}>Poli Bedah</SelectItem>
-                                <SelectItem value={JSON.stringify(['IGD'])}>Gawat Darurat</SelectItem>
+                                <SelectItem value="ALL">Semua Poli</SelectItem>
+                                <SelectItem value="RAWAT_INAP">Rawat Inap</SelectItem>
+                                <SelectItem value="INT">Poli Penyakit Dalam</SelectItem>
+                                <SelectItem value="ANA">Poli Anak</SelectItem>
+                                <SelectItem value="OBG">Poli Obgyn</SelectItem>
+                                <SelectItem value="BED">Poli Bedah</SelectItem>
+                                <SelectItem value="IGD">Gawat Darurat</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -240,11 +288,13 @@ export default function KlaimIndex() {
                                                 router.get(
                                                     route('eklaim.klaim.index'),
                                                     {
-                                                        ...filters,
                                                         tanggal_awal: format(range.from, 'yyyy-MM-dd'),
                                                         tanggal_akhir: format(range.to, 'yyyy-MM-dd'),
-                                                        kelas: selectedKelas,
-                                                        poli: selectedPoli,
+                                                        kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
+                                                        poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+                                                        q: query,
+                                                        page: 1,
+                                                        per_page: itemsPerPage,
                                                     },
                                                     { preserveState: true },
                                                 );
@@ -261,11 +311,13 @@ export default function KlaimIndex() {
                                             router.get(
                                                 route('eklaim.klaim.index'),
                                                 {
-                                                    ...filters,
                                                     tanggal_awal: '',
                                                     tanggal_akhir: '',
-                                                    kelas: selectedKelas,
-                                                    poli: selectedPoli,
+                                                    kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
+                                                    poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
+                                                    q: query,
+                                                    page: 1,
+                                                    per_page: itemsPerPage,
                                                 },
                                                 { preserveState: true },
                                             );

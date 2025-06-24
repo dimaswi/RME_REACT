@@ -81,7 +81,7 @@ class KlaimController extends Controller
                     'kartuAsuransiPasien',
                     'penjaminPendaftaran'
                 ])
-                ->orderByDesc('tglSEP')
+                ->orderBy('tglSEP', 'asc')
                 ->paginate($perPage)
                 ->withQueryString();
 
@@ -89,11 +89,12 @@ class KlaimController extends Controller
                 'dataPendaftaran' => $dataPendaftaran,
                 'filters' => [
                     'q' => $q,
+                    'kelas' => $kelas,
+                    'poli' => $poli,
+                    'tanggal_awal' => $tanggalAwal,
+                    'tanggal_akhir' => $tanggalAkhir,
                     'perPage' => $perPage,
                 ],
-                'tanggal_awal' => $tanggalAwal,
-                'tanggal_akhir' => $tanggalAkhir,
-                'kelas' => $kelas,
             ]);
         } catch (\Throwable $e) {
             \Log::error('Error klaim index: ' . $e->getMessage());
@@ -1119,7 +1120,8 @@ class KlaimController extends Controller
         $perPage = $request->input('per_page', 10);
         $tanggalAwal = $request->input('tanggal_awal');
         $tanggalAkhir = $request->input('tanggal_akhir');
-        $status = $request->input('status'); // Ambil status dari request
+        $status = $request->input('status');
+        $jenisKunjungan = $request->input('jenis_kunjungan'); // Tambahkan ini
 
         $query = PengajuanKlaim::with('pendaftaranPoli.pasien');
 
@@ -1128,7 +1130,6 @@ class KlaimController extends Controller
             if (is_array($status)) {
                 $query->whereIn('status', $status);
             } elseif (is_string($status) && str_starts_with($status, '[')) {
-                // Jika status dikirim sebagai string array (misal: "[0,1,2,3,4]")
                 $arr = json_decode($status, true);
                 if (is_array($arr)) {
                     $query->whereIn('status', $arr);
@@ -1138,6 +1139,11 @@ class KlaimController extends Controller
             } else {
                 $query->where('status', $status);
             }
+        }
+
+        // Filter jenis kunjungan
+        if ($jenisKunjungan !== null && $jenisKunjungan !== '') {
+            $query->where('jenis_perawatan', $jenisKunjungan);
         }
 
         // Filter tanggal_pengajuan
@@ -1158,10 +1164,12 @@ class KlaimController extends Controller
             'filters' => [
                 'perPage' => $perPage,
                 'status' => $status,
+                'jenis_kunjungan' => $jenisKunjungan, // Tambahkan ini agar state filter tetap
             ],
             'tanggal_awal' => $tanggalAwal,
             'tanggal_akhir' => $tanggalAkhir,
             'status' => $status,
+            'jenis_kunjungan' => $jenisKunjungan, // Tambahkan ini agar state filter tetap
         ]);
     }
 
