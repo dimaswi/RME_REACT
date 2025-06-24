@@ -34,6 +34,7 @@ const getStatusBadge = (status: number, id: string) => {
         1: { label: 'Sudah Diajukan', color: 'yellow', text: 'white' },
         2: { label: 'Grouper', color: 'blue', text: 'white' },
         3: { label: 'Final', color: 'green', text: 'white' },
+        4: { label: 'Dikirim', color: 'purple', text: 'white' },
     };
     const statusInfo = statusMap[status] || { label: 'Unknown', color: 'gray', text: 'gray-800' };
     return (

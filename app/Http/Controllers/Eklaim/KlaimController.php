@@ -915,6 +915,10 @@ class KlaimController extends Controller
             'response' => json_encode($send),
         ]);
 
+        $pengajuanKlaim->update([
+            'status' => 4, // status 4 untuk klaim sudah dikirim
+        ]);
+
         DB::connection('eklaim')->commit();
         return redirect()->back()->with('success', 'Data klaim berhasil dikirim.');
     }
