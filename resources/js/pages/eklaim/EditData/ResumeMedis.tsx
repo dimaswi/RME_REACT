@@ -1162,48 +1162,66 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                             }}
                                         >
                                             <div className="gap-2 px-2 py-4">
-                                                <Input
-                                                    type="text"
-                                                    value={keadaanUmum || ''}
-                                                    onChange={(e) => setKeadaanUmum(e.target.value)}
-                                                    placeholder="Masukkan keadaan umum"
-                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    value={suhu || ''}
-                                                    onChange={(e) => setSuhu(e.target.value)}
-                                                    placeholder="Masukkan suhu"
-                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    value={respirasi || ''}
-                                                    onChange={(e) => setRespirasi(e.target.value)}
-                                                    placeholder="Masukkan respirasi"
-                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    value={sistole || ''}
-                                                    onChange={(e) => setSistole(e.target.value)}
-                                                    placeholder="Masukkan sistole"
-                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    value={diastole || ''}
-                                                    onChange={(e) => setDiastole(e.target.value)}
-                                                    placeholder="Masukkan diastole"
-                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <Input
-                                                    type="text"
-                                                    value={nadi || ''}
-                                                    onChange={(e) => setNadi(e.target.value)}
-                                                    placeholder="Masukkan nadi"
-                                                    className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
+                                                <div>
+                                                    <span>Keadaan Umum</span>
+                                                    <Input
+                                                        type="text"
+                                                        value={keadaanUmum || ''}
+                                                        onChange={(e) => setKeadaanUmum(e.target.value)}
+                                                        placeholder="Masukkan keadaan umum"
+                                                        className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span>Suhu</span>
+                                                    <Input
+                                                        type="text"
+                                                        value={suhu || ''}
+                                                        onChange={(e) => setSuhu(e.target.value)}
+                                                        placeholder="Masukkan suhu"
+                                                        className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span>Pernafasan</span>
+                                                    <Input
+                                                        type="text"
+                                                        value={respirasi || ''}
+                                                        onChange={(e) => setRespirasi(e.target.value)}
+                                                        placeholder="Masukkan respirasi"
+                                                        className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span>Sistolik</span>
+                                                    <Input
+                                                        type="text"
+                                                        value={sistole || ''}
+                                                        onChange={(e) => setSistole(e.target.value)}
+                                                        placeholder="Masukkan sistole"
+                                                        className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span>Diastolik</span>
+                                                    <Input
+                                                        type="text"
+                                                        value={diastole || ''}
+                                                        onChange={(e) => setDiastole(e.target.value)}
+                                                        placeholder="Masukkan diastole"
+                                                        className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span>Nadi</span>
+                                                    <Input
+                                                        type="text"
+                                                        value={nadi || ''}
+                                                        onChange={(e) => setNadi(e.target.value)}
+                                                        placeholder="Masukkan nadi"
+                                                        className="mb-2 w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
