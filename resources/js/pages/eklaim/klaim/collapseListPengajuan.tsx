@@ -747,7 +747,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
             `${item.id}/grouper/one`,
             {},
             {
-                preserveState: false,
+                preserveState: true,
                 preserveScroll: true,
                 // we specify what we want to be replaced here
                 only: ['pengajuanKlaim', 'success', 'error'],
