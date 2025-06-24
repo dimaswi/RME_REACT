@@ -1287,8 +1287,6 @@ export default function FormDataKlaimView({ pengajuanKlaimId }: { pengajuanKlaim
                                 <td colSpan={7} className="border-r border-b border-l border-gray-300 px-4 py-2">
                                     <Input
                                         type="datetime-local"
-                                        placeholder="Masukkan Tanggal & Waktu Kelahiran"
-                                        placeholder="Masukkan Tanggal & Waktu Kelahiran"
                                         value={form.delivery_dttm}
                                         onChange={(e) => updateDeliveryForm(form.id, 'delivery_dttm', e.target.value)} // Perbarui tanggal & waktu kelahiran
                                     />
