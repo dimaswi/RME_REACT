@@ -6,111 +6,122 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import axios from 'axios';
 import { format } from 'date-fns';
-import { CalendarIcon, Home, ListCollapse, Loader, Save } from 'lucide-react';
-import React, { useState } from 'react';
+import { CalendarIcon, Check, Home, List, ListCollapse, Loader, Save } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+const FILTER_STORAGE_KEY = 'klaim_filter_state';
 
 export default function KlaimIndex() {
-    const { dataPendaftaran, filters } = usePage().props as unknown as {
-        dataPendaftaran: {
-            data: any[];
-            links: any[];
-            current_page: number;
-            last_page: number;
-            perPage: number;
-        };
-        filters?: {
-            q?: string;
-            perPage?: number;
-            kelas?: string;
-            poli?: string;
-            tanggal_awal?: string;
-            tanggal_akhir?: string;
-        };
-    };
-
-    // Helper untuk parsing tanggal dari string
-    function parseDate(str: string): Date | undefined {
-        if (!str) return undefined;
-        const d = new Date(str);
-        return isNaN(d.getTime()) ? undefined : d;
-    }
-
-    // Nilai default filter
-    const defaultKelas = filters?.kelas || 'ALL';
-    const defaultPoli = filters?.poli || 'ALL';
-
-    // State filter
-    const [itemsPerPage, setItemsPerPage] = useState(filters?.perPage || dataPendaftaran.perPage || 10);
-    const [query, setQuery] = useState(filters?.q || '');
-    const [selectedKelas, setSelectedKelas] = useState(defaultKelas);
-    const [selectedPoli, setSelectedPoli] = useState(defaultPoli);
-    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-        from: filters?.tanggal_awal ? parseDate(filters.tanggal_awal) : undefined,
-        to: filters?.tanggal_akhir ? parseDate(filters.tanggal_akhir) : undefined,
-    });
-    // Tambahkan state klaim status
-    const [selectedStatus, setSelectedStatus] = useState(filters?.status ?? 'ALL');
-
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: <Home className="mr-1 inline" />,
             href: '/eklaim/klaim',
         },
     ];
-
-    // Search otomatis setiap karakter diketik
-    const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setQuery(value);
-        router.get(route('eklaim.klaim.index'), {
-            page: 1,
-            perPage: itemsPerPage,
-            q: value,
-            kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-            poli: selectedPoli === 'ALL' ? '' : selectedPoli,
-            status: selectedStatus === 'ALL' ? '' : selectedStatus,
-            tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-            tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-        }, { preserveState: true, replace: true });
-    };
-
-    const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setItemsPerPage(Number(e.target.value));
-        console.log('Items per page changed:', e.target.value);
-        router.get(route('eklaim.klaim.index'), {
-            page: 1,
-            perPage: e.target.value,
-            q: query,
-            kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-            poli: selectedPoli === 'ALL' ? '' : selectedPoli,
-            status: selectedStatus === 'ALL' ? '' : selectedStatus,
-            tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-            tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-        }, { preserveState: true });
-    };
-
-    const handlePageChange = (url: string | null) => {
-        if (url) {
-            const urlObj = new URL(url, window.location.origin);
-            urlObj.searchParams.set('perPage', String(itemsPerPage));
-            urlObj.searchParams.set('q', query);
-            urlObj.searchParams.set('kelas', selectedKelas === 'ALL' ? '' : selectedKelas);
-            urlObj.searchParams.set('poli', selectedPoli === 'ALL' ? '' : selectedPoli);
-            urlObj.searchParams.set('status', selectedStatus === 'ALL' ? '' : selectedStatus);
-            urlObj.searchParams.set('tanggal_awal', dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '');
-            urlObj.searchParams.set('tanggal_akhir', dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '');
-            router.get(urlObj.pathname + urlObj.search, {}, { preserveState: true });
+    // Ambil filter dari localStorage jika ada, jika tidak pakai default
+    const getInitialFilters = () => {
+        const saved = localStorage.getItem(FILTER_STORAGE_KEY);
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch {
+                return {
+                    q: '',
+                    kelas: 'ALL',
+                    poli: 'ALL',
+                    status: 'ALL',
+                    tanggal_awal: '',
+                    tanggal_akhir: '',
+                    perPage: 10,
+                    page: 1,
+                };
+            }
         }
+        return {
+            q: '',
+            kelas: 'ALL',
+            poli: 'ALL',
+            status: 'ALL',
+            tanggal_awal: '',
+            tanggal_akhir: '',
+            perPage: 10,
+            page: 1,
+        };
     };
 
+    const getInitialDataPendaftaran = () => {
+        const saved = localStorage.getItem('klaim_data_pendaftaran');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch {
+                return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10 };
+            }
+        }
+        return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10 };
+    };
+
+    const [filters, setFilters] = useState(getInitialFilters);
+    const [dataPendaftaran, setDataPendaftaran] = useState(getInitialDataPendaftaran);
+    const [itemsPerPage, setItemsPerPage] = useState(filters.perPage);
+    const [query, setQuery] = useState(filters.q);
+    const [selectedKelas, setSelectedKelas] = useState(filters.kelas);
+    const [selectedPoli, setSelectedPoli] = useState(filters.poli);
+    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+        from: filters.tanggal_awal ? new Date(filters.tanggal_awal) : undefined,
+        to: filters.tanggal_akhir ? new Date(filters.tanggal_akhir) : undefined,
+    });
+    const [selectedStatus, setSelectedStatus] = useState(filters.status);
     const [modalData, setModalData] = useState<any | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [loadingAjukan, setLoadingAjukan] = useState(false);
+    const [loadingAmbilData, setLoadingAmbilData] = useState(false);
+
+    // Simpan filter ke localStorage setiap kali filters berubah
+    useEffect(() => {
+        localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+    }, [filters]);
+
+    useEffect(() => {
+        localStorage.setItem('klaim_data_pendaftaran', JSON.stringify(dataPendaftaran));
+    }, [dataPendaftaran]);
+
+    // Fetch data from server pakai axios
+    const fetchData = async (customFilters = filters) => {
+        setLoadingAmbilData(true);
+        toast.loading('Mengambil data.....');
+        await axios
+            .post('/eklaim/klaim/filter', customFilters)
+            .then((response) => {
+                setDataPendaftaran(response.data.dataPendaftaran); // <-- ambil dataPendaftaran saja!
+                toast.dismiss();
+                toast.success('Data berhasil diambil');
+            })
+            .catch((error) => {
+                toast.error('Gagal mengambil data');
+            })
+            .finally(() => setLoadingAmbilData(false));
+    };
+
+    // Handler untuk Next/Previous
+    const handlePageChange = (page: number) => {
+        setFilters((prev) => ({ ...prev, page }));
+        fetchData({ ...filters, page }); // Panggil fetchData manual saat ganti page
+    };
+
+    // Handler submit filter
+    const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setFilters((prev) => ({ ...prev, page: 1 }));
+        fetchData({ ...filters, page: 1 }); // Fetch manual saat submit filter
+    };
 
     const handleRowClick = (item: any) => {
-        setModalData(item);        
+        setModalData(item);
         setShowModal(true);
     };
 
@@ -119,8 +130,12 @@ export default function KlaimIndex() {
         return new Date(tanggal).toLocaleDateString('id-ID', options);
     };
 
-    const prevLink = dataPendaftaran.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous');
-    const nextLink = dataPendaftaran.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;');
+    const prevLink = Array.isArray(dataPendaftaran.links)
+        ? dataPendaftaran.links.find((l) => l.label === 'Previous' || l.label === '&laquo; Previous')
+        : null;
+    const nextLink = Array.isArray(dataPendaftaran.links)
+        ? dataPendaftaran.links.find((l) => l.label === 'Next' || l.label === 'Next &raquo;')
+        : null;
     const badgeStatus = (status: number) => {
         switch (status) {
             case 0:
@@ -143,7 +158,7 @@ export default function KlaimIndex() {
             gender: modalData.data_peserta.sex == 'L' ? '1' : '2',
             jenis_perawatan: modalData.poliTujuan == 'IGD' ? 'Gawat Darurat' : modalData.poliTujuan == '' ? 'Rawat Inap' : 'Rawat Jalan',
         };
-        
+
         router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
             onStart: () => setLoadingAjukan(true),
             onFinish: () => {
@@ -157,50 +172,15 @@ export default function KlaimIndex() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Klaim" />
             <div className="p-4">
-                {/* Single Search Field */}
-                <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={handleQueryChange}
-                        className="w-64 rounded-md border p-1 text-sm"
-                        placeholder="Cari Nomor Kartu atau Nomor SEP"
-                    />
-                    <Button
-                        variant="outline"
-                        onClick={() =>
-                            router.get(
-                                route('eklaim.klaim.indexPengajuanKlaim'),
-                                { page: 1, perPage: itemsPerPage, q: query },
-                                { preserveState: true },
-                            )
-                        }
-                    >
-                        <ListCollapse size={12} />
-                        Data Pengajuan
-                    </Button>
-                </div>
                 <div className="w-full overflow-x-auto rounded-md border">
-                    <div className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
-                        {/* Filter Kelas */}
+                    {/* === Pindahkan Form Filter ke sini === */}
+                    <form onSubmit={handleFilterSubmit} className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
                         <Select
-                            value={selectedKelas}
+                            name="kelas"
+                            value={filters.kelas}
                             onValueChange={(val) => {
                                 setSelectedKelas(val);
-                                router.get(
-                                    route('eklaim.klaim.index'),
-                                    {
-                                        page: 1,
-                                        perPage: itemsPerPage,
-                                        q: query,
-                                        kelas: val === 'ALL' ? '' : val,
-                                        poli: selectedPoli === 'ALL' ? '' : selectedPoli,
-                                        status: selectedStatus === 'ALL' ? '' : selectedStatus,
-                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                                    },
-                                    { preserveState: true, replace: true },
-                                );
+                                setFilters((prev) => ({ ...prev, kelas: val }));
                             }}
                         >
                             <SelectTrigger className="w-[180px]">
@@ -208,12 +188,12 @@ export default function KlaimIndex() {
                                     {selectedKelas === 'ALL' || !selectedKelas
                                         ? 'Semua Kelas'
                                         : selectedKelas === '1'
-                                        ? 'Kelas 1'
-                                        : selectedKelas === '2'
-                                        ? 'Kelas 2'
-                                        : selectedKelas === '3'
-                                        ? 'Kelas 3'
-                                        : selectedKelas}
+                                          ? 'Kelas 1'
+                                          : selectedKelas === '2'
+                                            ? 'Kelas 2'
+                                            : selectedKelas === '3'
+                                              ? 'Kelas 3'
+                                              : selectedKelas}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -224,24 +204,12 @@ export default function KlaimIndex() {
                             </SelectContent>
                         </Select>
 
-                        {/* Filter Poli */}
                         <Select
-                            value={selectedPoli}
+                            name="poli"
+                            value={filters.poli}
                             onValueChange={(val) => {
                                 setSelectedPoli(val);
-                                router.get(
-                                    route('eklaim.klaim.index'),
-                                    {
-                                        page: 1,
-                                        perPage: itemsPerPage,
-                                        q: query,
-                                        poli: val === 'ALL' ? '' : val === 'RAWAT_INAP' ? '' : val,
-                                        kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                                    },
-                                    { preserveState: true, replace: true },
-                                );
+                                setFilters((prev) => ({ ...prev, poli: val }));
                             }}
                         >
                             <SelectTrigger className="w-[180px]">
@@ -249,18 +217,18 @@ export default function KlaimIndex() {
                                     {selectedPoli === 'ALL'
                                         ? 'Semua Poli'
                                         : selectedPoli === 'RAWAT_INAP'
-                                        ? 'Rawat Inap'
-                                        : selectedPoli === 'INT'
-                                        ? 'Poli Penyakit Dalam'
-                                        : selectedPoli === 'ANA'
-                                        ? 'Poli Anak'
-                                        : selectedPoli === 'OBG'
-                                        ? 'Poli Obgyn'
-                                        : selectedPoli === 'BED'
-                                        ? 'Poli Bedah'
-                                        : selectedPoli === 'IGD'
-                                        ? 'Gawat Darurat'
-                                        : selectedPoli}
+                                          ? 'Rawat Inap'
+                                          : selectedPoli === 'INT'
+                                            ? 'Poli Penyakit Dalam'
+                                            : selectedPoli === 'ANA'
+                                              ? 'Poli Anak'
+                                              : selectedPoli === 'OBG'
+                                                ? 'Poli Obgyn'
+                                                : selectedPoli === 'BED'
+                                                  ? 'Poli Bedah'
+                                                  : selectedPoli === 'IGD'
+                                                    ? 'Gawat Darurat'
+                                                    : selectedPoli}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -274,25 +242,12 @@ export default function KlaimIndex() {
                             </SelectContent>
                         </Select>
 
-                        {/* Filter Status Klaim */}
                         <Select
-                            value={selectedStatus}
+                            name="status"
+                            value={filters.status}
                             onValueChange={(val) => {
                                 setSelectedStatus(val);
-                                router.get(
-                                    route('eklaim.klaim.index'),
-                                    {
-                                        page: 1,
-                                        perPage: itemsPerPage,
-                                        q: query,
-                                        kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-                                        poli: selectedPoli === 'ALL' ? '' : selectedPoli,
-                                        status: val === 'ALL' ? '' : val,
-                                        tanggal_awal: dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
-                                        tanggal_akhir: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : '',
-                                    },
-                                    { preserveState: true, replace: true },
-                                );
+                                setFilters((prev) => ({ ...prev, status: val }));
                             }}
                         >
                             <SelectTrigger className="w-[180px]">
@@ -300,10 +255,10 @@ export default function KlaimIndex() {
                                     {selectedStatus === 'ALL'
                                         ? 'Semua Status'
                                         : selectedStatus == 0
-                                        ? 'Belum Diajukan'
-                                        : selectedStatus == 1
-                                        ? 'Sudah Diajukan'
-                                        : selectedStatus}
+                                          ? 'Belum Diajukan'
+                                          : selectedStatus == 1
+                                            ? 'Sudah Diajukan'
+                                            : selectedStatus}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -313,7 +268,6 @@ export default function KlaimIndex() {
                             </SelectContent>
                         </Select>
 
-                        {/* Filter tanggal tetap */}
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="w-[260px] justify-start text-left font-normal">
@@ -331,19 +285,11 @@ export default function KlaimIndex() {
                                         onSelect={(range) => {
                                             setDateRange(range);
                                             if (range.from && range.to) {
-                                                router.get(
-                                                    route('eklaim.klaim.index'),
-                                                    {
-                                                        tanggal_awal: format(range.from, 'yyyy-MM-dd'),
-                                                        tanggal_akhir: format(range.to, 'yyyy-MM-dd'),
-                                                        kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-                                                        poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
-                                                        q: query,
-                                                        page: 1,
-                                                        perPage: itemsPerPage,
-                                                    },
-                                                    { preserveState: true },
-                                                );
+                                                setFilters((prev) => ({
+                                                    ...prev,
+                                                    tanggal_awal: format(range.from, 'yyyy-MM-dd'),
+                                                    tanggal_akhir: format(range.to, 'yyyy-MM-dd'),
+                                                }));
                                             }
                                         }}
                                         numberOfMonths={2}
@@ -354,19 +300,7 @@ export default function KlaimIndex() {
                                         className="mt-2 self-end"
                                         onClick={() => {
                                             setDateRange({ from: undefined, to: undefined });
-                                            router.get(
-                                                route('eklaim.klaim.index'),
-                                                {
-                                                    tanggal_awal: '',
-                                                    tanggal_akhir: '',
-                                                    kelas: selectedKelas === 'ALL' ? '' : selectedKelas,
-                                                    poli: selectedPoli === JSON.stringify(['', 'INT', 'OBG', 'ANA', 'BED', 'IGD']) ? '' : selectedPoli,
-                                                    q: query,
-                                                    page: 1,
-                                                    perPage: itemsPerPage,
-                                                },
-                                                { preserveState: true },
-                                            );
+                                            setFilters((prev) => ({ ...prev, tanggal_awal: '', tanggal_akhir: '' }));
                                         }}
                                     >
                                         Reset
@@ -374,34 +308,84 @@ export default function KlaimIndex() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                    </div>
+                        {loadingAmbilData ? (
+                            <Button variant="outline" disabled className="flex items-center gap-2">
+                                <Loader className="h-4 w-4 animate-spin" />
+                                Filter
+                            </Button>
+                        ) : (
+                            <Button type="submit" variant="outline">
+                                <ListCollapse className="mr-2 h-4 w-4" />
+                                Filter
+                            </Button>
+                        )}
 
-                    <Table className="w-full min-w-max">
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => {
+                                router.visit(route('eklaim.klaim.indexPengajuanKlaim'));
+                            }}
+                        >
+                            <List className="mr-2 h-4 w-4" />
+                            List Pengajuan Klaim
+                        </Button>
+                    </form>
+                    {/* === END Form Filter === */}
+
+                    <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>SEP</TableHead>
-                                <TableHead>Nama Lengkap</TableHead>
-                                <TableHead>Kode Poli</TableHead>
-                                <TableHead>Tanggal SEP</TableHead>
-                                <TableHead>Kelas</TableHead>
+                                <TableHead>Nama Pasien</TableHead>
+                                <TableHead>No Kartu</TableHead>
+                                <TableHead>No SEP</TableHead>
+                                <TableHead>Tgl SEP</TableHead>
+                                <TableHead>Ruangan</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead>Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {dataPendaftaran.data.length > 0 ? (
-                                dataPendaftaran.data.map((item, idx) => (
-                                    <TableRow key={item.NORM} className="cursor-pointer hover:bg-blue-50" onClick={() => handleRowClick(item)}>
-                                        <TableCell>{item.noSEP}</TableCell>
-                                        <TableCell>{item.data_peserta.nama}</TableCell>
-                                        <TableCell>{item.poliTujuan ? item.poliTujuan : 'Rawat Inap'}</TableCell>
-                                        <TableCell>{formatTanggalIndo(item.tglSEP)}</TableCell>
-                                        <TableCell>{item.data_peserta.nmKelas}</TableCell>
+                            {Array.isArray(dataPendaftaran.data) && dataPendaftaran.data.length > 0 ? (
+                                dataPendaftaran.data.map((item: any, idx: number) => (
+                                    <TableRow
+                                        key={item.noSEP || idx}
+                                        onClick={() => handleRowClick(item)}
+                                        className="cursor-pointer hover:bg-blue-50"
+                                    >
+                                        <TableCell>{item.data_peserta?.nama || '-'}</TableCell>
+                                        <TableCell>{item.data_peserta?.noKartu || '-'}</TableCell>
+                                        <TableCell>{item.noSEP || '-'}</TableCell>
+                                        <TableCell>{formatTanggalIndo(item.tglSEP) || '-'}</TableCell>
+                                        <TableCell>{item.poliTujuan || 'Rawat Inap'}</TableCell>
                                         <TableCell>{badgeStatus(item.klaimStatus)}</TableCell>
+                                        {item.klaimStatus === 0 ? (
+                                            <TableCell>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent row click
+                                                        handleRowClick(item);
+                                                    }}
+                                                >
+                                                    <Save className="mr-2 h-4 w-4 text-green-400" />
+                                                    Ajukan Klaim
+                                                </Button>
+                                            </TableCell>
+                                        ) : (
+                                            <TableCell>
+                                                <Button variant="outline" size="sm" disabled className="cursor-not-allowed">
+                                                    <Check className="mr-2 h-4 w-4 text-green-400" />
+                                                    Klaim Diajukan
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center">
+                                    <TableCell colSpan={8} className="text-center">
                                         Data tidak ditemukan
                                     </TableCell>
                                 </TableRow>
@@ -409,32 +393,43 @@ export default function KlaimIndex() {
                         </TableBody>
                     </Table>
                 </div>
-                {/* Pagination dan item per page */}
-                <div className="mt-4 flex flex-wrap items-center justify-between">
-                    {/* Informasi Halaman */}
-                    <div className="text-sm text-gray-700">
-                        Page {dataPendaftaran.current_page} of {dataPendaftaran.last_page}
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between py-2">
+                    <div>
+                        Halaman {dataPendaftaran.current_page} dari {dataPendaftaran.last_page}
                     </div>
-                    {/* Pagination dan item per page */}
-                    <div className="flex items-center space-x-4">
-                        {/* Selector untuk jumlah item per halaman */}
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm">Baris :</span>
-                            <select value={itemsPerPage} onChange={handleItemsPerPageChange} className="rounded-md border p-1 text-sm">
-                                <option value={10}>10</option>
-                                <option value={20}>20</option>
-                                <option value={50}>50</option>
-                            </select>
-                        </div>
-                        {/* Tombol Pagination */}
-                        <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => handlePageChange(prevLink?.url)} disabled={!prevLink?.url}>
-                                Previous
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => handlePageChange(nextLink?.url)} disabled={!nextLink?.url}>
-                                Next
-                            </Button>
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <span>Baris per halaman:</span>
+                        <select
+                            className="rounded border px-2 py-1"
+                            value={filters.perPage}
+                            onChange={(e) => {
+                                setFilters((prev) => ({ ...prev, perPage: Number(e.target.value), page: 1 }));
+                                fetchData({ ...filters, perPage: Number(e.target.value), page: 1 });
+                            }}
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(dataPendaftaran.current_page - 1)}
+                            disabled={dataPendaftaran.current_page <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(dataPendaftaran.current_page + 1)}
+                            disabled={dataPendaftaran.current_page >= dataPendaftaran.last_page}
+                        >
+                            Next
+                        </Button>
                     </div>
                 </div>
             </div>

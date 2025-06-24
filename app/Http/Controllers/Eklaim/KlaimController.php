@@ -35,7 +35,11 @@ class KlaimController extends Controller
 {
     public function index(Request $request)
     {
-        // dd($request->input('per_page'));
+        return Inertia::render('eklaim/klaim/index');
+    }
+
+    public function indexFilter(Request $request)
+    {
         try {
             $perPage = $request->input('perPage', 10);
             $q = $request->input('q');
@@ -54,16 +58,11 @@ class KlaimController extends Controller
                 });
             }
 
-            if ($poli) {
-                if (is_string($poli) && str_starts_with($poli, '[')) {
-                    $poliArr = json_decode($poli, true);
-                } else {
-                    $poliArr = [$poli];
-                }
-                $query->whereIn('poliTujuan', $poliArr);
+            if ($poli && $poli !== 'ALL') {
+                $query->where('poliTujuan', $poli === 'RAWAT_INAP' ? '' : $poli);
             }
 
-            if ($kelas) {
+            if ($kelas && $kelas !== 'ALL') {
                 $query->whereHas('dataPeserta', function ($q) use ($kelas) {
                     $q->where('kdKelas', $kelas);
                 });
@@ -77,7 +76,7 @@ class KlaimController extends Controller
                 $query->whereDate('tglSEP', '<=', $tanggalAkhir);
             }
 
-            if ($status !== null && $status !== '') {
+            if ($status !== null && $status !== '' && $status !== 'ALL') {
                 $query->where('klaimStatus', $status);
             }
 
@@ -88,24 +87,13 @@ class KlaimController extends Controller
                     'penjaminPendaftaran'
                 ])
                 ->orderBy('tglSEP', 'desc')
-                ->paginate($perPage)
-                ->withQueryString();
+                ->paginate($perPage);
 
-            return Inertia::render('eklaim/klaim/index', [
+            return response()->json([
                 'dataPendaftaran' => $dataPendaftaran,
-                'filters' => [
-                    'q' => $q,
-                    'kelas' => $kelas,
-                    'poli' => $poli,
-                    'tanggal_awal' => $tanggalAwal,
-                    'tanggal_akhir' => $tanggalAkhir,
-                    'perPage' => $perPage,
-                    'status' => $status
-                ],
             ]);
         } catch (\Throwable $e) {
-            \Log::error('Error klaim index: ' . $e->getMessage());
-            abort(500, 'Terjadi error pada server: ' . $e->getMessage());
+            return response()->json(['message' => 'Terjadi error pada server: ' . $e->getMessage()], 500);
         }
     }
 
@@ -1124,36 +1112,31 @@ class KlaimController extends Controller
 
     public function listPengajuanKlaim(Request $request)
     {
-        $perPage = (int) $request->input('perPage', 10); // gunakan 'perPage' dari frontend
+
+        return Inertia::render('eklaim/klaim/listPengajuan');
+    }
+
+    public function listPengajuanIndexFilter(Request $request)
+    {
+        $perPage = $request->input('perPage', 10);
+        $page = $request->input('page', 1);
+        $status = $request->input('status', [0, 1, 2, 3, 4]);
+        $jenisKunjungan = $request->input('jenis_kunjungan', 'all');
         $tanggalAwal = $request->input('tanggal_awal');
         $tanggalAkhir = $request->input('tanggal_akhir');
-        $status = $request->input('status');
-        $jenisKunjungan = $request->input('jenis_kunjungan');
 
-        $query = PengajuanKlaim::with('pendaftaranPoli.pasien');
+        $query = PengajuanKlaim::query();
 
-        // Filter status klaim
-        if ($status !== null && $status !== '') {
-            if (is_array($status)) {
-                $query->whereIn('status', $status);
-            } elseif (is_string($status) && str_starts_with($status, '[')) {
-                $arr = json_decode($status, true);
-                if (is_array($arr)) {
-                    $query->whereIn('status', $arr);
-                } else {
-                    $query->where('status', $status);
-                }
-            } else {
-                $query->where('status', $status);
-            }
+        if (is_array($status) && count($status)) {
+            $query->whereIn('status', $status);
+        } elseif (is_numeric($status)) {
+            $query->where('status', $status);
         }
 
-        // Filter jenis kunjungan
-        if ($jenisKunjungan !== null && $jenisKunjungan !== '') {
+        if ($jenisKunjungan && $jenisKunjungan !== 'all') {
             $query->where('jenis_perawatan', $jenisKunjungan);
         }
 
-        // Filter tanggal_pengajuan
         if ($tanggalAwal && $tanggalAkhir) {
             $query->whereBetween('tanggal_pengajuan', [$tanggalAwal, $tanggalAkhir]);
         } elseif ($tanggalAwal) {
@@ -1162,21 +1145,13 @@ class KlaimController extends Controller
             $query->whereDate('tanggal_pengajuan', '<=', $tanggalAkhir);
         }
 
-        $pengajuanKlaim = $query->orderByDesc('tanggal_pengajuan')
-            ->paginate($perPage)
-            ->withQueryString();
+        $pengajuanKlaim = $query
+            ->with(['pendaftaranPoli.pasien'])
+            ->orderBy('tanggal_pengajuan', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
 
-        return Inertia::render('eklaim/klaim/listPengajuan', [
+        return response()->json([
             'pengajuanKlaim' => $pengajuanKlaim,
-            'filters' => [
-                'perPage' => $perPage,
-                'status' => $status,
-                'jenis_kunjungan' => $jenisKunjungan,
-            ],
-            'tanggal_awal' => $tanggalAwal,
-            'tanggal_akhir' => $tanggalAkhir,
-            'status' => $status,
-            'jenis_kunjungan' => $jenisKunjungan,
         ]);
     }
 

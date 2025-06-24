@@ -75,3 +75,9 @@ Route::middleware('auth')->group(function () {
     Route::get('getDataLaboratorium/{nomorKunjungan}/{jenisData}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataLaboratorium'])->name('getDataLaboratorium');
     Route::get('getDataRadiologi/{nomorKunjungan}/{jenisData}', [\App\Http\Controllers\Eklaim\EditDataController::class, 'getDataRadiologi'])->name('getDataRadiologi');
 });
+
+//filter table
+Route::middleware('auth')->group(function () {
+    Route::post('/eklaim/klaim/filter', [KlaimController::class, 'indexFilter'])->name('eklaim.klaim.filter');
+    Route::post('/eklaim/klaim/list-pengajuan/filter', [KlaimController::class, 'listPengajuanIndexFilter']);
+});
