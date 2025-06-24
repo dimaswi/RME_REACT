@@ -29,7 +29,19 @@ export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKla
                         onClick={async () => {
                             setLoadingKirim(true);
                             try {
-                                await cetakBerkasKlaim(pengajuanKlaim.nomor_SEP, "preview");
+                                await router.post(route('eklaim.klaim.kirimDataKlaimPerSep', { pengajuanKlaim: pengajuanKlaim.id }), {}, {
+                                    preserveState: true,
+                                    preserveScroll: true,
+                                    onStart: () => {
+                                        setLoadingKirim(true);
+                                    },
+                                    onFinish: () => {
+                                        setLoadingKirim(false);
+                                    },
+                                    onError: () => {
+                                        setLoadingKirim(false);
+                                    },
+                                });
                             } catch (error) {
                                 toast.error("Gagal Mengirim Klaim");
                             } finally {

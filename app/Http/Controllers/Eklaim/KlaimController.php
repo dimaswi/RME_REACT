@@ -885,7 +885,7 @@ class KlaimController extends Controller
         return redirect()->back()->with('success', 'Data klaim berhasil dikirim untuk tahap final.');
     }
 
-    public function kirimKolektifDataKlaim(PengajuanKlaim $pengajuanKlaim)
+    public function kirimDataKlaimPerSep(PengajuanKlaim $pengajuanKlaim)
     {
         $metadata = [
             'method' => 'send_claim_individual'

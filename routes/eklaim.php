@@ -13,6 +13,7 @@ Route::middleware('auth')->group(function () {
     Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/two', [KlaimController::class, 'groupStageTwoKlaim'])->name('eklaim.klaim.groupStageTwoKlaim');
     Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/final', [KlaimController::class, 'groupStageFinalKlaim'])->name('eklaim.klaim.groupStageFinalKlaim');
     Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/test', [KlaimController::class, 'getAmbilDataTarifDiagnosa'])->name('eklaim.klaim.getAmbilDataTarifDiagnosa');
+    Route::post('eklaim/klaim/{pengajuanKlaim}/kirim/sep', [KlaimController::class, 'kirimDataKlaimPerSep'])->name('eklaim.klaim.kirimDataKlaimPerSep');
     Route::post('eklaim/klaim/kirim/perHari', [KlaimController::class, 'kirimDataKolektifHari'])->name('eklaim.klaim.kirimDataKolektifHari');
     Route::get('eklaim/klaim/{dataKlaim}/isi', [KlaimController::class, 'dataKlaim'])->name('eklaim.klaim.dataKlaim');
     Route::post('eklaim/klaim/{pengajuanKlaim}/ajukan_ulang', [KlaimController::class, 'ajukanUlangKlaim'])->name('eklaim.klaim.pengajuanUlang');
