@@ -1428,7 +1428,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                                 >
                                                     <SearchableDropdown
                                                         data={getObatDropdownData(terapi.namaObat, obatOptions)}
-                                                        value={terapi.namaObat}
+                                                        value={typeof terapi.namaObat === 'object' ? terapi.namaObat?.DESKRIPSI ?? '' : terapi.namaObat}
                                                         setValue={(val: string) => handleUpdateTerapi(index, 'namaObat', val)}
                                                         placeholder="Cari nama obat"
                                                         getOptionLabel={(item) => item?.DESKRIPSI ?? ''}
