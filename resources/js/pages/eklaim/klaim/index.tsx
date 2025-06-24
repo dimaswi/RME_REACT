@@ -64,9 +64,8 @@ export default function KlaimIndex() {
     const [loadingAjukan, setLoadingAjukan] = useState(false);
 
     const handleRowClick = (item: any) => {
-        setModalData(item);
+        setModalData(item);        
         setShowModal(true);
-        console.log('Row clicked:', item);
     };
 
     const formatTanggalIndo = (tanggal: string) => {
@@ -87,25 +86,28 @@ export default function KlaimIndex() {
         }
     };
 
+
     const handleAjukanKlaim = async () => {
         const data = {
             nomor_kartu: modalData.noKartu,
             nomor_sep: modalData.noSEP,
             nomor_rm: modalData.kartu_asuransi_pasien.NORM,
-            nama_pasien: modalData.data_peserta.NAMA,
+            nama_pasien: modalData.data_peserta.nama,
             nomor_pendaftaran: modalData.penjamin_pendaftaran.NOPEN,
             tgl_lahir: modalData.data_peserta.tglLahir,
             gender: modalData.data_peserta.sex == 'L' ? '1' : '2',
             jenis_perawatan: modalData.poliTujuan == 'IGD' ? 'Gawat Darurat' : modalData.poliTujuan == '' ? 'Rawat Inap' : 'Rawat Jalan',
         };
+        
+        console.log('Data yang akan diajukan:', data);
 
-        router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
-            onStart: () => setLoadingAjukan(true),
-            onFinish: () => {
-                setLoadingAjukan(false);
-                setShowModal(false);
-            },
-        });
+        // router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
+        //     onStart: () => setLoadingAjukan(true),
+        //     onFinish: () => {
+        //         setLoadingAjukan(false);
+        //         setShowModal(false);
+        //     },
+        // });
     };
 
     const tanggal_awal = usePage().props.tanggal_awal || '';
