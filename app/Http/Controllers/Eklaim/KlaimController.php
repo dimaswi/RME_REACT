@@ -36,7 +36,7 @@ class KlaimController extends Controller
     public function index(Request $request)
     {
         try {
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 100);
             $q = $request->input('q');
             $poli = $request->input('poli');
             $tanggalAwal = $request->input('tanggal_awal');
