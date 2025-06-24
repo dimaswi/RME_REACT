@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::get('eklaim/klaim', [KlaimController::class, 'index'])->name('eklaim.klaim.index');
-    Route::get('eklaim/klaim/list-pengajuan', [KlaimController::class, 'listPengajuanKlaim'])->name('eklaim.klaim.indexPengajuanKlaim');
+    Route::get('eklaim/klaim/pengajuan', [KlaimController::class, 'listPengajuanKlaim'])->name('eklaim.klaim.indexPengajuanKlaim');
     Route::get('eklaim/klaim/{pasien}', [KlaimController::class, 'show'])->name('eklaim.klaim.show');
     Route::post('eklaim/klaim/pengajuan', [KlaimController::class, 'storePengajuanKlaim'])->name('eklaim.klaim.storePengajuanKlaim');
     Route::post('eklaim/klaim/{pengajuanKlaim}/grouper/one', [KlaimController::class, 'groupStageOneKlaim'])->name('eklaim.klaim.groupStageOneKlaim');
@@ -79,5 +79,5 @@ Route::middleware('auth')->group(function () {
 //filter table
 Route::middleware('auth')->group(function () {
     Route::post('/eklaim/klaim/filter', [KlaimController::class, 'indexFilter'])->name('eklaim.klaim.filter');
-    Route::post('/eklaim/klaim/list-pengajuan/filter', [KlaimController::class, 'listPengajuanIndexFilter']);
+    Route::post('/eklaim/klaim/pengajuan/filter', [KlaimController::class, 'listPengajuanIndexFilter']);
 });

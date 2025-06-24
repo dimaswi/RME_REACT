@@ -17,6 +17,7 @@ import FinalGroupingCollapse from './collapseFinalGrouping';
 import GroupingOneCollapse from './collapseGroupingOne';
 import PengajuanKlaimCollapse from './collapseListPengajuan';
 import SudahTerkirimCollapse from './collapseSudahKirim';
+import { toast } from 'sonner';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -139,14 +140,17 @@ export default function ListPengajuan() {
 
     // Fetch data manual (bukan useEffect otomatis)
     const fetchData = async (customFilters = filtersState) => {
+        toast.loading('Mengambil data pengajuan klaim...')
         setLoading(true);
         await axios
-            .post('/eklaim/klaim/list-pengajuan/filter', customFilters)
+            .post('/eklaim/klaim/pengajuan/filter', customFilters)
             .then((response) => {
-                setData(response.data.pengajuanKlaim);
+                setData(response.data.dataPendaftaran); // <-- ambil dataPendaftaran saja!
+                toast.dismiss();
+                toast.success('Data berhasil diambil');
             })
-            .catch(() => {
-                setData({ data: [], links: [], current_page: 1, last_page: 1, perPage: 10 });
+            .catch((error) => {
+                toast.error('Gagal mengambil data');
             })
             .finally(() => setLoading(false));
     };
