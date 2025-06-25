@@ -31,7 +31,7 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
         const fetchData = async () => {
             setLoading(true);
             try {
-                const result = await axios(`grouper/one/${pengajuanKlaim.id}`);
+                const result = await axios(`klaim/grouper/one/${pengajuanKlaim.id}`);
                 setData(result.data);
             } finally {
                 setLoading(false);
