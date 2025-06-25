@@ -4,7 +4,7 @@ import { Check, Loader } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 
-export default function CollapseBelumDiajukan({ pengajuanKlaim }: { pengajuanKlaim: any }) {
+export default function CollapseBelumDiajukan({ pengajuanKlaim, refreshData }: { pengajuanKlaim: any, refreshData: () => void }) {
     const [loadingPengajuan, setLoadingPengajuan] = React.useState(false);
 
     return (
@@ -31,12 +31,21 @@ export default function CollapseBelumDiajukan({ pengajuanKlaim }: { pengajuanKla
                                 },
                                 onFinish: () => {
                                     setLoadingPengajuan(false);
+                                    if (typeof refreshData === 'function') {
+                                        refreshData();
+                                    }
                                 },
                                 onError: () => {
                                     setLoadingPengajuan(false);
+                                    if (typeof refreshData === 'function') {
+                                        refreshData();
+                                    }
                                 },
                                 onSuccess: () => {
                                     setLoadingPengajuan(false);
+                                    if (typeof refreshData === 'function') {
+                                        refreshData();
+                                    }
                                 },
                             },
                         );

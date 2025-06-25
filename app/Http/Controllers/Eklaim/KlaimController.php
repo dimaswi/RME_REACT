@@ -610,6 +610,15 @@ class KlaimController extends Controller
         // Mulai simpan data ke database
         DB::connection('eklaim')->beginTransaction();
         try {
+            $dataCBG = GrouperOneCBG::where('pengajuan_klaim_id', $pengajuanKlaim->id)->first();
+            GrouperOneCBG::where('grouper_one_id', $dataCBG->id)->delete();
+            GrouperOneSubAcute::where('grouper_one_id', $dataCBG->id)->delete();
+            GrouperOneChronic::where('grouper_one_id', $dataCBG->id)->delete();
+            GrouperOneTarif::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
+            GrouperOneSpecialCmgOption::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
+            GrouperOneInagrouper::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
+            GrouperOne::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
+            
             $response = $send['response'] ?? [];
             // 1. Simpan GrouperOne (utama)
             $grouperOne = \App\Models\Eklaim\GrouperOne::updateOrCreate(

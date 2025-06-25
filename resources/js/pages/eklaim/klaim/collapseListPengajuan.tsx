@@ -15,9 +15,10 @@ type Props = {
     formatTanggal: (tanggal: string | null) => string;
     getStatusBadge: (status: number, id: string) => React.ReactNode;
     expanded: boolean;
+    refreshData: () => void;
 };
 
-export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusBadge, expanded }: Props) {
+export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusBadge, expanded, refreshData }: Props) {
     // --- State ---
     const [caraMasuk, setCaraMasuk] = useState('');
     const [dataDischargeStatus, setDataDischargeStatus] = useState('');
@@ -314,10 +315,14 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
         if (!masuk || !keluar) return 0;
         const tglMasuk = new Date(masuk);
         const tglKeluar = new Date(keluar);
-        const diffMs = tglKeluar.getTime() - tglMasuk.getTime();
-        const diffJam = diffMs / (1000 * 60 * 60);
-        if (diffJam <= 1) return 1;
-        return Math.ceil(diffJam / 24);
+        // Ambil tanggal (tanpa jam)
+        const dateMasuk = new Date(tglMasuk.getFullYear(), tglMasuk.getMonth(), tglMasuk.getDate());
+        const dateKeluar = new Date(tglKeluar.getFullYear(), tglKeluar.getMonth(), tglKeluar.getDate());
+        // Hitung selisih hari (misal masuk 23:15, keluar 01:15 besok = 1 hari, tapi harus dihitung 2 hari)
+        const diffHari = Math.floor((dateKeluar.getTime() - dateMasuk.getTime()) / (1000 * 60 * 60 * 24));
+        // Jika tanggal masuk dan keluar sama, tetap 1 hari
+        // Jika beda hari, jumlah hari = selisih + 1
+        return diffHari >= 0 ? diffHari + 1 : 1;
     }
 
     // --- Fetch Diagnosa/Procedure ---
@@ -443,8 +448,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                         klaimData.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan'
                             ? '2'
                             : klaimData.pengajuanKlaim.jenis_perawatan === 'IGD'
-                              ? '3'
-                              : '1',
+                                ? '3'
+                                : '1',
                     );
                     setSistole(klaimData.resumeMedis.sistole || '');
                     setDiastole(klaimData.resumeMedis.diastole || '');
@@ -520,8 +525,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     response.data.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan'
                         ? '2'
                         : response.data.pengajuanKlaim.jenis_perawatan === 'IGD'
-                          ? '3'
-                          : '1',
+                            ? '3'
+                            : '1',
                 );
                 setSistole(response.data.resumeMedis.sistole || '');
                 setDiastole(response.data.resumeMedis.diastole || '');
@@ -736,9 +741,11 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 },
                 onError: () => {
                     setLoadingSimpan(false);
+                    if (typeof refreshData === 'function') refreshData(); // <-- panggil refreshData di sini
                 },
                 onSuccess: () => {
                     setLoadingSimpan(false);
+                    if (typeof refreshData === 'function') refreshData();
                 },
             });
         } catch (error: any) {
@@ -767,6 +774,8 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                 },
                 onSuccess: () => {
                     setLoadingGrouper(false);
+                    if (typeof refreshData === 'function') refreshData(); // <-- panggil refreshData di sini
+
                 },
             },
         );

@@ -8,7 +8,7 @@ import { set } from 'date-fns';
 import { toast } from 'sonner';
 import { mergePDFs } from '@/PDF/MergePDF';
 
-export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKlaim: any }) {
+export default function FinalGroupingCollapse({ pengajuanKlaim, refreshData }: { pengajuanKlaim: any, refreshData: () => void }) {
     const [loadingEditUlang, setLoadingEditUlang] = React.useState(false);
     const [loadingHapus, setLoadingHapus] = React.useState(false);
     const [loadingCetak, setLoadingCetak] = React.useState(false);
@@ -17,7 +17,7 @@ export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKla
 
     return (
         <>
-            <GroupingOneCollapse pengajuanKlaim={pengajuanKlaim} />
+            <GroupingOneCollapse pengajuanKlaim={pengajuanKlaim} refreshData={refreshData} />
 
             <div className="mb-4 flex justify-end gap-2">
                 {loadingKirim ? (
@@ -39,9 +39,15 @@ export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKla
                                     },
                                     onFinish: () => {
                                         setLoadingKirim(false);
+                                        if (typeof refreshData === 'function') {
+                                            refreshData();
+                                        }
                                     },
                                     onError: () => {
                                         setLoadingKirim(false);
+                                        if (typeof refreshData === 'function') {
+                                            refreshData();
+                                        }
                                     },
                                 });
                             } catch (error) {
@@ -75,12 +81,21 @@ export default function FinalGroupingCollapse({ pengajuanKlaim }: { pengajuanKla
                                     },
                                     onFinish: () => {
                                         setLoadingEditUlang(false);
+                                        if (typeof refreshData === 'function') {
+                                            refreshData();
+                                        }
                                     },
                                     onError: () => {
                                         setLoadingEditUlang(false);
+                                        if (typeof refreshData === 'function') {
+                                            refreshData();
+                                        }
                                     },
                                     onSuccess: () => {
                                         setLoadingEditUlang(false);
+                                        if (typeof refreshData === 'function') {
+                                            refreshData();
+                                        }
                                     },
                                 },
                             );

@@ -14,9 +14,10 @@ type GrouperOneData = {
     };
     grouperOneSpecialCmgOption?: any[];
     grouperOneInagrouper?: any[];
+    refreshData: () => void;
 };
 
-export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim: any }) {
+export default function GroupingOneCollapse({ pengajuanKlaim, refreshData }: { pengajuanKlaim: any; refreshData: () => void }) {
     const [data, setData] = useState<GrouperOneData | null>(null);
     const [loading, setLoading] = useState(true);
     const [specialProcedure, setSpecialProcedure] = useState<string[]>([]);
@@ -256,9 +257,15 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                                         },
                                         onSuccess: (page) => {
                                             setLoadingGrouper(false);
+                                            if (typeof refreshData === 'function') {
+                                                refreshData();
+                                            }
                                         },
                                         onError: (errors) => {
                                             setLoadingGrouper(false);
+                                            if (typeof refreshData === 'function') {
+                                                refreshData();
+                                            }
                                         },
                                         onFinish: () => setLoadingGrouper(false),
                                     },
@@ -289,9 +296,15 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                                         },
                                         onSuccess: (page) => {
                                             setLoadingFinal(false);
+                                            if (typeof refreshData === 'function') {
+                                                refreshData();
+                                            }
                                         },
                                         onError: (errors) => {
                                             setLoadingFinal(false);
+                                            if (typeof refreshData === 'function') {
+                                                refreshData();
+                                            }
                                         },
                                         onFinish: () => setLoadingFinal(false),
                                     },

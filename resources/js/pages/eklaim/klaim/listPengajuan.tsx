@@ -224,6 +224,10 @@ export default function ListPengajuan() {
         },
     ];
 
+    const refreshData = async () => {
+        await fetchData(filtersState);
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="List Pengajuan Klaim" />
@@ -403,6 +407,7 @@ export default function ListPengajuan() {
                                                                 formatTanggal={formatTanggal}
                                                                 getStatusBadge={getStatusBadge}
                                                                 expanded={openRow === item.id}
+                                                                refreshData={refreshData}
                                                             />
                                                         )}
 
@@ -413,14 +418,30 @@ export default function ListPengajuan() {
                                                                     formatTanggal={formatTanggal}
                                                                     getStatusBadge={getStatusBadge}
                                                                     expanded={openRow === item.id}
+                                                                    refreshData={refreshData}
                                                                 />
-                                                                <GroupingOneCollapse pengajuanKlaim={item} />
+                                                                <GroupingOneCollapse
+                                                                    pengajuanKlaim={item}
+                                                                    refreshData={refreshData}
+                                                                />
                                                             </>
                                                         )}
 
-                                                        {item.status === 3 && <FinalGroupingCollapse pengajuanKlaim={item} />}
+                                                        {
+                                                            item.status === 3 && 
+                                                            <FinalGroupingCollapse 
+                                                                pengajuanKlaim={item} 
+                                                                refreshData={refreshData}
+                                                            />
+                                                        }
 
-                                                        {item.status === 4 && <SudahTerkirimCollapse pengajuanKlaim={item} />}
+                                                        {
+                                                            item.status === 4 && 
+                                                            <SudahTerkirimCollapse 
+                                                                pengajuanKlaim={item} 
+                                                                refreshData={refreshData}
+                                                            />
+                                                        }
                                                     </TableCell>
                                                 </TableRow>
                                             )}
