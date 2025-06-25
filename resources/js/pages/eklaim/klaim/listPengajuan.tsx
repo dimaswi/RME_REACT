@@ -124,20 +124,39 @@ export default function ListPengajuan() {
     const [openModalBaru, setOpenModalBaru] = useState(false);
     const [openRow, setOpenRow] = useState<number | null>(null);
 
-    // Simpan filter & data ke localStorage setiap kali berubah
+    // Simpan filter ke localStorage setiap kali berubah
     useEffect(() => {
         localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filtersState));
     }, [filtersState]);
+
+    // Simpan data table ke localStorage setiap kali data berubah
     useEffect(() => {
         localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(data));
     }, [data]);
+
+    // Update data table di localStorage setiap kali ada response inertia (navigasi, reload, dsb)
     useEffect(() => {
-        // Sinkronkan dateRange dengan filtersState saat filtersState berubah (misal setelah reload)
-        setDateRange({
-            from: filtersState.tanggal_awal ? new Date(filtersState.tanggal_awal) : undefined,
-            to: filtersState.tanggal_akhir ? new Date(filtersState.tanggal_akhir) : undefined,
-        });
-    }, [filtersState.tanggal_awal, filtersState.tanggal_akhir]);
+        const onFinish = (event: any) => {
+            // Cek jika ada data pengajuanKlaim di props inertia
+            if (event.detail?.page?.props?.pengajuanKlaim) {
+                const resp = event.detail.page.props.pengajuanKlaim;
+                // Strukturkan sesuai state data
+                const newData = {
+                    data: Array.isArray(resp.data) ? resp.data : [],
+                    links: Array.isArray(resp.links) ? resp.links : [],
+                    current_page: resp.current_page ?? 1,
+                    last_page: resp.last_page ?? 1,
+                    perPage: resp.perPage ?? 10,
+                };
+                localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(newData));
+            }
+        };
+        window.addEventListener('inertia:finish', onFinish);
+        return () => window.removeEventListener('inertia:finish', onFinish);
+    }, []);
+
+    const tanggalAwal = filtersState.tanggal_awal ? new Date(filtersState.tanggal_awal) : null;
+    const tanggalAkhir = filtersState.tanggal_akhir ? new Date(filtersState.tanggal_akhir) : null;
 
     // Fetch data manual (bukan useEffect otomatis)
     const fetchData = async (customFilters = filtersState) => {
