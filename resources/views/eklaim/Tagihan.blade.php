@@ -225,7 +225,7 @@
                     </tr>
                 @endfor
             </tbody>
-            {{-- @if ($page == $pages - 1)
+            @if ($page == $pages - 1)
                 <tfoot>
                     <tr>
                         <td style="text-align: right; font-weight: bold;"></td>
@@ -248,12 +248,12 @@
                             <center>
                                 BOJONEGORO, {{ formatTanggalIndo($tanggalKeluar) }} <br>
                                 <img src="{{ $qrcode_petugas }}" alt="" style="width: 70px; height: 70px; padding: 10px;"> <br>
-                                <strong>{{ $dataPembayaran['pegawai']['NAMA'] }}</strong>
+                                {{-- <strong>{{ $dataPembayaran['pegawai']['NAMA'] }}</strong> --}}
                             </center>
                         </td>
                     </tr>
                 </tfoot>
-            @endif --}}
+            @endif
         </table>
         @if ($page < $pages - 1)
             <div style="page-break-after: always;"></div>
