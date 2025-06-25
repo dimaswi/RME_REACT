@@ -118,7 +118,7 @@
                 Diperoleh secara :
                 @if ($pengkajianAwal['auto_anamnesis'] == 1)
                     <span>Auto-Anamnesis/<s>Allo-Anamnesis</s></span>, dari : {{ $pengkajianAwal['dari'] }}
-                @elseif ($pengkajianAwal['allo_anamnesisi'] == 1)
+                @elseif ($pengkajianAwal['allo_anamnesis'] == 1)
                     <span><s>Auto-Anamnesis</s>/Allo-Anamnesis</span>, dari : {{ $pengkajianAwal['dari'] }}
                 @else
                     <span>Auto-Anamnesisi/Allo-Anamnesis</span>, dari : {{ $pengkajianAwal['dari'] }}
