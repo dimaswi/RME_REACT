@@ -1077,6 +1077,7 @@ class BridgeDataController extends Controller
                 $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas'
             )
         );
+        $nama_petugas = $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas';
         $pendaftaranPasien = Pendaftaran::where('NOMOR', $dataTagihanPendaftaran->PENDAFTARAN)->first();
         $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
         $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
@@ -1162,6 +1163,7 @@ class BridgeDataController extends Controller
                 'penjamin',
                 'dataPembayaran',
                 'qrcode_petugas', // Kirim QR code petugas ke view
+                'nama_petugas', // Kirim nama petugas ke view
             ))->render()
         );
         $dompdf->setPaper('A4', 'portrait');

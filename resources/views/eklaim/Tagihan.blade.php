@@ -248,7 +248,7 @@
                             <center>
                                 BOJONEGORO, {{ formatTanggalIndo($tanggalKeluar) }} <br>
                                 <img src="{{ $qrcode_petugas }}" alt="" style="width: 70px; height: 70px; padding: 10px;"> <br>
-                                {{-- <strong>{{ $dataPembayaran['pegawai']['NAMA'] }}</strong> --}}
+                                <strong>{{ $nama_petugas }}</strong>
                             </center>
                         </td>
                     </tr>
