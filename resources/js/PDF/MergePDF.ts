@@ -118,9 +118,9 @@ export const mergePDFs = async (nomorPendaftaran: string, nomorSEP: string, peng
         const filteredBlobs = [
             { key: 'sep', name: 'SEP', blob: sepBlob },
             ...dokumenLain,
+            { key: 'resumeMedis', name: 'Resume Medis', blob: resumeMedisBlob },
             laboratoriumBlobObj,
             radiologiBlobObj,
-            { key: 'resumeMedis', name: 'Resume Medis', blob: resumeMedisBlob },
             tagihanBlobObj,
         ].filter(Boolean); // filter null
 
