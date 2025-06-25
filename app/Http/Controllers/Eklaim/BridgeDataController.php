@@ -702,6 +702,7 @@ class BridgeDataController extends Controller
         } else {
             $dataResumeMedis->cara_pulang = 'Lain-lain';
         }
+        
 
         $resumeMedis = [
             'nama_pasien' => $dataResumeMedis->nama_pasien ?? 'Tidak ada data nama pasien',

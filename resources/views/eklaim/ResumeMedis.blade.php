@@ -184,9 +184,9 @@
                 <ol>
                     @if (count($resumeMedis['hasil_konsultasi']) > 0)
                         {{-- Loop through hasil_konsultasi and display each item --}}
-                        @foreach ($resumeMedis['hasil_konsultasi'] as $konsultasi)
+                        {{-- @foreach ($resumeMedis['hasil_konsultasi'] as $konsultasi)
                             <li>{{ $konsultasi['nama_dokter'] }} - {{ $konsultasi['spesialis'] }}: {{ $konsultasi['hasil'] }}</li>
-                        @endforeach
+                        @endforeach --}}
                     @else
                         <li>Tidak ada hasil konsultasi</li>
                     @endif
