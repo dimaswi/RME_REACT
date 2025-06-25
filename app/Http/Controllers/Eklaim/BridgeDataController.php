@@ -776,7 +776,7 @@ class BridgeDataController extends Controller
         $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
         $dataPengkajianAwal = PengkajianAwal::where('resume_medis_id', $resumeMedis->id)->first();
         if (!$dataPengkajianAwal) {
-            throw new \Exception("Data Pengkajian Awal tidak ditemukan");
+            return redirect()->back()->with('error','Data Pengkajian Awal tidak ditemukan untuk pengajuan klaim ini.');
         }
         $dataTTV = TandaVital::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
         $dataAnamnesis = Anamnesis::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
@@ -888,6 +888,9 @@ class BridgeDataController extends Controller
     public function previewTriageEdit(PengajuanKlaim $pendaftaran)
     {
         $dataResumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
+        if (!$dataResumeMedis) {
+            return redirect()->back()->with('error', 'Data Resume Medis tidak ditemukan untuk pengajuan klaim ini.');
+        }
         $dataTriage = Triage::where('resume_medis_id', $dataResumeMedis->id)->first();
         $getCaraDatang = [
             'JENIS' => 99,
