@@ -186,7 +186,7 @@
             $end = min(($page + 1) * $perPage, $total);
         @endphp
 
-        <table class="tabel-tagihan">
+        {{-- <table class="tabel-tagihan">
             @if ($page == 0)
                 <thead>
                     <tr>
@@ -257,7 +257,7 @@
         </table>
         @if ($page < $pages - 1)
             <div style="page-break-after: always;"></div>
-        @endif
+        @endif --}}
     @endfor
 </body>
 

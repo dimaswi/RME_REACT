@@ -740,8 +740,6 @@ class BridgeDataController extends Controller
 
         ];
 
-        // dd($resumeMedis);
-
         $namaDokter = $dataResumeMedis['dokter'] ?? '-';
         $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
             QrCode::format('png')->size(150)->generate($namaDokter)
