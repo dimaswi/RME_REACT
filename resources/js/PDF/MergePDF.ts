@@ -97,33 +97,32 @@ export const mergePDFs = async (nomorPendaftaran: string, nomorSEP: string, peng
         // Tunggu semua dokumen yang diperlukan
         const blobs = await Promise.all(blobPromises.map((b) => b.promise));
 
-        // Pisahkan tagihan dari dokumen lain
-        const dokumenLain = [];
+        // Pisahkan dokumen sesuai urutan: laboratorium, radiologi, tagihan, dokumen lain
+        let laboratoriumBlobObj = null;
+        let radiologiBlobObj = null;
         let tagihanBlobObj = null;
+        const dokumenLain = [];
+
         blobPromises.forEach((b, i) => {
-            if (b.key === 'tagihan') {
-                tagihanBlobObj = {
-                    key: b.key,
-                    name: b.name,
-                    blob: blobs[i],
-                };
+            if (b.key === 'laboratorium') {
+                laboratoriumBlobObj = { key: b.key, name: b.name, blob: blobs[i] };
+            } else if (b.key === 'radiologi') {
+                radiologiBlobObj = { key: b.key, name: b.name, blob: blobs[i] };
+            } else if (b.key === 'tagihan') {
+                tagihanBlobObj = { key: b.key, name: b.name, blob: blobs[i] };
             } else {
-                dokumenLain.push({
-                    key: b.key,
-                    name: b.name,
-                    blob: blobs[i],
-                });
+                dokumenLain.push({ key: b.key, name: b.name, blob: blobs[i] });
             }
         });
 
         const filteredBlobs = [
             { key: 'sep', name: 'SEP', blob: sepBlob },
             ...dokumenLain,
+            laboratoriumBlobObj,
+            radiologiBlobObj,
             { key: 'resumeMedis', name: 'Resume Medis', blob: resumeMedisBlob },
-        ];
-        if (tagihanBlobObj) {
-            filteredBlobs.push(tagihanBlobObj);
-        }
+            tagihanBlobObj,
+        ].filter(Boolean); // filter null
 
         // Validasi dokumen yang wajib ada
         for (const { name, blob } of filteredBlobs) {

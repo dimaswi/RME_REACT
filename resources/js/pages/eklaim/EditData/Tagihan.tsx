@@ -245,8 +245,7 @@ export default function EditTagihan() {
                                 onClick={async () => {
                                     setLoading(true);
                                     try {
-                                        router.visit(route('eklaim.deleteRincianTagihan', { rincianTagihan: selectedId }), {
-                                            method: 'get', // atau 'delete' jika route Anda pakai method delete
+                                        router.get(route('eklaim.deleteRincianTagihan', { rincianTagihan: selectedId }), {
                                             only: ['rincian', 'error', 'success'], // agar hanya prop rincian yang di-refresh
                                             preserveScroll: true,
                                         });
