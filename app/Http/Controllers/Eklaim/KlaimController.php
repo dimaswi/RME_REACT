@@ -739,15 +739,15 @@ class KlaimController extends Controller
             return redirect()->back()->with('error', 'Gagal menyimpan data grouper: ' . $e->getMessage());
         }
 
-        // // Logging sukses
-        // LogKlaim::create([
-        //     'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
-        //     'method' => json_encode($metadata),
-        //     'request' => json_encode($data),
-        //     'response' => json_encode($send),
-        // ]);
+        // Logging sukses
+        LogKlaim::create([
+            'nomor_SEP' => $pengajuanKlaim->nomor_SEP,
+            'method' => json_encode($metadata),
+            'request' => json_encode($data),
+            'response' => json_encode($send),
+        ]);
 
-        // return redirect()->back()->with('success', 'Data berhasil digrouping');
+        return redirect()->back()->with('success', 'Data berhasil digrouping');
     }
 
     public function groupStageTwoKlaim(PengajuanKlaim $pengajuanKlaim, Request $request)

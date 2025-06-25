@@ -752,7 +752,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
     // --- Handle Grouper ---
     const handleGrouper = async () => {
         const response = await router.post(
-            `${item.id}/grouper/one`,
+            `eklaim/klaim/${item.id}/grouper/one`,
             {},
             {
                 preserveState: true,
