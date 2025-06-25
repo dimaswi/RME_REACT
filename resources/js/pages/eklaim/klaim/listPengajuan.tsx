@@ -123,6 +123,7 @@ export default function ListPengajuan() {
     const [loading, setLoading] = useState(false);
     const [openModalBaru, setOpenModalBaru] = useState(false);
     const [openRow, setOpenRow] = useState<number | null>(null);
+    const [filterSEP, setFilterSEP] = useState(''); // Tambahkan state untuk filter SEP di dalam komponen
 
     // Simpan filter ke localStorage setiap kali berubah
     useEffect(() => {
@@ -325,6 +326,18 @@ export default function ListPengajuan() {
                     </form>
                     {/* END Form Filter */}
 
+                    {/* Input filter SEP di atas tabel */}
+                    <div className="flex items-center justify-end gap-2 py-2">
+                        <input
+                            type="text"
+                            className="rounded border px-2 py-1"
+                            placeholder="Cari Nomor SEP"
+                            value={filterSEP}
+                            onChange={(e) => setFilterSEP(e.target.value)}
+                            style={{ width: 220 }}
+                        />
+                    </div>
+
                     {/* Table Data */}
                     <Table className="w-full min-w-max">
                         <TableHeader>
@@ -345,68 +358,74 @@ export default function ListPengajuan() {
                         </TableHeader>
                         <TableBody>
                             {Array.isArray(data.data) && data.data.length > 0 ? (
-                                data.data.map((item: any, idx: number) => (
-                                    <React.Fragment key={item.id}>
-                                        <TableRow className="cursor-pointer hover:bg-blue-50" onClick={() => handleToggleRow(item.id)}>
-                                            <TableCell>{item.pendaftaran_poli.pasien.NORM || '-'}</TableCell>
-                                            <TableCell>{item.pendaftaran_poli.pasien.NAMA || '-'}</TableCell>
-                                            <TableCell>{item.nomor_SEP || '-'}</TableCell>
-                                            <TableCell>
-                                                <center>{getStatusBadge(item.status, item.id)}</center>
-                                            </TableCell>
-                                            <TableCell>
-                                                <center>{formatTanggal(item.tanggal_pengajuan)}</center>
-                                            </TableCell>
-                                            <TableCell>
-                                                <center>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            router.visit(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }));
-                                                        }}
-                                                    >
-                                                        <Info className="mr-2 h-4 w-4 text-blue-400" />
-                                                        Detail
-                                                    </Button>
-                                                </center>
-                                            </TableCell>
-                                        </TableRow>
-                                        {openRow === item.id && (
-                                            <TableRow>
-                                                <TableCell colSpan={6} className="bg-gray-50">
-                                                    {item.status === 0 && <CollapseBelumDiajukan pengajuanKlaim={item} />}
+                                data.data
+                                    .filter((item: any) =>
+                                        filterSEP.trim() === ''
+                                            ? true
+                                            : (item.nomor_SEP || '').toLowerCase().includes(filterSEP.trim().toLowerCase())
+                                    )
+                                    .map((item: any, idx: number) => (
+                                        <React.Fragment key={item.id}>
+                                            <TableRow className="cursor-pointer hover:bg-blue-50" onClick={() => handleToggleRow(item.id)}>
+                                                <TableCell>{item.pendaftaran_poli.pasien.NORM || '-'}</TableCell>
+                                                <TableCell>{item.pendaftaran_poli.pasien.NAMA || '-'}</TableCell>
+                                                <TableCell>{item.nomor_SEP || '-'}</TableCell>
+                                                <TableCell>
+                                                    <center>{getStatusBadge(item.status, item.id)}</center>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <center>{formatTanggal(item.tanggal_pengajuan)}</center>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <center>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                router.visit(route('eklaim.klaim.dataKlaim', { dataKlaim: item.id }));
+                                                            }}
+                                                        >
+                                                            <Info className="mr-2 h-4 w-4 text-blue-400" />
+                                                            Detail
+                                                        </Button>
+                                                    </center>
+                                                </TableCell>
+                                            </TableRow>
+                                            {openRow === item.id && (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} className="bg-gray-50">
+                                                        {item.status === 0 && <CollapseBelumDiajukan pengajuanKlaim={item} />}
 
-                                                    {item.status === 1 && (
-                                                        <PengajuanKlaimCollapse
-                                                            item={item}
-                                                            formatTanggal={formatTanggal}
-                                                            getStatusBadge={getStatusBadge}
-                                                            expanded={openRow === item.id}
-                                                        />
-                                                    )}
-
-                                                    {item.status === 2 && (
-                                                        <>
+                                                        {item.status === 1 && (
                                                             <PengajuanKlaimCollapse
                                                                 item={item}
                                                                 formatTanggal={formatTanggal}
                                                                 getStatusBadge={getStatusBadge}
                                                                 expanded={openRow === item.id}
                                                             />
-                                                            <GroupingOneCollapse pengajuanKlaim={item} />
-                                                        </>
-                                                    )}
+                                                        )}
 
-                                                    {item.status === 3 && <FinalGroupingCollapse pengajuanKlaim={item} />}
+                                                        {item.status === 2 && (
+                                                            <>
+                                                                <PengajuanKlaimCollapse
+                                                                    item={item}
+                                                                    formatTanggal={formatTanggal}
+                                                                    getStatusBadge={getStatusBadge}
+                                                                    expanded={openRow === item.id}
+                                                                />
+                                                                <GroupingOneCollapse pengajuanKlaim={item} />
+                                                            </>
+                                                        )}
 
-                                                    {item.status === 4 && <SudahTerkirimCollapse pengajuanKlaim={item} />}
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </React.Fragment>
-                                ))
+                                                        {item.status === 3 && <FinalGroupingCollapse pengajuanKlaim={item} />}
+
+                                                        {item.status === 4 && <SudahTerkirimCollapse pengajuanKlaim={item} />}
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </React.Fragment>
+                                    ))
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={7} className="text-center">
