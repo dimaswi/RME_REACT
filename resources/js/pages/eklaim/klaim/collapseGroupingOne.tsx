@@ -246,7 +246,7 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                             onClick={() => {
                                 setLoadingGrouper(true);
                                 router.post(
-                                    `${pengajuanKlaim.id}/grouper/two`,
+                                    `klaim/${pengajuanKlaim.id}/grouper/two`,
                                     { specialCmgCombinedString },
                                     {
                                         preserveState: true,
@@ -279,7 +279,7 @@ export default function GroupingOneCollapse({ pengajuanKlaim }: { pengajuanKlaim
                             onClick={() => {
                                 setLoadingFinal(true);
                                 router.post(
-                                    `${pengajuanKlaim.id}/grouper/final`,
+                                    `klaim/${pengajuanKlaim.id}/grouper/final`,
                                     {},
                                     {
                                         preserveState: true,
