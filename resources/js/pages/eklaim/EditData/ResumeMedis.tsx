@@ -26,6 +26,7 @@ interface ResumeMedisProps {
 
 export default function EditResumeMedis(props: ResumeMedisProps) {
     const { imageBase64, dataKlaim, dataKunjungan } = props;
+    console.log('dataKunjungan', dataKunjungan);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -234,8 +235,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             setRiwayatPenyakitLalu(kunjungan?.rpp?.DESKRIPSI || null);
             setPemeriksaanFisik(kunjungan?.pemeriksaan_fisik?.DESKRIPSI || null);
             setRiwayatAlergi(kunjungan?.riwayat_alergi?.DESKRIPSI || null);
-            setKeadaanPulang(kunjungan?.pasien_pulang?.keadaan_pulang?.DESKRIPSI || '1');
-            setCaraPulang(kunjungan?.pasien_pulang?.cara_pulang?.DESKRIPSI || 'Belum Pulang');
+            setKeadaanPulang(kunjungan?.pasien_pulang?.KEADAAN || '1');
+            setCaraPulang(kunjungan?.pasien_pulang?.CARA || '1');
             setSelectedDiagnosa(
                 Array.isArray(kunjungan?.diagnosa_pasien)
                     ? kunjungan.diagnosa_pasien.map((item: any) => ({
