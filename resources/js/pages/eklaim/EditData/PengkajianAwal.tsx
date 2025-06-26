@@ -20,7 +20,6 @@ interface PengkajianAwalProps {
 
 export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }: PengkajianAwalProps) {
     const [componentMode, setComponentMode] = useState(0);
-    console.log("Nomor Kunjungan Pengkajian Awal:", nomorKunjungan);
     const { success, error } = usePage().props;
     useEffect(() => {
         if (success) toast.success(success);
@@ -704,7 +703,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                                 </Label>
                                 <Switch
                                     id="mode-switch"
-                                    checked={componentMode === 1}
+                                    checked={componentMode == 0}
                                     onCheckedChange={async (checked) => {
                                         try {
                                             setComponentMode(checked ? 1 : 0);

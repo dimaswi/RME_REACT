@@ -438,8 +438,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         respirasi: respirasi || null,
     };
 
-    console.log('Data Resume Medis:', dataResumeMedis);
-
     function handleLamaDirawat(tanggalMasuk: string | null | undefined, tanggalKeluar: string | null | undefined): string {
         if (tanggalMasuk && tanggalKeluar) {
             const masuk = new Date(tanggalMasuk);

@@ -27,7 +27,6 @@ interface CPPTRow {
 
 export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProps) {
     const [componentMode, setComponentMode] = useState<number>(0);
-    console.log("Nomor Kunjungan CPPT:", nomorKunjungan);
     const [rows, setRows] = useState<CPPTRow[]>(
         [
             {
@@ -193,7 +192,7 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
                                 </Label>
                                 <Switch
                                     id="mode-switch"
-                                    checked={componentMode === 1}
+                                    checked={componentMode == 0}
                                     onCheckedChange={async (checked) => {
                                         try {
                                             setComponentMode(checked ? 1 : 0);

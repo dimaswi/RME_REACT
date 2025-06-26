@@ -19,8 +19,7 @@ interface TriageProps {
 
 
 export default function Triage({ imageBase64, onChange, nomorKunjungan }: TriageProps) {
-        const [componentMode, setComponentMode] = useState(0);
-    console.log("Nomor Kunjungan Triage:", nomorKunjungan);
+    const [componentMode, setComponentMode] = useState(0);
     const handleLoadData = async () => {
         if (componentMode === 1) {
             const response = await axios.get(route('eklaim.getDataTriageEdit', { nomorKunjungan: nomorKunjungan }))
@@ -366,29 +365,29 @@ export default function Triage({ imageBase64, onChange, nomorKunjungan }: Triage
                                         </p>
                                     </div>
                                 </td>
-                                    <td>
-                                            <div className="mb-4 flex items-center gap-4">
-                                                <Label htmlFor="mode-switch" className="text-base">
-                                                    Asli
-                                                </Label>
-                                                <Switch
-                                                    id="mode-switch"
-                                                    checked={componentMode === 1}
-                                                    onCheckedChange={async (checked) => {
-                                                        try {
-                                                            setComponentMode(checked ? 1 : 0);
-                                                            await handleLoadData();
-                                                            toast.success('Berhasil switch mode data.');
-                                                        } catch (error) {
-                                                            toast.error('Gagal switch mode data.');
-                                                            console.error('Error switching mode:', error);
-                                                        }
-                                                    }}
-                                                    className="scale-150" // Membesarkan switch
-                                                />
-                                                <span className="ml-2 text-lg">Edit</span>
-                                            </div>
-                                        </td>
+                                <td>
+                                    <div className="mb-4 flex items-center gap-4">
+                                        <Label htmlFor="mode-switch" className="text-base">
+                                            Asli
+                                        </Label>
+                                        <Switch
+                                            id="mode-switch"
+                                            checked={componentMode == 0}
+                                            onCheckedChange={async (checked) => {
+                                                try {
+                                                    setComponentMode(checked ? 1 : 0);
+                                                    await handleLoadData();
+                                                    toast.success('Berhasil switch mode data.');
+                                                } catch (error) {
+                                                    toast.error('Gagal switch mode data.');
+                                                    console.error('Error switching mode:', error);
+                                                }
+                                            }}
+                                            className="scale-150" // Membesarkan switch
+                                        />
+                                        <span className="ml-2 text-lg">Edit</span>
+                                    </div>
+                                </td>
                             </tr>
                             <tr style={{ background: "black", color: "white", textAlign: "center" }}>
                                 <td colSpan={8}>
