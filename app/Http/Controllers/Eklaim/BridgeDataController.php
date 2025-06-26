@@ -12,6 +12,7 @@ use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PemeriksaanFisik;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Eklaim\PengkajianAwal;
+use App\Models\Eklaim\PenilaianNyeri;
 use App\Models\Eklaim\PermintaanKonsul;
 use App\Models\Eklaim\Psikososial;
 use App\Models\Eklaim\Radiologi;
@@ -784,6 +785,7 @@ class BridgeDataController extends Controller
         $dataResikoGizi = ResikoGizi::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
         $dataStatusPsokososial = Psikososial::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
         $dataDischargePlanning = DischargePlanning::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
+        $dataPenilaianNyeri = PenilaianNyeri::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
 
         $pengkajianAwal = [
             'nama_pasien' => $dataPengkajianAwal->nama_pasien ?? 'Tidak ada data nama pasien',
@@ -852,6 +854,16 @@ class BridgeDataController extends Controller
             'rencana_terapi' => $dataPengkajianAwal->rencana_terapi ?? 'Tidak ada data rencana terapi',
             'nama_dokter' => $dataPengkajianAwal->nama_dokter ?? 'Tidak ada data nama dokter',
             'nip_dokter' => '-',
+            'penilaian_nyeri' => [
+                'nyeri' => $dataPenilaianNyeri->nyeri ?? 'Tidak ada data skala nyeri',
+                'onset' => $dataPenilaianNyeri->onset ?? 'Tidak ada data lokasi nyeri',
+                'pencetus' => $dataPenilaianNyeri->pencetus ?? 'Tidak ada data durasi nyeri',
+                'lokasi' => $dataPenilaianNyeri->lokasi ?? 'Tidak ada data frekuensi nyeri',
+                'gambaran' => $dataPenilaianNyeri->gambaran ?? 'Tidak ada data gambaran nyeri',
+                'durasi' => $dataPenilaianNyeri->durasi ?? 'Tidak ada data durasi nyeri',
+                'skala_nyeri' => $dataPenilaianNyeri->skala ?? 'Tidak ada data skala nyeri',
+                'metode' => $dataPenilaianNyeri->metode ?? 'Tidak ada data metode nyeri',
+            ],
         ];
 
         $namaDokter = $dataResumeMedis['dokter'] ?? '-';

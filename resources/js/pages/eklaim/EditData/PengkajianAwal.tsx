@@ -659,6 +659,10 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
         if (onChange) onChange(form);
     }, [form]);
 
+    useEffect(() => {
+        handleLoadData();
+    }, []);
+
     function formatTanggalIndo(tgl: string) {
         if (!tgl) return "-";
         const bulan = [

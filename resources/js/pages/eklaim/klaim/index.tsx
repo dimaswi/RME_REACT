@@ -161,9 +161,10 @@ export default function KlaimIndex() {
 
         router.post(route('eklaim.klaim.storePengajuanKlaim'), data, {
             onStart: () => setLoadingAjukan(true),
-            onFinish: () => {
+            onFinish: async () => {
                 setLoadingAjukan(false);
                 setShowModal(false);
+                await fetchData(); // Refresh data setelah submit
             },
         });
     };
