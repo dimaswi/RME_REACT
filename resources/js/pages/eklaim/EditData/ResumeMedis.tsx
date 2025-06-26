@@ -232,6 +232,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     useEffect(() => {
         const kunjungan = Array.isArray(dataKunjungan) ? dataKunjungan[0] : dataKunjungan;
+            console.log('Data Kunjungan : ', kunjungan);
         if (dataKlaim.edit !== 1 && kunjungan) {
             setNamaPasien(kunjungan?.pendaftaran_pasien?.pasien?.NAMA || null);
             setNoRM(kunjungan?.pendaftaran_pasien?.pasien?.NORM || null);
@@ -532,10 +533,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     const handleCPPTChange = (data: any) => {
         setDokumenCPPT(data === false ? false : data);
     };
-
-
-    console.log('Data Resume Medis:', dataResumeMedis);
-
 
     const handleSave = async () => {
         try {
