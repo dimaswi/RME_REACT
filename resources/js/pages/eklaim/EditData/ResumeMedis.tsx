@@ -311,9 +311,18 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         }
 
         if (dataKlaim.edit === 1 && kunjungan) {
-            setDokumenPengkajianAwalLoaded(true);
-            setDokumenTriageLoaded(true);
-            setDokumenCPPTLoaded(true);
+            if (dataKlaim.pengkajian_awal == 1) {
+                setDokumenPengkajianAwalLoaded(true);
+            }
+
+            if (dataKlaim.triage == 1) {
+                setDokumenTriageLoaded(true);
+            }
+
+            if (dataKlaim.cppt == 1) {
+                setDokumenCPPTLoaded(true);
+            }
+
             setNamaDokter(kunjungan?.resume_medis?.dokter || null);
             setNamaPasien(kunjungan?.resume_medis?.nama_pasien || null);
             setNoRM(kunjungan?.resume_medis?.no_rm || null);
@@ -527,34 +536,35 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     const handleSave = async () => {
         try {
-            await router.post(
-                route('eklaim.editData.storeResumeMedis'),
-                {
-                    jenisSave: dataKlaim.edit,
-                    resumeMedis: dataResumeMedis,
-                    pengkajianAwal: dokumenPengkajianAwal,
-                    triage: dokumenTriage,
-                    cppt: dokumenCPPT,
-                },
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    onStart: () => {
-                        toast.loading('Menyimpan data resume medis...');
-                    },
-                    onSuccess: () => {
-                        toast.dismiss();
-                        toast.success('Data resume medis berhasil disimpan.');
-                    },
-                    onFinish: () => {
-                        toast.dismiss();
-                    },
-                    onError: () => {
-                        toast.dismiss();
-                        toast.error('Gagal menyimpan data resume medis.');
-                    },
-                },
-            );
+            console.log('Data yang akan disimpan:', dataResumeMedis);
+            // await router.post(
+            //     route('eklaim.editData.storeResumeMedis'),
+            //     {
+            //         jenisSave: dataKlaim.edit,
+            //         resumeMedis: dataResumeMedis,
+            //         pengkajianAwal: dokumenPengkajianAwal,
+            //         triage: dokumenTriage,
+            //         cppt: dokumenCPPT,
+            //     },
+            //     {
+            //         preserveScroll: true,
+            //         preserveState: true,
+            //         onStart: () => {
+            //             toast.loading('Menyimpan data resume medis...');
+            //         },
+            //         onSuccess: () => {
+            //             toast.dismiss();
+            //             toast.success('Data resume medis berhasil disimpan.');
+            //         },
+            //         onFinish: () => {
+            //             toast.dismiss();
+            //         },
+            //         onError: () => {
+            //             toast.dismiss();
+            //             toast.error('Gagal menyimpan data resume medis.');
+            //         },
+            //     },
+            // );
         } catch (error: any) {
             // Tangani error dari axios
             if (error.response && error.response.data && error.response.data.error) {
