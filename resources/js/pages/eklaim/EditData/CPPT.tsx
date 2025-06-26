@@ -27,7 +27,7 @@ interface CPPTRow {
 
 export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProps) {
     const [componentMode, setComponentMode] = useState<number>(0);
-
+    console.log("Nomor Kunjungan CPPT:", nomorKunjungan);
     const [rows, setRows] = useState<CPPTRow[]>(
         [
             {
