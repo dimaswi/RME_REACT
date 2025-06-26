@@ -534,6 +534,9 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
     };
 
 
+    console.log('Data Resume Medis:', dataResumeMedis);
+
+
     const handleSave = async () => {
         try {
             await router.post(
