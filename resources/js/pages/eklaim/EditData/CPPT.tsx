@@ -3,12 +3,14 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 interface CPPTProps {
     imageBase64: string;
     onChange?: (value: any) => void;
     nomorKunjungan?: string;
-    mode?: number; // Tambahkan tipe data yang sesuai jika ada
 }
 
 interface CPPTRow {
@@ -23,7 +25,9 @@ interface CPPTRow {
     instruksi: string;
 }
 
-export default function CPPT({ imageBase64, onChange, nomorKunjungan, mode }: CPPTProps) {
+export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProps) {
+    const [componentMode, setComponentMode] = useState<number>(0);
+
     const [rows, setRows] = useState<CPPTRow[]>(
         [
             {
@@ -51,7 +55,7 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan, mode }: CP
     const handleLoadData = async () => {
         try {
 
-            if (mode === 1) {
+            if (componentMode === 1) {
                 const response = await axios.get(route('eklaim.getDataCPPTEdit', { nomorKunjungan }));
                 const data = Array.isArray(response.data) && response.data.length > 0
                     ? response.data.map(item => ({
@@ -78,7 +82,7 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan, mode }: CP
                     }];
                 setRows(data);
                 if (onChange) onChange(data);
-            } else if (mode === 0) {
+            } else if (componentMode === 0) {
                 const response = await axios.get(route('eklaim.getDataCPPT', { nomorKunjungan }));
                 const data = Array.isArray(response.data) && response.data.length > 0
                     ? response.data.map(item => ({
@@ -180,6 +184,28 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan, mode }: CP
                                     Jl. PUK Desa Drokilo. Kec. Kedungadem Kab. Bojonegoro <br />
                                     Email : klinik.muh.kedungadem@gmail.com | WA : 082242244646 <br />
                                 </p>
+                            </div>
+                        </td>
+                        <td>
+                            <div className="mb-4 flex items-center gap-4">
+                                <Label htmlFor="mode-switch" className="text-base">
+                                    Asli
+                                </Label>
+                                <Switch
+                                    id="mode-switch"
+                                    checked={componentMode === 1}
+                                    onCheckedChange={async (checked) => {
+                                        try {
+                                            setComponentMode(checked ? 1 : 0);
+                                            handleLoadData();
+                                        } catch (error) {
+                                            toast.error('Gagal switch mode data.');
+                                            console.error('Error switching mode:', error);
+                                        }
+                                    }}
+                                    className="scale-150" // Membesarkan switch
+                                />
+                                <span className="ml-2 text-lg">Edit</span>
                             </div>
                         </td>
                         {/* <td>

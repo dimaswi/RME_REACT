@@ -1755,7 +1755,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         imageBase64={imageBase64}
                                         onChange={handlePengkajianAwalChange}
                                         nomorKunjungan={nomorKunjunganIGD}
-                                        mode={dataKlaim.edit}
                                     />
                                 </div>
                             )}
@@ -1766,7 +1765,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         imageBase64={imageBase64}
                                         onChange={handleTriageChange}
                                         nomorKunjungan={nomorKunjunganIGD}
-                                        mode={dataKlaim.edit}
                                     />
                                 </div>
                             )}
@@ -1777,7 +1775,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                         imageBase64={imageBase64}
                                         onChange={handleCPPTChange}
                                         nomorKunjungan={nomorKunjunganRawatInap}
-                                        mode={dataKlaim.edit}
                                     />
                                 </div>
                             )}

@@ -9,16 +9,18 @@ import { QRCodeSVG } from "qrcode.react"; // Tambahkan impor pustaka QR Code
 import SignatureCanvas from "react-signature-canvas"; // Tambahkan impor pustaka Signature Canvas
 import { router, usePage } from "@inertiajs/react";
 import { set } from "date-fns";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface PengkajianAwalProps {
     imageBase64: string | null;
     nomorKunjungan: string | null;
     onChange?: (value: any) => void;
-    mode?: number;
-
 }
 
-export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, mode }: PengkajianAwalProps) {
+export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }: PengkajianAwalProps) {
+    const [componentMode, setComponentMode] = useState(0);
+
 
     const { success, error } = usePage().props;
     useEffect(() => {
@@ -28,7 +30,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
 
     const handleLoadData = async () => {
         try {
-            if (mode == 0) {
+            if (componentMode == 0) {
                 const response = await axios.get(route('eklaim.getDataPengkajianAwal', { nomorKunjungan }));
                 const data = response.data;
                 const riwayatOrderObatPasien = data.order_resep?.map((item: any) => item.order_resep_detil)
@@ -195,7 +197,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
                         tanggal_tanda_tangan: tanggalTandaTangan,
                     }
                 ]);
-            } else if (mode == 1) {
+            } else if (componentMode == 1) {
                 const response = await axios.get(route('eklaim.getDataPengkajianAwalEdit', { nomorKunjungan }));
                 const data = response.data;
                 setNamaPasien(data.nama_pasien ?? "");
@@ -217,7 +219,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
                 setRiwayatPenyakit(data.anamnesis.riwayat_penyakit_sekarang ?? "");
                 setFaktorResiko(data.anamnesis.riwayat_penyakit_lalu ?? "");
                 setRiwayatPengobatan(data.anamnesis.riwayat_pengobatan ?? "");
-                setRiwayatPenyakitKeluarga(data.anamnesis.riwayat_penyakit_keluarga?? "");
+                setRiwayatPenyakitKeluarga(data.anamnesis.riwayat_penyakit_keluarga ?? "");
                 setKeadaanUmum(data.tanda_vital?.keadaan_umum ?? "");
                 setTingkatKesadaran(data.tanda_vital?.tingkat_kesadaran ?? "");
                 setGCS(data.tanda_vital?.gcs ?? "");
@@ -305,10 +307,6 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
             console.error("Error fetching data:", error);
         }
     };
-
-    useEffect(() => {
-        handleLoadData();
-    }, []);
 
     const [ruangan, setRuangan] = useState("");
     const [tanggalMasuk, setTanggalMasuk] = useState("");
@@ -698,6 +696,28 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange, 
                                     Jl. PUK Desa Drokilo. Kec. Kedungadem Kab. Bojonegoro <br />
                                     Email : klinik.muh.kedungadem@gmail.com | WA : 082242244646 <br />
                                 </p>
+                            </div>
+                        </td>
+                        <td>
+                            <div className="mb-4 flex items-center gap-4">
+                                <Label htmlFor="mode-switch" className="text-base">
+                                    Asli
+                                </Label>
+                                <Switch
+                                    id="mode-switch"
+                                    checked={componentMode === 1}
+                                    onCheckedChange={async (checked) => {
+                                        try {
+                                            setComponentMode(checked ? 1 : 0);
+                                            handleLoadData();
+                                        } catch (error) {
+                                            toast.error('Gagal switch mode data.');
+                                            console.error('Error switching mode:', error);
+                                        }
+                                    }}
+                                    className="scale-150" // Membesarkan switch
+                                />
+                                <span className="ml-2 text-lg">Edit</span>
                             </div>
                         </td>
                     </tr>
