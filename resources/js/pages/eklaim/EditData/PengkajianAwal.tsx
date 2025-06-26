@@ -670,6 +670,8 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
         return `${parseInt(tanggal)} ${bulan[parseInt(bulanIdx, 10) - 1]} ${tahun}`;
     }
 
+    console.log("Nomor Kunjungan:", nomorKunjungan);
+
     return (
         <div className="pt-4">
             <table style={{ fontFamily: "halvetica, sans-serif", width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
@@ -727,7 +729,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                     </tr>
                     <tr>
                         <td colSpan={8}>
-                                {nomorKunjungan}
+                                {   }
                         </td>
                     </tr>
                 </tbody>
