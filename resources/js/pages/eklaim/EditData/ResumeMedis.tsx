@@ -232,7 +232,6 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     useEffect(() => {
         const kunjungan = Array.isArray(dataKunjungan) ? dataKunjungan[0] : dataKunjungan;
-            console.log('Data Kunjungan : ', kunjungan);
         if (dataKlaim.edit !== 1 && kunjungan) {
             setNamaPasien(kunjungan?.pendaftaran_pasien?.pasien?.NAMA || null);
             setNoRM(kunjungan?.pendaftaran_pasien?.pasien?.NORM || null);
@@ -323,7 +322,8 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             if (dataKlaim.cppt == 1) {
                 setDokumenCPPTLoaded(true);
             }
-
+            setNomorKunjunganIGD(kunjungan?.resume_medis.nomor_kunjungan_igd);
+            setNomorKunjunganRawatInap(kunjungan?.resume_medis.nomor_kunjungan_rawat_inap);
             setNamaDokter(kunjungan?.resume_medis?.dokter || null);
             setNamaPasien(kunjungan?.resume_medis?.nama_pasien || null);
             setNoRM(kunjungan?.resume_medis?.no_rm || null);
