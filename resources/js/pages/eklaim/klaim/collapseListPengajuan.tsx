@@ -447,7 +447,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     setJenisPerawatan(
                         klaimData.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan'
                             ? '2'
-                            : klaimData.pengajuanKlaim.jenis_perawatan === 'IGD'
+                            : klaimData.pengajuanKlaim.jenis_perawatan === 'Gawat Darurat'
                                 ? '3'
                                 : '1',
                     );
@@ -520,11 +520,10 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
 
             if (item.edit == 0) {
                 const response = await axios.get(`/eklaim/get/pengajuan-klaim/${item.id}`);
-                console.log('Response Kunjungan:', response.data);
                 setJenisPerawatan(
                     response.data.pengajuanKlaim.jenis_perawatan === 'Rawat Jalan'
                         ? '2'
-                        : response.data.pengajuanKlaim.jenis_perawatan === 'IGD'
+                        : response.data.pengajuanKlaim.jenis_perawatan === 'Gawat Darurat'
                             ? '3'
                             : '1',
                 );
