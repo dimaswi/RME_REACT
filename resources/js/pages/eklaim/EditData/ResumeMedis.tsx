@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Home } from 'lucide-react';
+import { ArrowUp, Home } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import DiagnosaModal from '../klaim/DiagnosaModal';
@@ -26,7 +26,7 @@ interface ResumeMedisProps {
 
 export default function EditResumeMedis(props: ResumeMedisProps) {
     const { imageBase64, dataKlaim, dataKunjungan } = props;
-    console.log('dataKunjungan', dataKunjungan);
+    const [showScrollTop, setShowScrollTop] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -46,6 +46,18 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
             href: '#',
         },
     ];
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowScrollTop(window.scrollY > 200);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     function formatTanggalIndo(tgl: string) {
         if (!tgl) return '-';
@@ -1794,6 +1806,17 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                 selectedProcedure={selectedProcedure}
                 setSelectedProcedure={setSelectedProcedure}
             />
+
+            {showScrollTop && (
+                <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="fixed bottom-8 right-8 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition"
+                    aria-label="Kembali ke atas"
+                >
+                    <ArrowUp className="h-6 w-6" />
+                </button>
+            )}
         </AppLayout>
     );
 }

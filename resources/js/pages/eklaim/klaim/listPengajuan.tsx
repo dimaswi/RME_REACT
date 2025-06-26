@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,14 +11,14 @@ import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { AlignJustify, CalendarIcon, Home, Info } from 'lucide-react';
+import { AlignJustify, CalendarIcon, Home, Info, Search, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import CollapseBelumDiajukan from './collapseBelumDiajukan';
 import FinalGroupingCollapse from './collapseFinalGrouping';
 import GroupingOneCollapse from './collapseGroupingOne';
 import PengajuanKlaimCollapse from './collapseListPengajuan';
 import SudahTerkirimCollapse from './collapseSudahKirim';
-import { toast } from 'sonner';
 
 // Function untuk memformat tanggal
 const formatTanggal = (tanggal: string | null) => {
@@ -161,33 +162,33 @@ export default function ListPengajuan() {
 
     // Fetch data manual (bukan useEffect otomatis)
     const fetchData = async (customFilters = filtersState) => {
-    toast.loading('Mengambil data pengajuan klaim...');
-    setLoading(true);
-    await axios
-        .post('/eklaim/klaim/list-pengajuan/filter', customFilters)
-        .then((response) => {
-            const resp = response.data.pengajuanKlaim;
-            if (resp && Array.isArray(resp.data)) {
-                setData({
-                    data: resp.data,
-                    links: Array.isArray(resp.links) ? resp.links : [],
-                    current_page: resp.current_page ?? 1,
-                    last_page: resp.last_page ?? 1,
-                    perPage: resp.perPage ?? 10,
-                });
+        toast.loading('Mengambil data pengajuan klaim...');
+        setLoading(true);
+        await axios
+            .post('/eklaim/klaim/list-pengajuan/filter', customFilters)
+            .then((response) => {
+                const resp = response.data.pengajuanKlaim;
+                if (resp && Array.isArray(resp.data)) {
+                    setData({
+                        data: resp.data,
+                        links: Array.isArray(resp.links) ? resp.links : [],
+                        current_page: resp.current_page ?? 1,
+                        last_page: resp.last_page ?? 1,
+                        perPage: resp.perPage ?? 10,
+                    });
+                    toast.dismiss();
+                    toast.success('Data berhasil diambil');
+                } else {
+                    toast.dismiss();
+                    toast.error('Format data tidak sesuai');
+                }
+            })
+            .catch((error) => {
                 toast.dismiss();
-                toast.success('Data berhasil diambil');
-            } else {
-                toast.dismiss();
-                toast.error('Format data tidak sesuai');
-            }
-        })
-        .catch((error) => {
-            toast.dismiss();
-            toast.error('Gagal mengambil data');
-        })
-        .finally(() => setLoading(false));
-};
+                toast.error('Gagal mengambil data');
+            })
+            .finally(() => setLoading(false));
+    };
 
     // Handler submit filter
     const handleFilterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -226,7 +227,7 @@ export default function ListPengajuan() {
 
     const refreshData = async () => {
         await fetchData(filtersState);
-    }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -235,6 +236,31 @@ export default function ListPengajuan() {
                 <div className="w-full overflow-x-auto rounded-md border">
                     {/* Form Filter */}
                     <form onSubmit={handleFilterSubmit} className="flex items-center justify-end gap-2 border-b bg-gray-50 p-4">
+                        {/* Input filter SEP di atas tabel */}
+                        <div className="flex items-center justify-end gap-2 py-2">
+                            <div className="relative w-[300px]">
+                                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
+                                    <Search className="h-4 w-4" />
+                                </span>
+                                <Input
+                                    type="text"
+                                    placeholder="Cari Nomor SEP"
+                                    value={filterSEP}
+                                    onChange={(e) => setFilterSEP(e.target.value)}
+                                    className="pl-10"
+                                />
+                                {filterSEP && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setFilterSEP('')}
+                                        className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        tabIndex={-1}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                         <Select
                             value={
                                 Array.isArray(filtersState.status) && filtersState.status.length === 5 && filtersState.status.every((v, i) => v === i)
@@ -330,18 +356,6 @@ export default function ListPengajuan() {
                     </form>
                     {/* END Form Filter */}
 
-                    {/* Input filter SEP di atas tabel */}
-                    <div className="flex items-center justify-end gap-2 py-2">
-                        <input
-                            type="text"
-                            className="rounded border px-2 py-1"
-                            placeholder="Cari Nomor SEP"
-                            value={filterSEP}
-                            onChange={(e) => setFilterSEP(e.target.value)}
-                            style={{ width: 220 }}
-                        />
-                    </div>
-
                     {/* Table Data */}
                     <Table className="w-full min-w-max">
                         <TableHeader>
@@ -366,7 +380,7 @@ export default function ListPengajuan() {
                                     .filter((item: any) =>
                                         filterSEP.trim() === ''
                                             ? true
-                                            : (item.nomor_SEP || '').toLowerCase().includes(filterSEP.trim().toLowerCase())
+                                            : (item.nomor_SEP || '').toLowerCase().includes(filterSEP.trim().toLowerCase()),
                                     )
                                     .map((item: any, idx: number) => (
                                         <React.Fragment key={item.id}>
@@ -420,28 +434,17 @@ export default function ListPengajuan() {
                                                                     expanded={openRow === item.id}
                                                                     refreshData={refreshData}
                                                                 />
-                                                                <GroupingOneCollapse
-                                                                    pengajuanKlaim={item}
-                                                                    refreshData={refreshData}
-                                                                />
+                                                                <GroupingOneCollapse pengajuanKlaim={item} refreshData={refreshData} />
                                                             </>
                                                         )}
 
-                                                        {
-                                                            item.status === 3 && 
-                                                            <FinalGroupingCollapse 
-                                                                pengajuanKlaim={item} 
-                                                                refreshData={refreshData}
-                                                            />
-                                                        }
+                                                        {item.status === 3 && (
+                                                            <FinalGroupingCollapse pengajuanKlaim={item} refreshData={refreshData} />
+                                                        )}
 
-                                                        {
-                                                            item.status === 4 && 
-                                                            <SudahTerkirimCollapse 
-                                                                pengajuanKlaim={item} 
-                                                                refreshData={refreshData}
-                                                            />
-                                                        }
+                                                        {item.status === 4 && (
+                                                            <SudahTerkirimCollapse pengajuanKlaim={item} refreshData={refreshData} />
+                                                        )}
                                                     </TableCell>
                                                 </TableRow>
                                             )}
