@@ -311,6 +311,9 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
         }
 
         if (dataKlaim.edit === 1 && kunjungan) {
+            setDokumenPengkajianAwalLoaded(true);
+            setDokumenTriageLoaded(true);
+            setDokumenCPPTLoaded(true);
             setNamaDokter(kunjungan?.resume_medis?.dokter || null);
             setNamaPasien(kunjungan?.resume_medis?.nama_pasien || null);
             setNoRM(kunjungan?.resume_medis?.no_rm || null);
@@ -1737,7 +1740,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                 </tbody>
                             </table>
 
-                            {dokumenPengkajianAwalLoaded || dataKlaim.pengkajianAwal == 1 && (
+                            {dokumenPengkajianAwalLoaded && (
                                 <div>
                                     <PengkajianAwal
                                         imageBase64={imageBase64}
@@ -1748,7 +1751,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                 </div>
                             )}
 
-                            {dokumenTriageLoaded || dataKlaim.triage == 1 && (
+                            {dokumenTriageLoaded && (
                                 <div>
                                     <Triage
                                         imageBase64={imageBase64}
@@ -1759,7 +1762,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                 </div>
                             )}
 
-                            {dokumenCPPTLoaded || dataKlaim.cppt == 1 && (
+                            {dokumenCPPTLoaded && (
                                 <div>
                                     <CPPT
                                         imageBase64={imageBase64}
