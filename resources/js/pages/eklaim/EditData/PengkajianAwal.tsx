@@ -725,6 +725,11 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                             <h3 style={{ fontSize: 16 }}>PENGKAJIAN AWAL RAWAT DARURAT / RAWAT INAP</h3>
                         </td>
                     </tr>
+                    <tr>
+                        <td colSpan={8}>
+                                {nomorKunjungan}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <table style={{ fontFamily: "halvetica, sans-serif", width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
