@@ -617,9 +617,6 @@ class KlaimController extends Controller
                 GrouperOneSubAcute::where('grouper_one_id', $dataGrouper->id)->delete();
                 GrouperOneChronic::where('grouper_one_id', $dataGrouper->id)->delete();
                 GrouperOneTarif::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
-                if (class_exists(GrouperOneSpecialCmgOption::class)) {
-                    GrouperOneSpecialCmgOption::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
-                }
                 GrouperOneInagrouper::where('pengajuan_klaim_id', $pengajuanKlaim->id)->delete();
             }
 
