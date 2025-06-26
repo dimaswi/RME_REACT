@@ -178,16 +178,16 @@ class BridgeDataController extends Controller
 
         $diagnosaUtama = $kunjunganPasien->pendaftaranPasien->diagnosaPasien
             ? $kunjunganPasien->pendaftaranPasien->diagnosaPasien
-            ->flatMap(function ($diagnosa) {
-                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
-            })->implode(', ')
+                ->flatMap(function ($diagnosa) {
+                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
+                })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $icd10DiagnosaUtama = $kunjunganPasien->pendaftaranPasien->diagnosaPasien
             ? $kunjunganPasien->pendaftaranPasien->diagnosaPasien
-            ->flatMap(function ($diagnosa) {
-                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
-            })->implode(', ')
+                ->flatMap(function ($diagnosa) {
+                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
+                })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $jenisKelamin = $kunjunganPasien->pendaftaranPasien->pasien->JENIS_KELAMIN === 1
@@ -198,19 +198,19 @@ class BridgeDataController extends Controller
 
         $terapiPulang = $kunjunganPasien->orderResepPulang
             ? $kunjunganPasien->orderResepPulang
-            ->flatMap(function ($orderResep) {
-                return $orderResep->orderResepDetil
-                    ? $orderResep->orderResepDetil->map(function ($resep) {
-                        return [
-                            'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
-                            'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
-                            'jumlah' => $resep->JUMLAH ?? 'Tidak ada data jumlah',
-                            'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
-                        ];
-                    })
-                    : collect();
-            })
-            ->toArray()
+                ->flatMap(function ($orderResep) {
+                    return $orderResep->orderResepDetil
+                        ? $orderResep->orderResepDetil->map(function ($resep) {
+                            return [
+                                'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
+                                'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
+                                'jumlah' => $resep->JUMLAH ?? 'Tidak ada data jumlah',
+                                'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
+                            ];
+                        })
+                        : collect();
+                })
+                ->toArray()
             : [];
 
         $gelarDepanDokter = $kunjunganPasien->dokterDPJP->pegawai->GELAR_DEPAN != null
@@ -445,9 +445,9 @@ class BridgeDataController extends Controller
 
         $getDiagnosaPasien = $kunjunganUGD->pendaftaranPasien->diagnosaPasien
             ? $kunjunganUGD->pendaftaranPasien->diagnosaPasien
-            ->flatMap(function ($diagnosa) {
-                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
-            })->implode(', ')
+                ->flatMap(function ($diagnosa) {
+                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
+                })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $riwayatKeluarga = [];
@@ -658,7 +658,7 @@ class BridgeDataController extends Controller
                 ->filter()
                 ->flatMap(function ($item) {
                     [$val, $count] = array_pad(explode('+', $item), 2, 1);
-                    $count = (int)$count ?: 1;
+                    $count = (int) $count ?: 1;
                     return array_fill(0, $count, $val);
                 })
                 ->map(function ($code) {
@@ -678,7 +678,7 @@ class BridgeDataController extends Controller
                 ->filter()
                 ->flatMap(function ($item) {
                     [$val, $count] = array_pad(explode('+', $item), 2, 1);
-                    $count = (int)$count ?: 1;
+                    $count = (int) $count ?: 1;
                     return array_fill(0, $count, $val);
                 })
                 ->map(function ($code) {
@@ -703,7 +703,7 @@ class BridgeDataController extends Controller
         } else {
             $dataResumeMedis->cara_pulang = 'Lain-lain';
         }
-        
+
 
         $resumeMedis = [
             'nama_pasien' => $dataResumeMedis->nama_pasien ?? 'Tidak ada data nama pasien',
@@ -775,7 +775,7 @@ class BridgeDataController extends Controller
         $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pendaftaran->id)->first();
         $dataPengkajianAwal = PengkajianAwal::where('resume_medis_id', $resumeMedis->id)->first();
         if (!$dataPengkajianAwal) {
-            return redirect()->back()->with('error','Data Pengkajian Awal tidak ditemukan untuk pengajuan klaim ini.');
+            return redirect()->back()->with('error', 'Data Pengkajian Awal tidak ditemukan untuk pengajuan klaim ini.');
         }
         $dataTTV = TandaVital::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
         $dataAnamnesis = Anamnesis::where('pengkajian_awal_id', $dataPengkajianAwal->id)->first();
@@ -854,16 +854,14 @@ class BridgeDataController extends Controller
             'rencana_terapi' => $dataPengkajianAwal->rencana_terapi ?? 'Tidak ada data rencana terapi',
             'nama_dokter' => $dataPengkajianAwal->nama_dokter ?? 'Tidak ada data nama dokter',
             'nip_dokter' => '-',
-            'penilaian_nyeri' => [
-                'nyeri' => $dataPenilaianNyeri->nyeri ?? 'Tidak ada data skala nyeri',
-                'onset' => $dataPenilaianNyeri->onset ?? 'Tidak ada data lokasi nyeri',
-                'pencetus' => $dataPenilaianNyeri->pencetus ?? 'Tidak ada data durasi nyeri',
-                'lokasi' => $dataPenilaianNyeri->lokasi ?? 'Tidak ada data frekuensi nyeri',
-                'gambaran' => $dataPenilaianNyeri->gambaran ?? 'Tidak ada data gambaran nyeri',
-                'durasi' => $dataPenilaianNyeri->durasi ?? 'Tidak ada data durasi nyeri',
-                'skala_nyeri' => $dataPenilaianNyeri->skala ?? 'Tidak ada data skala nyeri',
-                'metode' => $dataPenilaianNyeri->metode ?? 'Tidak ada data metode nyeri',
-            ],
+            'nyeri' => $dataPenilaianNyeri->nyeri ?? 'Tidak ada data skala nyeri',
+            'onset' => $dataPenilaianNyeri->onset ?? 'Tidak ada data lokasi nyeri',
+            'pencetus' => $dataPenilaianNyeri->pencetus ?? 'Tidak ada data durasi nyeri',
+            'lokasi' => $dataPenilaianNyeri->lokasi ?? 'Tidak ada data frekuensi nyeri',
+            'gambaran' => $dataPenilaianNyeri->gambaran ?? 'Tidak ada data gambaran nyeri',
+            'durasi' => $dataPenilaianNyeri->durasi ?? 'Tidak ada data durasi nyeri',
+            'skala_nyeri' => $dataPenilaianNyeri->skala ?? 'Tidak ada data skala nyeri',
+            'metode' => $dataPenilaianNyeri->metode ?? 'Tidak ada data metode nyeri',
         ];
 
         $namaDokter = $dataResumeMedis['dokter'] ?? '-';

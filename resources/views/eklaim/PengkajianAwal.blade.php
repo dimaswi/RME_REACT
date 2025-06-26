@@ -231,14 +231,14 @@
                 style="vertical-align: top; height: 70px; width: 20%; border: 1px solid #000; padding-left: 5px">
                 <strong><u>Penilaian Nyeri</u></strong> <br>
                 <ol>
-                    <li><b>Nyeri</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['nyeri']}} </span></li>
-                    <li><b>Onset</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['onset']}} </span></li>
-                    <li><b>Pencetus</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['pencetus']}} </span></li>
-                    <li><b>Lokasi Nyeri</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['lokasi']}} </span></li>
-                    <li><b>Gambaran</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['gambaran']}} </span></li>
-                    <li><b>Durasi</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['durasi']}} </span></li>
-                    <li><b>Skala Nyeri</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['skala_nyeri']}} </span></li>
-                    <li><b>Metode</b> : <span>{{$pengkajianAwal['penilaian_nyeri']['metode']}} </span></li>
+                    <li><b>Nyeri</b> : <span>{{$pengkajianAwal['nyeri']}} </span></li>
+                    <li><b>Onset</b> : <span>{{$pengkajianAwal['onset']}} </span></li>
+                    <li><b>Pencetus</b> : <span>{{$pengkajianAwal['pencetus']}} </span></li>
+                    <li><b>Lokasi Nyeri</b> : <span>{{$pengkajianAwal['lokasi']}} </span></li>
+                    <li><b>Gambaran</b> : <span>{{$pengkajianAwal['gambaran']}} </span></li>
+                    <li><b>Durasi</b> : <span>{{$pengkajianAwal['durasi']}} </span></li>
+                    <li><b>Skala Nyeri</b> : <span>{{$pengkajianAwal['skala_nyeri']}} </span></li>
+                    <li><b>Metode</b> : <span>{{$pengkajianAwal['metode']}} </span></li>
                 </ol>
             </td>
         </tr>
