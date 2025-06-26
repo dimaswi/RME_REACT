@@ -7,18 +7,22 @@ import { Check } from "lucide-react";
 import SearchableDropdown from "@/components/SearchableDropdown";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 interface TriageProps {
     imageBase64: string;
     onChange?: (data: any) => void;
     nomorKunjungan?: string | null;
-    mode?: number | null;
 }
 
 
-export default function Triage({ imageBase64, onChange, nomorKunjungan, mode }: TriageProps) {
+export default function Triage({ imageBase64, onChange, nomorKunjungan }: TriageProps) {
+        const [componentMode, setComponentMode] = useState(0);
+    
     const handleLoadData = async () => {
-        if (mode === 1) {
+        if (componentMode === 1) {
             const response = await axios.get(route('eklaim.getDataTriageEdit', { nomorKunjungan: nomorKunjungan }))
                 .then(response => {
                     setNamaPasien(response.data.nama_pasien || "");
@@ -94,7 +98,7 @@ export default function Triage({ imageBase64, onChange, nomorKunjungan, mode }: 
         }
 
 
-        if (mode === 0) {
+        if (componentMode === 0) {
             await axios.get(route('eklaim.getDataTriage', { nomorKunjungan: nomorKunjungan }))
                 .then(response => {
                     setForm({
@@ -362,6 +366,29 @@ export default function Triage({ imageBase64, onChange, nomorKunjungan, mode }: 
                                         </p>
                                     </div>
                                 </td>
+                                    <td>
+                                            <div className="mb-4 flex items-center gap-4">
+                                                <Label htmlFor="mode-switch" className="text-base">
+                                                    Asli
+                                                </Label>
+                                                <Switch
+                                                    id="mode-switch"
+                                                    checked={componentMode === 1}
+                                                    onCheckedChange={async (checked) => {
+                                                        try {
+                                                            setComponentMode(checked ? 1 : 0);
+                                                            await handleLoadData();
+                                                            toast.success('Berhasil switch mode data.');
+                                                        } catch (error) {
+                                                            toast.error('Gagal switch mode data.');
+                                                            console.error('Error switching mode:', error);
+                                                        }
+                                                    }}
+                                                    className="scale-150" // Membesarkan switch
+                                                />
+                                                <span className="ml-2 text-lg">Edit</span>
+                                            </div>
+                                        </td>
                             </tr>
                             <tr style={{ background: "black", color: "white", textAlign: "center" }}>
                                 <td colSpan={8}>

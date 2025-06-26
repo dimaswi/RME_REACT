@@ -709,7 +709,8 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                                     onCheckedChange={async (checked) => {
                                         try {
                                             setComponentMode(checked ? 1 : 0);
-                                            handleLoadData();
+                                            await handleLoadData();
+                                            toast.success('Berhasil switch mode data.');
                                         } catch (error) {
                                             toast.error('Gagal switch mode data.');
                                             console.error('Error switching mode:', error);
