@@ -372,7 +372,7 @@ export default function Triage({ imageBase64, onChange, nomorKunjungan }: Triage
                                         </Label>
                                         <Switch
                                             id="mode-switch"
-                                            checked={componentMode == 0}
+                                            checked={componentMode === 1}
                                             onCheckedChange={async (checked) => {
                                                 try {
                                                     setComponentMode(checked ? 1 : 0);

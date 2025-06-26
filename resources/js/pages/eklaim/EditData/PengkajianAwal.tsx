@@ -703,7 +703,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                                 </Label>
                                 <Switch
                                     id="mode-switch"
-                                    checked={componentMode == 0}
+                                    checked={componentMode === 1}
                                     onCheckedChange={async (checked) => {
                                         try {
                                             setComponentMode(checked ? 1 : 0);
