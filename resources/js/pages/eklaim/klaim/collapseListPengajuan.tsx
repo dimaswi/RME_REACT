@@ -382,7 +382,7 @@ export default function PengajuanKlaimCollapse({ item, formatTanggal, getStatusB
                     setNamaDokter(klaimData.klaimData.nama_dokter || '');
                     // Setelah dapat response dari backend (baik dari klaimData maupun kunjungan)
                     const diagnosaStr = klaimData?.klaimData?.diagnosa || '';
-                    const procedureStr = klaimData?.klaimData?.prosedur || '';
+                    const procedureStr = klaimData?.klaimData?.tindakan_prosedur || '';
 
                     const diagnosaArr = diagnosaStr
                         .split('#')
