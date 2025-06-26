@@ -450,7 +450,8 @@ export default function EditLaboratorium() {
                                             }}
                                         />
                                     )}
-                                </td>                                <td className="border px-2 py-1"></td>
+                                </td>
+                                <td className="border px-2 py-1"></td>
                                 <td className="border px-2 py-1"></td>
                                 <td className="border px-2 py-1"></td>
                                 <td className="border px-2 py-1"></td>
@@ -516,8 +517,24 @@ export default function EditLaboratorium() {
                                                             <td className="border px-2 py-1 align-top" rowSpan={hasilCount}>
                                                                 {tindakan.tindakan_laboratorium?.NAMA ?? '-'}
                                                             </td>
-                                                            <td className="border px-2 py-1 align-top" rowSpan={hasilCount}>
-                                                                {formatTanggalIndo(tindakan.TANGGAL)}
+                                                            <td className="border px-2 py-1 align-top">
+                                                                {addRow.tindakanId && (
+                                                                    <input
+                                                                        type="date"
+                                                                        className="border px-1 py-0.5"
+                                                                        value={addRow.hasil_lab[0]?.TANGGAL?.slice(0, 10) || ''}
+                                                                        onChange={(e) => {
+                                                                            const tanggalBaru = e.target.value;
+                                                                            setAddRow((row) => ({
+                                                                                ...row,
+                                                                                hasil_lab: row.hasil_lab.map((h) => ({
+                                                                                    ...h,
+                                                                                    TANGGAL: tanggalBaru,
+                                                                                })),
+                                                                            }));
+                                                                        }}
+                                                                    />
+                                                                )}
                                                             </td>
                                                         </>
                                                     )}
