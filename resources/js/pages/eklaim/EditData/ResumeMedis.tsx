@@ -536,35 +536,34 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
 
     const handleSave = async () => {
         try {
-            console.log('Data yang akan disimpan:', dataResumeMedis);
-            // await router.post(
-            //     route('eklaim.editData.storeResumeMedis'),
-            //     {
-            //         jenisSave: dataKlaim.edit,
-            //         resumeMedis: dataResumeMedis,
-            //         pengkajianAwal: dokumenPengkajianAwal,
-            //         triage: dokumenTriage,
-            //         cppt: dokumenCPPT,
-            //     },
-            //     {
-            //         preserveScroll: true,
-            //         preserveState: true,
-            //         onStart: () => {
-            //             toast.loading('Menyimpan data resume medis...');
-            //         },
-            //         onSuccess: () => {
-            //             toast.dismiss();
-            //             toast.success('Data resume medis berhasil disimpan.');
-            //         },
-            //         onFinish: () => {
-            //             toast.dismiss();
-            //         },
-            //         onError: () => {
-            //             toast.dismiss();
-            //             toast.error('Gagal menyimpan data resume medis.');
-            //         },
-            //     },
-            // );
+            await router.post(
+                route('eklaim.editData.storeResumeMedis'),
+                {
+                    jenisSave: dataKlaim.edit,
+                    resumeMedis: dataResumeMedis,
+                    pengkajianAwal: dokumenPengkajianAwal,
+                    triage: dokumenTriage,
+                    cppt: dokumenCPPT,
+                },
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onStart: () => {
+                        toast.loading('Menyimpan data resume medis...');
+                    },
+                    onSuccess: () => {
+                        toast.dismiss();
+                        toast.success('Data resume medis berhasil disimpan.');
+                    },
+                    onFinish: () => {
+                        toast.dismiss();
+                    },
+                    onError: () => {
+                        toast.dismiss();
+                        toast.error('Gagal menyimpan data resume medis.');
+                    },
+                },
+            );
         } catch (error: any) {
             // Tangani error dari axios
             if (error.response && error.response.data && error.response.data.error) {
