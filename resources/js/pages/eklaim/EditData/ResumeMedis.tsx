@@ -1737,7 +1737,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                 </tbody>
                             </table>
 
-                            {dokumenPengkajianAwalLoaded && (
+                            {dokumenPengkajianAwalLoaded || dataKlaim.pengkajianAwal == 1 && (
                                 <div>
                                     <PengkajianAwal
                                         imageBase64={imageBase64}
@@ -1748,7 +1748,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                 </div>
                             )}
 
-                            {dokumenTriageLoaded && (
+                            {dokumenTriageLoaded || dataKlaim.triage == 1 && (
                                 <div>
                                     <Triage
                                         imageBase64={imageBase64}
@@ -1759,7 +1759,7 @@ export default function EditResumeMedis(props: ResumeMedisProps) {
                                 </div>
                             )}
 
-                            {dokumenCPPTLoaded && (
+                            {dokumenCPPTLoaded || dataKlaim.cppt == 1 && (
                                 <div>
                                     <CPPT
                                         imageBase64={imageBase64}
