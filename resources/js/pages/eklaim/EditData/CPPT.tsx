@@ -188,7 +188,7 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
                         <td>
                             <div className="mb-4 flex items-center gap-4">
                                 <Label htmlFor="mode-switch" className="text-base">
-                                    Asli
+                                    Edit
                                 </Label>
                                 <Switch
                                     id="mode-switch"
@@ -205,7 +205,7 @@ export default function CPPT({ imageBase64, onChange, nomorKunjungan }: CPPTProp
                                     }}
                                     className="scale-150" // Membesarkan switch
                                 />
-                                <span className="ml-2 text-lg">Edit</span>
+                                <span className="ml-2 text-lg">Asli</span>
                             </div>
                         </td>
                         {/* <td>
