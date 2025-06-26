@@ -31,7 +31,7 @@ interface TindakanLab {
     ID: any;
     KUNJUNGAN: string;
     TINDAKAN: string | number;
-    TANGGAL: string;
+    TANGGAL: string | null;
     OLEH: string | number;
     STATUS: number;
     OTOMATIS: number;
@@ -173,7 +173,7 @@ export default function EditLaboratorium() {
                 ID: (Math.floor(Math.random() * 1000000000) + 1).toString(), // Generate random ID
                 TINDAKAN_MEDIS: tindakanId,
                 PARAMETER_TINDAKAN: param.ID,
-                TANGGAL: formatDate(new Date()),
+                TANGGAL: null,
                 HASIL: '',
                 NILAI_NORMAL: param.NILAI_RUJUKAN ?? '',
                 SATUAN: param.SATUAN ?? '',
@@ -201,7 +201,7 @@ export default function EditLaboratorium() {
                 ID: (Math.floor(Math.random() * 1000000000) + 1).toString(), // Generate random ID
                 KUNJUNGAN: selectedKunjungan ?? '',
                 TINDAKAN: tindakan.ID,
-                TANGGAL: formatDate(new Date()),
+                TANGGAL: null,
                 OLEH: getOlehFromDataTindakan(),
                 STATUS: 1,
                 OTOMATIS: 0,
@@ -432,8 +432,25 @@ export default function EditLaboratorium() {
                                         </SelectContent>
                                     </Select>
                                 </td>
-                                <td className="border px-2 py-1 align-top">{addRow.tindakanId ? formatTanggalIndo(new Date().toISOString()) : ''}</td>
-                                <td className="border px-2 py-1"></td>
+                                <td className="border px-2 py-1 align-top">
+                                    {addRow.tindakanId && (
+                                        <input
+                                            type="date"
+                                            className="border px-1 py-0.5"
+                                            value={addRow.hasil_lab[0]?.TANGGAL?.slice(0, 10) || ''}
+                                            onChange={(e) => {
+                                                const tanggalBaru = e.target.value;
+                                                setAddRow((row) => ({
+                                                    ...row,
+                                                    hasil_lab: row.hasil_lab.map((h) => ({
+                                                        ...h,
+                                                        TANGGAL: tanggalBaru,
+                                                    })),
+                                                }));
+                                            }}
+                                        />
+                                    )}
+                                </td>                                <td className="border px-2 py-1"></td>
                                 <td className="border px-2 py-1"></td>
                                 <td className="border px-2 py-1"></td>
                                 <td className="border px-2 py-1"></td>
@@ -517,11 +534,11 @@ export default function EditLaboratorium() {
                                                                         prev.map((t) =>
                                                                             t.ID === tindakan.ID
                                                                                 ? {
-                                                                                      ...t,
-                                                                                      hasil_lab: t.hasil_lab.map((h) =>
-                                                                                          h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
-                                                                                      ),
-                                                                                  }
+                                                                                    ...t,
+                                                                                    hasil_lab: t.hasil_lab.map((h) =>
+                                                                                        h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
+                                                                                    ),
+                                                                                }
                                                                                 : t,
                                                                         ),
                                                                     );
@@ -531,11 +548,11 @@ export default function EditLaboratorium() {
                                                                         prev.map((t) =>
                                                                             t.ID === tindakan.ID
                                                                                 ? {
-                                                                                      ...t,
-                                                                                      hasil_lab: t.hasil_lab.map((h) =>
-                                                                                          h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
-                                                                                      ),
-                                                                                  }
+                                                                                    ...t,
+                                                                                    hasil_lab: t.hasil_lab.map((h) =>
+                                                                                        h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
+                                                                                    ),
+                                                                                }
                                                                                 : t,
                                                                         ),
                                                                     );
