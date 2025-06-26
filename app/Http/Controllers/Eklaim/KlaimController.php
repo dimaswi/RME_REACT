@@ -81,6 +81,7 @@ class KlaimController extends Controller
             }
 
             $dataPendaftaran = $query
+                ->where('batalSEP', 0)
                 ->with([
                     'dataPeserta',
                     'kartuAsuransiPasien',
