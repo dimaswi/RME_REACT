@@ -657,6 +657,8 @@ class EditDataController extends Controller
     {
         try {
             $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
+
+            // Cari tagihanPendaftaran dengan UTAMA = 1
             $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
                 ->with([
                     'tagihan.rincianTagihan',
@@ -670,7 +672,23 @@ class EditDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
-            // Jika tidak ditemukan, coba dengan nomor_kunjungan_igd dari resumeMedis
+            // Jika tidak ditemukan, cari dengan UTAMA = 0
+            if (!$tagihanPendaftaran) {
+                $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
+                    ->with([
+                        'tagihan.rincianTagihan',
+                        'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
+                        'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
+                        'tagihan.rincianTagihan.tarifTindakan.tindakan',
+                        'tagihan.rincianTagihan.hargaBarang.obat',
+                        'tagihan.rincianTagihan.paket',
+                        'tagihan.rincianTagihan.tarifOksigen'
+                    ])
+                    ->where('UTAMA', 0)
+                    ->first();
+            }
+
+            // Jika tetap tidak ditemukan, coba dengan nomor_kunjungan_igd dari resumeMedis
             if (!$tagihanPendaftaran && $resumeMedis && $resumeMedis->nomor_kunjungan_igd) {
                 $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_igd)
                     ->with([
@@ -683,11 +701,23 @@ class EditDataController extends Controller
                         'tagihan.rincianTagihan.tarifOksigen'
                     ])
                     ->where('UTAMA', 1)
-                    ->orWhere('UTAMA', 0)
                     ->first();
-            }
 
-            dd($tagihanPendaftaran);
+                if (!$tagihanPendaftaran) {
+                    $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_igd)
+                        ->with([
+                            'tagihan.rincianTagihan',
+                            'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
+                            'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
+                            'tagihan.rincianTagihan.tarifTindakan.tindakan',
+                            'tagihan.rincianTagihan.hargaBarang.obat',
+                            'tagihan.rincianTagihan.paket',
+                            'tagihan.rincianTagihan.tarifOksigen'
+                        ])
+                        ->where('UTAMA', 0)
+                        ->first();
+                }
+            }
 
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
             DB::connection('eklaim')->beginTransaction();
