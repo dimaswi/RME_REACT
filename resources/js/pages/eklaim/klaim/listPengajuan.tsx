@@ -28,19 +28,19 @@ const formatTanggal = (tanggal: string | null) => {
 
 // Function untuk menampilkan badge status
 const getStatusBadge = (status: number, id: string) => {
-    const statusMap: Record<number, { label: string; color: string; text: string }> = {
-        0: { label: 'Belum Diajukan', color: 'red', text: 'white' },
-        1: { label: 'Sudah Diajukan', color: 'yellow', text: 'white' },
-        2: { label: 'Grouper', color: 'blue', text: 'white' },
-        3: { label: 'Final', color: 'green', text: 'white' },
-        4: { label: 'Dikirim', color: 'green', text: 'white' },
+    const statusMap: Record<number, { label: string; badgeClass: string }> = {
+        0: { label: 'Belum Diajukan', badgeClass: 'bg-red-500 text-white hover:bg-red-700' },
+        1: { label: 'Sudah Diajukan', badgeClass: 'bg-amber-500 text-white hover:bg-amber-700' },
+        2: { label: 'Grouper', badgeClass: 'bg-blue-500 text-white hover:bg-blue-700' },
+        3: { label: 'Final', badgeClass: 'bg-green-500 text-white hover:bg-green-700' },
+        4: { label: 'Dikirim', badgeClass: 'bg-green-500 text-white hover:bg-green-700' },
     };
-    const statusInfo = statusMap[status] || { label: 'Unknown', color: 'gray', text: 'gray-800' };
+    const statusInfo = statusMap[status] || { label: 'Unknown', badgeClass: 'bg-gray-300 text-gray-800' };
     return (
         <Badge
             onClick={() => router.get(route('eklaim.klaim.getStatusKlaim', { pengajuanKlaim: id }))}
             variant="outline"
-            className={`hover:cursor-pointer hover:bg-${statusInfo.color}-700 bg-${statusInfo.color}-500 text-${statusInfo.text}`}
+            className={`hover:cursor-pointer ${statusInfo.badgeClass}`}
         >
             {statusInfo.label}
         </Badge>
