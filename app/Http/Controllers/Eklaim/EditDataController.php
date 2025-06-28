@@ -673,24 +673,8 @@ class EditDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
-            // Jika tidak ditemukan, cari dengan UTAMA = 0
-            if (!$tagihanPendaftaran) {
-                $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
-                    ->with([
-                        'tagihan.rincianTagihan',
-                        'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
-                        'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
-                        'tagihan.rincianTagihan.tarifTindakan.tindakan',
-                        'tagihan.rincianTagihan.hargaBarang.obat',
-                        'tagihan.rincianTagihan.paket',
-                        'tagihan.rincianTagihan.tarifOksigen'
-                    ])
-                    ->where('UTAMA', 0)
-                    ->first();
-            }
-
             // Jika tetap tidak ditemukan, coba dengan nomor_kunjungan_igd dari resumeMedis
-            if (!$tagihanPendaftaran && $kunjunganIGD && $kunjunganIGD->NOPEN) {
+            if (!$tagihanPendaftaran) {
                 $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
                     ->with([
                         'tagihan.rincianTagihan',
@@ -703,21 +687,6 @@ class EditDataController extends Controller
                     ])
                     ->where('UTAMA', 1)
                     ->first();
-
-                if (!$tagihanPendaftaran) {
-                    $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
-                        ->with([
-                            'tagihan.rincianTagihan',
-                            'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
-                            'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
-                            'tagihan.rincianTagihan.tarifTindakan.tindakan',
-                            'tagihan.rincianTagihan.hargaBarang.obat',
-                            'tagihan.rincianTagihan.paket',
-                            'tagihan.rincianTagihan.tarifOksigen'
-                        ])
-                        ->where('UTAMA', 0)
-                        ->first();
-                }
             }
 
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
