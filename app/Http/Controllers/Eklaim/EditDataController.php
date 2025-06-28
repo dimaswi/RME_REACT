@@ -683,6 +683,7 @@ class EditDataController extends Controller
                         'tagihan.rincianTagihan.tarifOksigen'
                     ])
                     ->where('UTAMA', 1)
+                    ->orWhere('UTAMA', 0)
                     ->first();
             }
 
