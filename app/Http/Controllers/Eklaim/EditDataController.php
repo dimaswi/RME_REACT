@@ -692,8 +692,8 @@ class EditDataController extends Controller
             }
 
             // Jika tetap tidak ditemukan, coba dengan nomor_kunjungan_igd dari resumeMedis
-            if (!$tagihanPendaftaran && $kunjunganIGD && $kunjunganIGD->nomor_kunjungan_igd) {
-                $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->nomor_kunjungan_igd)
+            if (!$tagihanPendaftaran && $kunjunganIGD && $kunjunganIGD->NOPEN) {
+                $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
                     ->with([
                         'tagihan.rincianTagihan',
                         'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
@@ -707,7 +707,7 @@ class EditDataController extends Controller
                     ->first();
 
                 if (!$tagihanPendaftaran) {
-                    $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->nomor_kunjungan_igd)
+                    $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
                         ->with([
                             'tagihan.rincianTagihan',
                             'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
