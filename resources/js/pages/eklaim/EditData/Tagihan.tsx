@@ -124,6 +124,21 @@ export default function EditTagihan() {
     const [selectedTindakan, setSelectedTindakan] = useState<any>(null);
     const [jumlahTindakan, setJumlahTindakan] = useState(1);
 
+    // State untuk modal tambah obat
+    const [showAddObatModal, setShowAddObatModal] = useState(false);
+    const [selectedObat, setSelectedObat] = useState<any>(null);
+    const [jumlahObat, setJumlahObat] = useState(1);
+
+    const obat = usePage().props.obat || [];
+    const listObat = (obat || []).map((o: any) => ({
+        ID: o.ID,
+        NAMA: o.NAMA,
+        KATEGORI: o.KATEGORI,
+        SATUAN: o.SATUAN,
+        harga_barang: o.harga_barang , // pastikan harga_barang ada di objek obat
+        // tambahkan properti lain sesuai kebutuhan
+    }));
+
     // Mapping data tindakan agar sesuai dengan struktur yang Anda lampirkan
     const listTindakan = (tindakan || []).map((t: any) => ({
         ID: t.ID,
@@ -185,6 +200,35 @@ export default function EditTagihan() {
         );
     };
 
+    const handleAddObat = async () => {
+        if (!selectedObat) return;
+        setLoading(true);
+        router.post(
+            route('eklaim.editData.storeTagihanObat'),
+            {
+                pengajuanKlaim: dataKlaim?.id,
+                tagihan: {
+                    id: selectedObat.ID,
+                    jumlah: jumlahObat,
+                },
+            },
+            {
+                preserveScroll: true,
+                only: ['rincian', 'error', 'success'],
+                onSuccess: () => {
+                    setShowAddObatModal(false);
+                    setSelectedObat(null);
+                    setJumlahObat(1);
+                    toast.success('Obat berhasil ditambahkan');
+                },
+                onError: (error) => {
+                    toast.error(error?.message || 'Gagal menambahkan obat');
+                },
+                onFinish: () => setLoading(false),
+            }
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Tagihan" />
@@ -222,6 +266,11 @@ export default function EditTagihan() {
                         <Button variant="outline" onClick={() => setShowAddModal(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Tambah Tindakan
+                        </Button>
+
+                        <Button variant="outline" onClick={() => setShowAddObatModal(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Tambah Obat
                         </Button>
                     </div>
                 </div>
@@ -377,6 +426,61 @@ export default function EditTagihan() {
                                 Batal
                             </Button>
                             <Button onClick={handleAddTindakan} disabled={!selectedTindakan} className="bg-blue-600 text-white hover:bg-blue-700">
+                                Tambah
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Modal Tambah Obat */}
+                <Dialog open={showAddObatModal} onOpenChange={setShowAddObatModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Tambah Obat</DialogTitle>
+                        </DialogHeader>
+                        <div className="mb-4">
+                            <label className="mb-1 block font-medium">Cari Obat</label>
+                            <SearchableDropdown
+                                data={listObat}
+                                value={selectedObat ? selectedObat.ID.toString() : ''}
+                                setValue={(val: string) => {
+                                    const found = listObat.find((o: any) => o.ID.toString() === val);
+                                    setSelectedObat(found || null);
+                                }}
+                                placeholder="Cari nama obat..."
+                                getOptionLabel={(item: any) =>
+                                    item.NAMA +
+                                    (item.harga_barang && item.harga_barang.HARGA_JUAL
+                                        ? ' - ' + formatRupiah(item.harga_barang.HARGA_JUAL)
+                                        : '')
+                                }
+                                getOptionValue={(item: any) => item.ID?.toString() || ''}
+                            />
+                            {selectedObat && (
+                                <div className="mt-2 text-sm text-gray-600">
+                                    Harga: <span className="font-semibold">
+                                        {selectedObat.harga_barang && selectedObat.harga_barang.HARGA_JUAL
+                                            ? formatRupiah(selectedObat.harga_barang.HARGA_JUAL)
+                                            : '-'}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <label className="mb-1 block font-medium">Jumlah</label>
+                            <Input
+                                type="number"
+                                min={1}
+                                value={jumlahObat}
+                                onChange={(e) => setJumlahObat(Number(e.target.value))}
+                                className="w-24"
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowAddObatModal(false)}>
+                                Batal
+                            </Button>
+                            <Button onClick={handleAddObat} disabled={!selectedObat} className="bg-blue-600 text-white hover:bg-blue-700">
                                 Tambah
                             </Button>
                         </DialogFooter>

@@ -605,11 +605,13 @@ class EditDataController extends Controller
         // dd($rincian);
 
         $tindakan = TarifTindakan::with('tindakan')->where('STATUS', 1)->get();
+        $obat = Obat::with('hargaBarang')->where('STATUS', 1)->get();
 
         return Inertia::render('eklaim/EditData/Tagihan', [
             'pengajuanKlaim' => $pengajuanKlaim,
             'rincian' => $rincian,
-            'tindakan' => $tindakan
+            'tindakan' => $tindakan,
+            'obat' => $obat
         ]);
     }
 
@@ -706,6 +708,33 @@ class EditDataController extends Controller
                     'ref' => $ref,
                     'jumlah' => $dataTagihan['jumlah'],
                     'tarif' => $dataTindakan->TARIF,
+                    'edit' => 1
+                ]);
+
+            DB::connection('eklaim')->commit();
+            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
+        } catch (\Throwable $th) {
+            DB::connection('eklaim')->rollBack();
+            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
+        }
+    }
+
+    public function StoreEditTagihanObat(Request $request)
+    {
+        try {
+            DB::connection('eklaim')->beginTransaction();
+            $pengajuanKlaim = PengajuanKlaim::findOrFail($request->input('pengajuanKlaim'));
+            $dataTagihan = $request->input('tagihan');
+            $obat = Obat::where('ID', $dataTagihan['id'])->with('hargaBarang')->first();
+
+            RincianTagihan::create([
+                    'id_pengajuan_klaim' => $pengajuanKlaim->id,
+                    'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
+                    'id_tarif' => $obat->ID ?? null,
+                    'jenis' => 4,
+                    'ref' => '',
+                    'jumlah' => $dataTagihan['jumlah'],
+                    'tarif' => $obat->hargaBarang->HARGA_JUAL ?? null,
                     'edit' => 1
                 ]);
 
