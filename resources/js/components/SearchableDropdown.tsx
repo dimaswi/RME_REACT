@@ -91,7 +91,7 @@ export default function SearchableDropdown({
             </div>
             {open && !disabled && createPortal(
                 <div
-                    className="absolute z-[9999] mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+                    className="absolute z-[9999] mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg pointer-events-auto"
                     style={(() => {
                         if (!ref.current) return {};
                         const rect = ref.current.getBoundingClientRect();
@@ -101,6 +101,8 @@ export default function SearchableDropdown({
                             width: rect.width,
                         };
                     })()}
+                    // Prevent blur on input when clicking dropdown
+                    onMouseDown={e => e.preventDefault()}
                 >
                     {filtered.length === 0 ? (
                         <div className="p-3 text-center text-sm text-gray-400">
@@ -113,7 +115,8 @@ export default function SearchableDropdown({
                                 className={`cursor-pointer truncate px-4 py-2 transition ${
                                     idx === highlighted ? 'bg-gray-200 text-gray-900' : 'hover:bg-gray-100 hover:text-gray-700'
                                 }`}
-                                onMouseDown={() => {
+                                onMouseDown={e => {
+                                    e.preventDefault();
                                     setValue(getOptionValue(item).toString());
                                     setSearch('');
                                     setOpen(false);
