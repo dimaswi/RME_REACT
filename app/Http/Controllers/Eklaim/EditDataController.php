@@ -673,19 +673,27 @@ class EditDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
-            if ($tagihanPendaftaran->tagihan->rincianTagihan->count() < 0) {
-                $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
-                    ->with([
-                        'tagihan.rincianTagihan',
-                        'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
-                        'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
-                        'tagihan.rincianTagihan.tarifTindakan.tindakan',
-                        'tagihan.rincianTagihan.hargaBarang.obat',
-                        'tagihan.rincianTagihan.paket',
-                        'tagihan.rincianTagihan.tarifOksigen'
-                    ])
-                    ->where('UTAMA', 1)
-                    ->first();
+            if (
+                !$tagihanPendaftaran ||
+                !$tagihanPendaftaran->tagihan ||
+                empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
+                count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
+            ) {
+                // Data rincianTagihan kosong, lakukan fallback/cari data lain
+                if (!empty($kunjunganIGD) && !empty($kunjunganIGD->NOPEN)) {
+                    $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
+                        ->with([
+                            'tagihan.rincianTagihan',
+                            'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
+                            'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
+                            'tagihan.rincianTagihan.tarifTindakan.tindakan',
+                            'tagihan.rincianTagihan.hargaBarang.obat',
+                            'tagihan.rincianTagihan.paket',
+                            'tagihan.rincianTagihan.tarifOksigen'
+                        ])
+                        ->where('UTAMA', 1)
+                        ->first();
+                }
             }
 
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
