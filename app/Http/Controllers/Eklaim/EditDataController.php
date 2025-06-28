@@ -656,7 +656,23 @@ class EditDataController extends Controller
     public function syncTagihan(PengajuanKlaim $pengajuanKlaim)
     {
         try {
+            $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
             $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
+            ->with([
+                'tagihan.rincianTagihan',
+                'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
+                'tagihan.rincianTagihan.tarifRuangRawat.ruanganKelas',
+                'tagihan.rincianTagihan.tarifTindakan.tindakan',
+                'tagihan.rincianTagihan.hargaBarang.obat',
+                'tagihan.rincianTagihan.paket',
+                'tagihan.rincianTagihan.tarifOksigen'
+            ])
+            ->where('UTAMA', 1)
+            ->first();
+
+        // Jika tidak ditemukan, coba dengan nomor_kunjungan_igd dari resumeMedis
+        if (!$tagihanPendaftaran && $resumeMedis && $resumeMedis->nomor_kunjungan_igd) {
+            $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_igd)
                 ->with([
                     'tagihan.rincianTagihan',
                     'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
@@ -668,7 +684,7 @@ class EditDataController extends Controller
                 ])
                 ->where('UTAMA', 1)
                 ->first();
-
+        }
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
             DB::connection('eklaim')->beginTransaction();
             foreach ($tagihanPendaftaran->tagihan->rincianTagihan as $rincian) {
