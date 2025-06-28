@@ -673,7 +673,9 @@ class EditDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
-            if (!$tagihanPendaftaran && $kunjunganIGD && $kunjunganIGD->NOPEN) {
+            dd($tagihanPendaftaran);
+
+            if ($tagihanPendaftaran == null) {
                 $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
                     ->with([
                         'tagihan.rincianTagihan',
