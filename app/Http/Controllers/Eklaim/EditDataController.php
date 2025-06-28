@@ -136,11 +136,51 @@ class EditDataController extends Controller
                 ->get();
 
             foreach ($tagihanPendaftaran as $tp) {
-                foreach($tp->gabungTagihan->kunjunganPasien as $kunjungan) {
-                    if ($kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
-                        $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
+                // Cek gabungTagihan dan kunjunganPasien
+                if ($tp->gabungTagihan && !empty($tp->gabungTagihan->kunjunganPasien)) {
+                    // Cek KE dan cari TagihanPendaftaran UGD jika ada
+                    if (!empty($tp->gabungTagihan->KE)) {
+                        $tagihanPendaftaranUGD = \App\Models\Pembayaran\TagihanPendaftaran::where('TAGIHAN', $tp->gabungTagihan->KE)->first();
+                        if ($tagihanPendaftaranUGD && !empty($tagihanPendaftaranUGD->PENDAFTARAN)) {
+                            $kunjunganUGD = Kunjungan::where('NOPEN', $tagihanPendaftaranUGD->PENDAFTARAN)->with('ruangan')->get();
+                            foreach ($kunjunganUGD as $kunjungan) {
+                                array_push($dataForEach, $kunjungan);
+                                if ($kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 2) {
+                                    $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
+                                }
+                            }
+                        }
                     }
-                } 
+                    // Loop kunjunganPasien pada gabungTagihan
+                    foreach ($tp->gabungTagihan->kunjunganPasien as $kunjungan) {
+                        if ($kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
+                            $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
+                        }
+                    }
+                }
+
+                // Cek gabungTagihanDari dan kunjunganPasien
+                if ($tp->gabungTagihanDari && !empty($tp->gabungTagihanDari->kunjunganPasien)) {
+                    // Cek KE dan cari TagihanPendaftaran UGD jika ada
+                    if (!empty($tp->gabungTagihanDari->KE)) {
+                        $tagihanPendaftaranUGD = \App\Models\Pembayaran\TagihanPendaftaran::where('TAGIHAN', $tp->gabungTagihanDari->KE)->first();
+                        if ($tagihanPendaftaranUGD && !empty($tagihanPendaftaranUGD->PENDAFTARAN)) {
+                            $kunjunganUGD = Kunjungan::where('NOPEN', $tagihanPendaftaranUGD->PENDAFTARAN)->with('ruangan')->get();
+                            foreach ($kunjunganUGD as $kunjungan) {
+                                array_push($dataForEach, $kunjungan);
+                                if ($kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 2) {
+                                    $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
+                                }
+                            }
+                        }
+                    }
+                    // Loop kunjunganPasien pada gabungTagihanDari
+                    foreach ($tp->gabungTagihanDari->kunjunganPasien as $kunjungan) {
+                        if ($kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN === 2) {
+                            $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
+                        }
+                    }
+                }
             }
         }
 
@@ -180,7 +220,7 @@ class EditDataController extends Controller
                 }
             }
         }
- 
+
         //Kop
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
@@ -225,34 +265,34 @@ class EditDataController extends Controller
                 ['id_pengajuan_klaim' => $resumeData['id_pengajuan_klaim'] ?? null],
                 [
                     'nomor_kunjungan_rawat_inap' => $resumeData['nomor_kunjungan_rawat_inap'] ?? null,
-                    'nomor_kunjungan_igd'        => $resumeData['nomor_kunjungan_igd'] ?? null,
-                    'nomor_kunjungan_poli'        => $resumeData['nomor_kunjungan_poli'] ?? null,
-                    'id_pengajuan_klaim'      => $resumeData['id_pengajuan_klaim'] ?? null,
-                    'nama_pasien'             => $resumeData['nama_pasien'] ?? null,
-                    'no_rm'                   => $resumeData['no_rm'] ?? null,
-                    'tanggal_lahir'           => $resumeData['tanggal_lahir'] ?? null,
-                    'jenis_kelamin'           => $resumeData['jenis_kelamin'] == 1 ? 'Laki-Laki' : 'Perempuan',
-                    'ruang_rawat'             => $resumeData['ruang_rawat'] ?? null,
-                    'penjamin'                => $resumeData['penjamin'] ?? null,
-                    'indikasi_rawat_inap'     => $resumeData['indikasi_rawat_inap'] ?? null,
-                    'tanggal_masuk'           => $resumeData['tanggal_masuk'] ?? null,
-                    'tanggal_keluar'          => $resumeData['tanggal_keluar'] ?? null,
-                    'lama_dirawat'            => $resumeData['lama_dirawat'] ?? null,
+                    'nomor_kunjungan_igd' => $resumeData['nomor_kunjungan_igd'] ?? null,
+                    'nomor_kunjungan_poli' => $resumeData['nomor_kunjungan_poli'] ?? null,
+                    'id_pengajuan_klaim' => $resumeData['id_pengajuan_klaim'] ?? null,
+                    'nama_pasien' => $resumeData['nama_pasien'] ?? null,
+                    'no_rm' => $resumeData['no_rm'] ?? null,
+                    'tanggal_lahir' => $resumeData['tanggal_lahir'] ?? null,
+                    'jenis_kelamin' => $resumeData['jenis_kelamin'] == 1 ? 'Laki-Laki' : 'Perempuan',
+                    'ruang_rawat' => $resumeData['ruang_rawat'] ?? null,
+                    'penjamin' => $resumeData['penjamin'] ?? null,
+                    'indikasi_rawat_inap' => $resumeData['indikasi_rawat_inap'] ?? null,
+                    'tanggal_masuk' => $resumeData['tanggal_masuk'] ?? null,
+                    'tanggal_keluar' => $resumeData['tanggal_keluar'] ?? null,
+                    'lama_dirawat' => $resumeData['lama_dirawat'] ?? null,
                     'riwayat_penyakit_sekarang' => $resumeData['riwayat_penyakit_sekarang'] ?? null,
-                    'riwayat_penyakit_lalu'   => $resumeData['riwayat_penyakit_lalu'] ?? null,
-                    'pemeriksaan_fisik'       => $resumeData['pemeriksaan_fisik'] ?? null,
-                    'keadaan_umum'           => $resumeData['keadaan_umum'] ?? null,
-                    'suhu'                   => $resumeData['suhu'] ?? null,
-                    'sistole'                => $resumeData['sistole'] ?? null,
-                    'diastole'               => $resumeData['diastole'] ?? null,
-                    'nadi'                   => $resumeData['nadi'] ?? null,
-                    'respirasi'              => $resumeData['respirasi'] ?? null,
-                    'diagnosa_utama'          => $resumeData['diagnosa_utama'] ?? null,
-                    'tindakan_prosedur'       => $resumeData['tindakan_prosedur'] ?? null,
-                    'riwayat_alergi'          => $resumeData['riwayat_alergi'] ?? null,
-                    'keadaan_pulang'          => $resumeData['keadaan_pulang'] ?? null,
-                    'cara_pulang'             => $resumeData['cara_pulang'] ?? null,
-                    'dokter'                  => $resumeData['dokter'] ?? null,
+                    'riwayat_penyakit_lalu' => $resumeData['riwayat_penyakit_lalu'] ?? null,
+                    'pemeriksaan_fisik' => $resumeData['pemeriksaan_fisik'] ?? null,
+                    'keadaan_umum' => $resumeData['keadaan_umum'] ?? null,
+                    'suhu' => $resumeData['suhu'] ?? null,
+                    'sistole' => $resumeData['sistole'] ?? null,
+                    'diastole' => $resumeData['diastole'] ?? null,
+                    'nadi' => $resumeData['nadi'] ?? null,
+                    'respirasi' => $resumeData['respirasi'] ?? null,
+                    'diagnosa_utama' => $resumeData['diagnosa_utama'] ?? null,
+                    'tindakan_prosedur' => $resumeData['tindakan_prosedur'] ?? null,
+                    'riwayat_alergi' => $resumeData['riwayat_alergi'] ?? null,
+                    'keadaan_pulang' => $resumeData['keadaan_pulang'] ?? null,
+                    'cara_pulang' => $resumeData['cara_pulang'] ?? null,
+                    'dokter' => $resumeData['dokter'] ?? null,
                 ]
             );
 
@@ -289,7 +329,7 @@ class EditDataController extends Controller
                         ],
                         $terapi
                     );
-                    
+
                     $obat = Obat::where('NAMA', $terapi['namaObat'])->with('hargaBarang')->first();
                     RincianTagihan::where('id_tarif', $obat->hargaBarang->ID ?? null)->delete();
                     RincianTagihan::create([
@@ -701,15 +741,15 @@ class EditDataController extends Controller
             }
 
             RincianTagihan::create([
-                    'id_pengajuan_klaim' => $pengajuanKlaim->id,
-                    'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
-                    'id_tarif' => $dataTindakan->ID,
-                    'jenis' => 3,
-                    'ref' => $ref,
-                    'jumlah' => $dataTagihan['jumlah'],
-                    'tarif' => $dataTindakan->TARIF,
-                    'edit' => 1
-                ]);
+                'id_pengajuan_klaim' => $pengajuanKlaim->id,
+                'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
+                'id_tarif' => $dataTindakan->ID,
+                'jenis' => 3,
+                'ref' => $ref,
+                'jumlah' => $dataTagihan['jumlah'],
+                'tarif' => $dataTindakan->TARIF,
+                'edit' => 1
+            ]);
 
             DB::connection('eklaim')->commit();
             return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
@@ -728,15 +768,15 @@ class EditDataController extends Controller
             $obat = Obat::where('ID', $dataTagihan['id'])->with('hargaBarang')->first();
 
             RincianTagihan::create([
-                    'id_pengajuan_klaim' => $pengajuanKlaim->id,
-                    'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
-                    'id_tarif' => $obat->ID ?? null,
-                    'jenis' => 4,
-                    'ref' => '',
-                    'jumlah' => $dataTagihan['jumlah'],
-                    'tarif' => $obat->hargaBarang->HARGA_JUAL ?? null,
-                    'edit' => 1
-                ]);
+                'id_pengajuan_klaim' => $pengajuanKlaim->id,
+                'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
+                'id_tarif' => $obat->ID ?? null,
+                'jenis' => 4,
+                'ref' => '',
+                'jumlah' => $dataTagihan['jumlah'],
+                'tarif' => $obat->hargaBarang->HARGA_JUAL ?? null,
+                'edit' => 1
+            ]);
 
             DB::connection('eklaim')->commit();
             return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
