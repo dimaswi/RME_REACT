@@ -2,6 +2,7 @@
 
 namespace App\Models\Master;
 
+use App\Models\Pembayaran\TarifTindakan;
 use Illuminate\Database\Eloquent\Model;
 
 class Tindakan extends Model
@@ -13,5 +14,10 @@ class Tindakan extends Model
     public function parameterTindakanLab()
     {
         return $this->hasMany(ParameterTindakanLab::class, 'TINDAKAN', 'ID');
+    }
+
+    public function hargaTindakan()
+    {
+        return $this->hasMany(TarifTindakan::class, 'TINDAKAN', 'ID')->with('status', 1);
     }
 }

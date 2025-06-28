@@ -93,12 +93,14 @@ export default function EditRadiologi() {
             toast.error('Nama tindakan wajib diisi');
             return;
         }
+        // Cari objek tindakan dari list tindakanRad
+        const tindakanObj = tindakanRad.find(t => t.ID === addRow.nama);
         setDataRadiologi((prev) => [
             ...prev,
             {
                 ID: Date.now(),
                 KUNJUNGAN: selectedKunjungan,
-                tindakan_radiologi: { ID: addRow.nama },
+                tindakan_radiologi: tindakanObj ? { ID: tindakanObj.ID, NAMA: tindakanObj.NAMA } : { ID: addRow.nama, NAMA: '' },
                 hasil_radiologi: {
                     ID: Date.now(),
                     KLINIS: addRow.klinis,

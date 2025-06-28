@@ -1,18 +1,22 @@
+import SearchableDropdown from '@/components/SearchableDropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { formatRupiah } from '@/lib/utils';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Home, Loader, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Home, Loader, PlusCircle, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function EditTagihan() {
     const { pengajuanKlaim: dataKlaim, rincian } = usePage().props as any;
     const [tagihan, setTagihan] = useState(rincian || []);
+    const tindakan = usePage().props.tindakan || [];
 
     const fetchTagihan = async () => {
         try {
@@ -114,6 +118,73 @@ export default function EditTagihan() {
     // Total tagihan
     const totalTagihan = tagihan.reduce((total: number, item: any) => total + Number(item.jumlah) * Number(item.tarif), 0);
 
+    // State untuk modal tambah tindakan
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [searchTindakan, setSearchTindakan] = useState('');
+    const [selectedTindakan, setSelectedTindakan] = useState<any>(null);
+    const [jumlahTindakan, setJumlahTindakan] = useState(1);
+
+    // Mapping data tindakan agar sesuai dengan struktur yang Anda lampirkan
+    const listTindakan = (tindakan || []).map((t: any) => ({
+        ID: t.ID,
+        TINDAKAN: t.TINDAKAN,
+        KELAS: t.KELAS,
+        ADMINISTRASI: t.ADMINISTRASI,
+        SARANA: t.SARANA,
+        BHP: t.BHP,
+        DOKTER_OPERATOR: t.DOKTER_OPERATOR,
+        DOKTER_ANASTESI: t.DOKTER_ANASTESI,
+        DOKTER_LAINNYA: t.DOKTER_LAINNYA,
+        PENATA_ANASTESI: t.PENATA_ANASTESI,
+        PARAMEDIS: t.PARAMEDIS,
+        NON_MEDIS: t.NON_MEDIS,
+        TARIF: t.TARIF,
+        TANGGAL: t.TANGGAL,
+        TANGGAL_SK: t.TANGGAL_SK,
+        NOMOR_SK: t.NOMOR_SK,
+        OLEH: t.OLEH,
+        STATUS: t.STATUS,
+        tindakan: t.tindakan, // sudah nested, pastikan backend mengirim field ini
+    }));
+
+    // Filter berdasarkan pencarian
+    const filteredTindakan = listTindakan.filter((t: any) => t.tindakan?.NAMA?.toLowerCase().includes(searchTindakan.toLowerCase()));
+
+    useEffect(() => {
+        setTagihan(rincian || []);
+    }, [rincian]);
+
+    const handleAddTindakan = async () => {
+        if (!selectedTindakan) return;
+
+        setLoading(true);
+        router.post(
+            route('eklaim.editData.storeTagihan'),
+            {
+                pengajuanKlaim: dataKlaim?.id,
+                tagihan: {
+                    id: selectedTindakan.ID,
+                    jumlah: jumlahTindakan,
+                },
+            },
+            {
+                preserveScroll: true,
+                only: ['rincian', 'error', 'success'], // agar hanya prop rincian yang di-refresh
+                onSuccess: () => {
+                    setShowAddModal(false);
+                    setSelectedTindakan(null);
+                    setJumlahTindakan(1);
+                    setSearchTindakan('');
+                    toast.success('Tindakan berhasil ditambahkan');
+                },
+                onError: (error) => {
+                    toast.error(error?.message || 'Gagal menambahkan tindakan');
+                },
+                onFinish: () => setLoading(false),
+            },
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Tagihan" />
@@ -122,6 +193,7 @@ export default function EditTagihan() {
                     <div className="flex items-center space-x-2">
                         {loading == false ? (
                             <Button
+                                variant="outline"
                                 onClick={async () => {
                                     try {
                                         setLoading(true);
@@ -136,17 +208,21 @@ export default function EditTagihan() {
                                         setLoading(false);
                                     }
                                 }}
-                                className="h-10 bg-yellow-500 text-white hover:bg-yellow-600"
                             >
                                 <Loader className="mr-2 h-4 w-4" />
                                 Sinkronasi
                             </Button>
                         ) : (
-                            <Button className="h-10 bg-yellow-500 text-white hover:bg-yellow-600">
+                            <Button variant="outline" disabled>
                                 <Loader className="mr-2 h-4 w-4 animate-spin" />
                                 Sinkronasi
                             </Button>
                         )}
+
+                        <Button variant="outline" onClick={() => setShowAddModal(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Tambah Tindakan
+                        </Button>
                     </div>
                 </div>
                 <Card>
@@ -260,7 +336,52 @@ export default function EditTagihan() {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-                ;
+
+                {/* Modal Tambah Tindakan */}
+                <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Tambah Tindakan</DialogTitle>
+                        </DialogHeader>
+                        <div className="mb-4">
+                            <label className="mb-1 block font-medium">Cari Tindakan</label>
+                            <SearchableDropdown
+                                data={listTindakan}
+                                value={selectedTindakan ? selectedTindakan.ID.toString() : ''}
+                                setValue={(val: string) => {
+                                    const found = listTindakan.find((t: any) => t.ID.toString() === val);
+                                    setSelectedTindakan(found || null);
+                                }}
+                                placeholder="Cari nama tindakan..."
+                                getOptionLabel={(item: any) => item.tindakan?.NAMA + ' - ' + formatRupiah(item?.TARIF) || ''}
+                                getOptionValue={(item: any) => item.ID?.toString() || ''}
+                            />
+                            {selectedTindakan && (
+                                <div className="mt-2 text-sm text-gray-600">
+                                    Tarif: <span className="font-semibold">{formatRupiah(selectedTindakan.TARIF)}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <label className="mb-1 block font-medium">Jumlah</label>
+                            <Input
+                                type="number"
+                                min={1}
+                                value={jumlahTindakan}
+                                onChange={(e) => setJumlahTindakan(Number(e.target.value))}
+                                className="w-24"
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowAddModal(false)}>
+                                Batal
+                            </Button>
+                            <Button onClick={handleAddTindakan} disabled={!selectedTindakan} className="bg-blue-600 text-white hover:bg-blue-700">
+                                Tambah
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

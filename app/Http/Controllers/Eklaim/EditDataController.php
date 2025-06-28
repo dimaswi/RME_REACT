@@ -31,6 +31,7 @@ use App\Models\Layanan\TindakanMedis;
 use App\Models\Master\Pegawai;
 use App\Models\Master\Tindakan;
 use App\Models\Pembayaran\TagihanPendaftaran;
+use App\Models\Pembayaran\TarifTindakan;
 use App\Models\Pendaftaran\Kunjungan;
 use App\Models\Pendaftaran\Pendaftaran;
 use App\Models\RM\CPPT;
@@ -601,9 +602,14 @@ class EditDataController extends Controller
             ])
             ->get();
 
+        // dd($rincian);
+
+        $tindakan = TarifTindakan::with('tindakan')->where('STATUS', 1)->get();
+
         return Inertia::render('eklaim/EditData/Tagihan', [
             'pengajuanKlaim' => $pengajuanKlaim,
-            'rincian' => $rincian
+            'rincian' => $rincian,
+            'tindakan' => $tindakan
         ]);
     }
 
@@ -662,11 +668,52 @@ class EditDataController extends Controller
     public function StoreEditTagihan(Request $request)
     {
         try {
+            DB::connection('eklaim')->beginTransaction();
+            $pengajuanKlaim = PengajuanKlaim::findOrFail($request->input('pengajuanKlaim'));
+            $dataTagihan = $request->input('tagihan');
+            $dataTindakan = TarifTindakan::with('tindakan')->where('ID', $dataTagihan['id'])->first();
+            if ($dataTindakan->tindakan->JENIS == 1) {
+                $ref = 'Prosedur Non Bedah';
+            } elseif ($dataTindakan->tindakan->JENIS == 2) {
+                $ref = 'Prosedur Bedah';
+            } elseif ($dataTindakan->tindakan->JENIS == 3) {
+                $ref = 'Konsultasi';
+            } elseif ($dataTindakan->tindakan->JENIS == 4) {
+                $ref = 'Tenaga Ahli';
+            } elseif ($dataTindakan->tindakan->JENIS == 5) {
+                $ref = 'Keperawatan';
+            } elseif ($dataTindakan->tindakan->JENIS == 6) {
+                $ref = 'Penunjang';
+            } else if ($dataTindakan->tindakan->JENIS == 7) {
+                $ref = 'Radiologi';
+            } else if ($dataTindakan->tindakan->JENIS == 8) {
+                $ref = 'Laboratorium';
+            } else if ($dataTindakan->tindakan->JENIS == 9) {
+                $ref = 'Bank Darah';
+            } else if ($dataTindakan->tindakan->JENIS == 10) {
+                $ref = 'Rehabilitasi';
+            } else if ($dataTindakan->tindakan->JENIS == 11) {
+                $ref = 'Sewa Alat';
+            } else {
+                $ref = 'Non Kategori';
+            }
 
-            return redirect()->back()->with('success', 'Data Tagihan berhasil disimpan.');
+            RincianTagihan::create([
+                    'id_pengajuan_klaim' => $pengajuanKlaim->id,
+                    'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
+                    'id_tarif' => $dataTindakan->ID,
+                    'jenis' => 3,
+                    'ref' => $ref,
+                    'jumlah' => $dataTagihan['jumlah'],
+                    'tarif' => $dataTindakan->TARIF,
+                    'edit' => 1
+                ]);
+
+            DB::connection('eklaim')->commit();
+            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
         } catch (\Throwable $th) {
-
-            return redirect()->back()->with('error', 'Gagal menyimpan data Tagihan: ' . $th->getMessage());
+            DB::connection('eklaim')->rollBack();
+            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
         }
     }
 
