@@ -144,7 +144,6 @@ class EditDataController extends Controller
                         if ($tagihanPendaftaranUGD && !empty($tagihanPendaftaranUGD->PENDAFTARAN)) {
                             $kunjunganUGD = Kunjungan::where('NOPEN', $tagihanPendaftaranUGD->PENDAFTARAN)->with('ruangan')->get();
                             foreach ($kunjunganUGD as $kunjungan) {
-                                array_push($dataForEach, $kunjungan);
                                 if ($kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 2) {
                                     $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
                                 }
@@ -167,7 +166,6 @@ class EditDataController extends Controller
                         if ($tagihanPendaftaranUGD && !empty($tagihanPendaftaranUGD->PENDAFTARAN)) {
                             $kunjunganUGD = Kunjungan::where('NOPEN', $tagihanPendaftaranUGD->PENDAFTARAN)->with('ruangan')->get();
                             foreach ($kunjunganUGD as $kunjungan) {
-                                array_push($dataForEach, $kunjungan);
                                 if ($kunjungan->ruangan && $kunjungan->ruangan->JENIS_KUNJUNGAN == 2) {
                                     $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
                                 }
