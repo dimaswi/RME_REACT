@@ -1106,7 +1106,7 @@ class BridgeDataController extends Controller
                 $klasifikasiKunjungan = $dataKunjungan;
             }
             $penjaminPasien = Penjamin::where('NOPEN', $dataTagihan->PENDAFTARAN)->first();
-            $ruangan = $klasifikasiKunjungan->ruangan->DESKRIPSI ?? 'Tidak ada data ruangan';
+            $ruangan = 'Rawat Inap';
             $penjamin = $penjaminPasien->JENIS == 1 ? 'Umum' : 'BPJS';
         } else {
             $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
