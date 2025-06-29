@@ -199,7 +199,4 @@
     </body>
 
     </html>
-    @if (!$loop->last)
-        <div class="page-break"></div>
-    @endif
 @endforeach
