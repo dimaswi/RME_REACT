@@ -98,6 +98,7 @@ export default function KlaimIndex() {
         await axios
             .post('/eklaim/klaim/filter', customFilters)
             .then((response) => {
+                console.log('Response data:', response.data);
                 setDataPendaftaran(response.data.dataPendaftaran); // <-- ambil dataPendaftaran saja!
                 toast.dismiss();
                 toast.success('Data berhasil diambil');
@@ -126,9 +127,20 @@ export default function KlaimIndex() {
         setShowModal(true);
     };
 
-    const formatTanggalIndo = (tanggal: string) => {
+    const formatTanggalIndo = (tanggal: string | Date | null | undefined) => {
+        if (!tanggal) return '-';
+        let dateObj;
+        if (tanggal instanceof Date) {
+            dateObj = tanggal;
+        } else if (typeof tanggal === 'string' && tanggal.length > 0) {
+            // Mendukung format ISO, Y-m-d, Y-m-d H:i:s, dst
+            dateObj = new Date(tanggal.replace(' ', 'T'));
+        } else {
+            return '-';
+        }
+        if (isNaN(dateObj.getTime())) return '-';
         const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(tanggal).toLocaleDateString('id-ID', options);
+        return dateObj.toLocaleDateString('id-ID', options);
     };
 
     const prevLink = Array.isArray(dataPendaftaran.links)
@@ -363,7 +375,8 @@ export default function KlaimIndex() {
                                 <TableHead>Nama Pasien</TableHead>
                                 <TableHead>No Kartu</TableHead>
                                 <TableHead>No SEP</TableHead>
-                                <TableHead>Tgl SEP</TableHead>
+                                <TableHead>Tanggal Masuk</TableHead>
+                                <TableHead>Tanggal Keluar</TableHead>
                                 <TableHead>Ruangan</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Aksi</TableHead>
@@ -372,6 +385,7 @@ export default function KlaimIndex() {
                         <TableBody>
                             {Array.isArray(dataPendaftaran.data) && dataPendaftaran.data.length > 0 ? (
                                 dataPendaftaran.data.map((item: any, idx: number) => (
+                                    
                                     <TableRow
                                         key={item.noSEP || idx}
                                         onClick={() => handleRowClick(item)}
@@ -380,7 +394,8 @@ export default function KlaimIndex() {
                                         <TableCell>{item.data_peserta?.nama || '-'}</TableCell>
                                         <TableCell>{item.data_peserta?.noKartu || '-'}</TableCell>
                                         <TableCell>{item.noSEP || '-'}</TableCell>
-                                        <TableCell>{formatTanggalIndo(item.tglSEP) || '-'}</TableCell>
+                                        <TableCell>{formatTanggalIndo(item?.penjamin_pendaftaran?.kunjungan_pasien[0]?.MASUK ?? '')}</TableCell>
+                                        <TableCell>{formatTanggalIndo(item?.penjamin_pendaftaran?.kunjungan_pasien[item.penjamin_pendaftaran.kunjungan_pasien.length - 1]?.KELUAR ?? '')}</TableCell>
                                         <TableCell>{item.poliTujuan || 'Rawat Inap'}</TableCell>
                                         <TableCell>{badgeStatus(item.klaimStatus)}</TableCell>
                                         {item.klaimStatus === 0 ? (

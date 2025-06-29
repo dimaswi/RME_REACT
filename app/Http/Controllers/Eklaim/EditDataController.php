@@ -946,12 +946,6 @@ class EditDataController extends Controller
             $dokter = $request->input('dokter');
             $petugas = $request->input('petugas');
 
-            $laboratoriumLama = Laboratorium::where('pengajuan_klaim_id', $pengajuanKlaimId)->get();
-            foreach ($laboratoriumLama as $lab) {
-                $lab->hasilLaboratorium()->delete();
-                $lab->delete();
-            }
-
             PengajuanKlaim::where('id', $pengajuanKlaimId)->update(['laboratorium' => 1]);
 
             foreach ($data as $item) {
