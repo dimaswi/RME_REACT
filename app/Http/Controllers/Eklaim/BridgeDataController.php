@@ -1267,6 +1267,8 @@ class BridgeDataController extends Controller
             })
             ->values();
 
+        dd($dataLaboratorium);
+
         $dataKunjungan = Kunjungan::where('NOMOR', $dataLaboratorium[0]['KUNJUNGAN'])->first();
         $dataPendaftaran = Pendaftaran::where('NOMOR', $dataKunjungan->NOPEN)->first();
         $getRuanganPerujuk = Kunjungan::where('NOPEN', $dataKunjungan->NOPEN)
