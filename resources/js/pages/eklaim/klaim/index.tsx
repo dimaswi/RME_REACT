@@ -75,6 +75,7 @@ export default function KlaimIndex() {
         from: filters.tanggal_awal ? new Date(filters.tanggal_awal) : undefined,
         to: filters.tanggal_akhir ? new Date(filters.tanggal_akhir) : undefined,
     });
+    const [selectedJenisTanggal, setSelectedJenisTanggal] = useState(filters.jenis_tanggal || 'MASUK'); // Default ke 'MASUK'
     const [selectedStatus, setSelectedStatus] = useState(filters.status);
     const [modalData, setModalData] = useState<any | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -168,6 +169,10 @@ export default function KlaimIndex() {
             },
         });
     };
+
+    useEffect(() => {
+        setFilters((prev) => ({ ...prev, jenis_tanggal: selectedJenisTanggal }));
+    }, [selectedJenisTanggal]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -266,6 +271,24 @@ export default function KlaimIndex() {
                                 <SelectItem value="ALL">Semua Status</SelectItem>
                                 <SelectItem value="0">Belum Diajukan</SelectItem>
                                 <SelectItem value="1">Sudah Diajukan</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select name="jenis_tanggal" value={selectedJenisTanggal} onValueChange={(val) => setSelectedJenisTanggal(val)}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue>
+                                    {selectedJenisTanggal === 'SEP'
+                                        ? 'Tanggal SEP'
+                                        : selectedJenisTanggal === 'MASUK'
+                                          ? 'Tanggal Masuk'
+                                          : selectedJenisTanggal === 'KELUAR'
+                                            ? 'Tanggal Keluar'
+                                            : selectedJenisTanggal}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="MASUK">Tanggal Masuk</SelectItem>
+                                <SelectItem value="KELUAR">Tanggal Keluar</SelectItem>
                             </SelectContent>
                         </Select>
 

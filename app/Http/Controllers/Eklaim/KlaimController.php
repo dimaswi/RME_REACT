@@ -48,8 +48,30 @@ class KlaimController extends Controller
             $tanggalAkhir = $request->input('tanggal_akhir');
             $kelas = $request->input('kelas');
             $status = $request->input('status');
+            $jenisTanggal = $request->input('jenis_tanggal', 'MASUK'); // default SEP
 
-            $query = Kunjungan::query();
+            // 1. Ambil ID ruangan dari master
+            $ruanganIds = \App\Models\Master\Ruangan::whereIn('JENIS_KUNJUNGAN', [1, 2, 3])->pluck('ID')->toArray();
+
+            // 2. Ambil NOPEN dari kunjungan pendaftaran
+            $filteredNopen = \App\Models\Pendaftaran\Kunjungan::where(function ($q) use ($jenisTanggal, $tanggalAwal, $tanggalAkhir) {
+                if ($jenisTanggal === 'MASUK') {
+                    $q->whereBetween('MASUK', [$tanggalAwal, $tanggalAkhir]);
+                } else {
+                    $q->whereBetween('KELUAR', [$tanggalAwal, $tanggalAkhir]);
+                }
+            })
+                ->whereIn('RUANGAN', $ruanganIds)
+                ->pluck('NOPEN')
+                ->toArray();
+
+            // 3. Ambil noSEP dari penjamin pendaftaran
+            $filteredSep = \App\Models\Pendaftaran\Penjamin::whereIn('NOPEN', $filteredNopen)
+                ->pluck('NOMOR')
+                ->toArray();
+
+            // 4. Query utama
+            $query = \App\Models\BPJS\Kunjungan::query();
 
             if ($q) {
                 $query->where(function ($sub) use ($q) {
@@ -68,12 +90,10 @@ class KlaimController extends Controller
                 });
             }
 
-            if ($tanggalAwal && $tanggalAkhir) {
-                $query->whereBetween('tglSEP', [$tanggalAwal, $tanggalAkhir]);
-            } elseif ($tanggalAwal) {
-                $query->whereDate('tglSEP', '>=', $tanggalAwal);
-            } elseif ($tanggalAkhir) {
-                $query->whereDate('tglSEP', '<=', $tanggalAkhir);
+            if (count($filteredSep)) {
+                $query->whereIn('noSEP', $filteredSep);
+            } else {
+                $query->whereRaw('0=1');
             }
 
             if ($status !== null && $status !== '' && $status !== 'ALL') {
@@ -969,6 +989,7 @@ class KlaimController extends Controller
 
     public function editUlangKlaim(PengajuanKlaim $pengajuanKlaim)
     {
+        dd($pengajuanKlaim);
         $metadata = [
             'method' => 'reedit_claim'
         ];
