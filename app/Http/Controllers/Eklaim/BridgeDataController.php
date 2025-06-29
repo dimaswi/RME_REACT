@@ -1081,7 +1081,7 @@ class BridgeDataController extends Controller
             ->first();
 
         if ($dataTagihanPendaftaran == null) {
-            $dataTagihan = TagihanPendaftaran::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_ugd)
+            $dataTagihan = TagihanPendaftaran::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_igd)
                 ->first();
 
                 dd($dataTagihan);
