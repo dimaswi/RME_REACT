@@ -1,6 +1,5 @@
-@foreach ($dataLaboratorium as $group)
-    @foreach ($group as $dataLab)
-        <!DOCTYPE html>
+@foreach ($dataLaboratorium as $dataLab)
+    <!DOCTYPE html>
     <html lang="en">
 
     <head>
@@ -201,8 +200,5 @@
     </body>
 
     </html>
-        @if (!$loop->parent->last || !$loop->last)
-            <div class="page-break"></div>
-        @endif
-    @endforeach
+
 @endforeach
