@@ -1293,6 +1293,8 @@ class BridgeDataController extends Controller
             ->groupBy('kunjungan_id') // Group by kunjungan_id
             ->values();
 
+            dd($dataLaboratorium);
+
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
             throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
