@@ -1290,6 +1290,7 @@ class BridgeDataController extends Controller
                     }),
                 ];
             })
+            ->groupBy('kunjungan_id') // Group by kunjungan_id
             ->values();
         // dd($dataLaboratorium);
 
