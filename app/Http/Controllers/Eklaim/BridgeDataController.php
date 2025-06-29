@@ -1290,7 +1290,7 @@ class BridgeDataController extends Controller
                     }),
                 ];
             })
-            ->groupBy('kunjungan_id');
+            ->groupBy('KUNJUNGAN');
 
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
