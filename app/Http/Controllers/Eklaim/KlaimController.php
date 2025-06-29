@@ -989,7 +989,6 @@ class KlaimController extends Controller
 
     public function editUlangKlaim(PengajuanKlaim $pengajuanKlaim)
     {
-        dd($pengajuanKlaim);
         $metadata = [
             'method' => 'reedit_claim'
         ];

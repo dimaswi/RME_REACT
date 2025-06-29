@@ -178,16 +178,16 @@ class BridgeDataController extends Controller
 
         $diagnosaUtama = $kunjunganPasien->pendaftaranPasien->diagnosaPasien
             ? $kunjunganPasien->pendaftaranPasien->diagnosaPasien
-                ->flatMap(function ($diagnosa) {
-                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
-                })->implode(', ')
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR] : [];
+            })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $icd10DiagnosaUtama = $kunjunganPasien->pendaftaranPasien->diagnosaPasien
             ? $kunjunganPasien->pendaftaranPasien->diagnosaPasien
-                ->flatMap(function ($diagnosa) {
-                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
-                })->implode(', ')
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->CODE] : [];
+            })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $jenisKelamin = $kunjunganPasien->pendaftaranPasien->pasien->JENIS_KELAMIN === 1
@@ -198,19 +198,19 @@ class BridgeDataController extends Controller
 
         $terapiPulang = $kunjunganPasien->orderResepPulang
             ? $kunjunganPasien->orderResepPulang
-                ->flatMap(function ($orderResep) {
-                    return $orderResep->orderResepDetil
-                        ? $orderResep->orderResepDetil->map(function ($resep) {
-                            return [
-                                'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
-                                'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
-                                'jumlah' => $resep->JUMLAH ?? 'Tidak ada data jumlah',
-                                'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
-                            ];
-                        })
-                        : collect();
-                })
-                ->toArray()
+            ->flatMap(function ($orderResep) {
+                return $orderResep->orderResepDetil
+                    ? $orderResep->orderResepDetil->map(function ($resep) {
+                        return [
+                            'nama_obat' => $resep->namaObat->NAMA ?? 'Tidak ada data nama obat',
+                            'frekuensi' => $resep->frekuensiObat->KETERANGAN ?? 'Tidak ada data aturan pakai',
+                            'jumlah' => $resep->JUMLAH ?? 'Tidak ada data jumlah',
+                            'cara_pakai' => $resep->caraPakai->DESKRIPSI ?? 'Tidak ada data cara pakai',
+                        ];
+                    })
+                    : collect();
+            })
+            ->toArray()
             : [];
 
         $gelarDepanDokter = $kunjunganPasien->dokterDPJP->pegawai->GELAR_DEPAN != null
@@ -445,9 +445,9 @@ class BridgeDataController extends Controller
 
         $getDiagnosaPasien = $kunjunganUGD->pendaftaranPasien->diagnosaPasien
             ? $kunjunganUGD->pendaftaranPasien->diagnosaPasien
-                ->flatMap(function ($diagnosa) {
-                    return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
-                })->implode(', ')
+            ->flatMap(function ($diagnosa) {
+                return $diagnosa->namaDiagnosa ? [$diagnosa->namaDiagnosa->STR . ' (' . $diagnosa->namaDiagnosa->CODE . ')'] : [];
+            })->implode(', ')
             : 'Tidak ada data diagnosa';
 
         $riwayatKeluarga = [];
@@ -1073,21 +1073,37 @@ class BridgeDataController extends Controller
     {
         // dd('Preview Tagihan untuk nomor pendaftaran: ' . $nomor_pendaftaran);
         $pengajuanKlaim = PengajuanKlaim::where('id', $nomor_pendaftaran)->first();
+        $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
         $dataPasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
         $dataTagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
             ->where('STATUS', '!=', 0)
             ->where('UTAMA', 1)
             ->first();
 
-        $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
-            ->with('pegawai')
-            ->first();
-        $qrcode_petugas = 'data:image/png;base64,' . base64_encode(
-            QrCode::format('png')->size(100)->generate(
-                $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas'
-            )
-        );
-        $nama_petugas = $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas';
+        if ($dataTagihanPendaftaran == null) {
+            $dataPembayaran = PembayaranTagihan::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_ugd)
+                ->with('pegawai')
+                ->first();
+
+            $qrcode_petugas = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')->size(100)->generate(
+                    $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas'
+                )
+            );
+            $nama_petugas = $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas';
+        } else {
+            $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
+                ->with('pegawai')
+                ->first();
+
+            $qrcode_petugas = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')->size(100)->generate(
+                    $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas'
+                )
+            );
+            $nama_petugas = $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas';
+        }
+
         $pendaftaranPasien = Pendaftaran::where('NOMOR', $dataTagihanPendaftaran->PENDAFTARAN)->first();
         $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
         $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
