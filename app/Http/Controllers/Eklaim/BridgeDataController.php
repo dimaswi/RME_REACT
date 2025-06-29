@@ -1074,6 +1074,7 @@ class BridgeDataController extends Controller
         // dd('Preview Tagihan untuk nomor pendaftaran: ' . $nomor_pendaftaran);
         $pengajuanKlaim = PengajuanKlaim::where('id', $nomor_pendaftaran)->first();
         $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
+        $kunjungan = Kunjungan::where('NOPEN', $resumeMedis->nomor_kunjungan_igd)->first();
         $dataPasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
         $dataTagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
             ->where('STATUS', '!=', 0)
@@ -1081,10 +1082,12 @@ class BridgeDataController extends Controller
             ->first();
 
         if ($dataTagihanPendaftaran == null) {
-            $dataTagihan = TagihanPendaftaran::where('PENDAFTARAN', $resumeMedis->nomor_kunjungan_igd)
+            $dataTagihan = TagihanPendaftaran::where('PENDAFTARAN', $kunjungan->NOPEN)
+                ->where('STATUS', '!=', 0)
+                ->where('UTAMA', 1)
                 ->first();
 
-                dd($resumeMedis);
+            dd($dataTagihan);
             $dataPembayaran = PembayaranTagihan::where('PENDAFTARAN', $dataTagihan->TAGIHAN)
                 ->with('pegawai')
                 ->first();
