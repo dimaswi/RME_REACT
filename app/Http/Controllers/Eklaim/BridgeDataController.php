@@ -1097,6 +1097,10 @@ class BridgeDataController extends Controller
                 )
             );
             $nama_petugas = $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas';
+            $pendaftaranPasien = Pendaftaran::where('NOMOR', $dataTagihan->PENDAFTARAN)->first();
+            $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
+            $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
+            $dataKunjungan = Kunjungan::where('NOPEN', $dataTagihan->PENDAFTARAN)->first();
         } else {
             $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
                 ->with('pegawai')
@@ -1108,12 +1112,11 @@ class BridgeDataController extends Controller
                 )
             );
             $nama_petugas = $dataPembayaran->pegawai->NAMA ?? 'Tidak ada data nama petugas';
+            $pendaftaranPasien = Pendaftaran::where('NOMOR', $dataTagihanPendaftaran->PENDAFTARAN)->first();
+            $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
+            $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
+            $dataKunjungan = Kunjungan::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
         }
-
-        $pendaftaranPasien = Pendaftaran::where('NOMOR', $dataTagihanPendaftaran->PENDAFTARAN)->first();
-        $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
-        $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
-        $dataKunjungan = Kunjungan::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
         $klasifikasiKunjungan = null;
         if ($dataKunjungan && $dataKunjungan->ruangan && in_array($dataKunjungan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
             $klasifikasiKunjungan = $dataKunjungan;
