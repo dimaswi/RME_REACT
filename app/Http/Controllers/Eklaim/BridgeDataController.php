@@ -1230,6 +1230,24 @@ class BridgeDataController extends Controller
             ->with('hasilLaboratorium.parameterTindakanLab')
             ->get()
             ->map(function ($tindakan) {
+                $dataKunjungan = Kunjungan::where('NOMOR', $tindakan->kunjungan_id)->first();
+                $dataPendaftaran = Pendaftaran::where('NOMOR', $dataKunjungan->NOPEN)->first();
+                $getRuanganPerujuk = Kunjungan::where('NOPEN', $dataKunjungan->NOPEN)
+                    ->with('ruangan')
+                    ->get();
+                foreach ($getRuanganPerujuk as $ruangan) {
+                    if (in_array($ruangan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
+                        $ruanganPerujuk = $ruangan->ruangan->DESKRIPSI ?? 'Tidak ada nama ruangan';
+                    }
+                }
+                $dataPegawai = Pengguna::where('ID', $tindakan->oleh)->first();
+                $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
+                    QrCode::format('png')->size(150)->generate($dataPegawai->NAMA ?? 'Tidak ada nama pasien')
+                );
+                $dokterPJ = "dr. YUSRON ABDURROHMAN";
+                $qrcodeBase64DokterPJ = 'data:image/png;base64,' . base64_encode(
+                    QrCode::format('png')->size(150)->generate($dokterPJ)
+                );
                 return [
                     'ID' => $tindakan->id,
                     'KUNJUNGAN' => $tindakan->kunjungan_id,
@@ -1242,6 +1260,13 @@ class BridgeDataController extends Controller
                         'ID' => $tindakan->tindakan_id,
                         'NAMA' => $tindakan->nama_tindakan,
                     ],
+                    'DATA_KUNJUNGAN' => $dataKunjungan,
+                    'DATA_PENDAFTARAN' => $dataPendaftaran,
+                    'RUANGAN_PERUJUK' => $ruanganPerujuk ?? 'Tidak ada nama ruangan',
+                    'NAMA_PEGAWAI' => $dataPegawai->NAMA,
+                    'QRCODE_PEGAWAI' => $qrcodeBase64,
+                    'NAMA_DOKTER' => $dokterPJ,
+                    'QRCODE_DOKTER' => $qrcodeBase64DokterPJ,
                     'hasil_lab' => collect($tindakan->hasilLaboratorium)->map(function ($hasil) {
                         return [
                             'ID' => $hasil->id,
@@ -1266,28 +1291,8 @@ class BridgeDataController extends Controller
                 ];
             })
             ->values();
+        // dd($dataLaboratorium);
 
-        dd($dataLaboratorium);
-
-        $dataKunjungan = Kunjungan::where('NOMOR', $dataLaboratorium[0]['KUNJUNGAN'])->first();
-        $dataPendaftaran = Pendaftaran::where('NOMOR', $dataKunjungan->NOPEN)->first();
-        $getRuanganPerujuk = Kunjungan::where('NOPEN', $dataKunjungan->NOPEN)
-            ->with('ruangan')
-            ->get();
-        foreach ($getRuanganPerujuk as $ruangan) {
-            if (in_array($ruangan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
-                $ruanganPerujuk = $ruangan->ruangan->DESKRIPSI ?? 'Tidak ada nama ruangan';
-            }
-        }
-        $dataPegawai = Pengguna::where('ID', $dataLaboratorium[0]['OLEH'])->first();
-        $dokterPJ = "dr. YUSRON ABDURROHMAN";
-        $qrcodeBase64DokterPJ = 'data:image/png;base64,' . base64_encode(
-            QrCode::format('png')->size(150)->generate($dokterPJ)
-        );
-
-        $qrcodeBase64 = 'data:image/png;base64,' . base64_encode(
-            QrCode::format('png')->size(150)->generate($dataPegawai->NAMA ?? 'Tidak ada nama pasien')
-        );
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
             throw new \Exception("Gambar tidak ditemukan di path: $imagePath");
@@ -1302,12 +1307,12 @@ class BridgeDataController extends Controller
                 'pasien', // Kirim data pasien ke view
                 'dataLaboratorium', // Kirim data laboratorium ke view
                 'imageBase64', // Kirim Base64 ke view
-                'qrcodeBase64', // Kirim Base64 QR Code ke view
-                'ruanganPerujuk', // Kirim nama perujuk ke view
-                'dataKunjungan',
-                'dataPegawai',
-                'dokterPJ',
-                'qrcodeBase64DokterPJ', // Kirim QR Code Dokter PJ ke view
+                // 'qrcodeBase64', // Kirim Base64 QR Code ke view
+                // 'ruanganPerujuk', // Kirim nama perujuk ke view
+                // 'dataKunjungan',
+                // 'dataPegawai',
+                // 'dokterPJ',
+                // 'qrcodeBase64DokterPJ', // Kirim QR Code Dokter PJ ke view
             ))->render()
         );
         $dompdf->setPaper('A4', 'portrait');
