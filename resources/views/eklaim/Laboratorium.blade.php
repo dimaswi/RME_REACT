@@ -1,4 +1,4 @@
-@foreach ($dataLaboratorium as $dataLab)
+@foreach ($dataLaboratorium as $group)
     <!DOCTYPE html>
     <html lang="en">
 
@@ -117,13 +117,13 @@
             </tr>
             <tr>
                 <td>Tanggal Masuk</td>
-                <td>: {{ formatTanggalIndo($dataLab['DATA_KUNJUNGAN']['MASUK']) }}</td>
+                <td>: {{ formatTanggalIndo($group[0]['DATA_KUNJUNGAN']['MASUK']) }}</td>
                 <td>Ruangan Perujuk</td>
-                <td>: {{ $dataLab['RUANGAN_PERUJUK'] }}</td>
+                <td>: {{ $group[0]['RUANGAN_PERUJUK'] }}</td>
             </tr>
             <tr>
                 <td>Tanggal Keluar</td>
-                <td>: {{ formatTanggalIndo($dataLab['DATA_KUNJUNGAN']['KELUAR']) }}</td>
+                <td>: {{ formatTanggalIndo($group[0]['DATA_KUNJUNGAN']['KELUAR']) }}</td>
                 <td>Alamat</td>
                 <td>: {{ $pasien['ALAMAT'] }}</td>
             </tr>
@@ -140,39 +140,38 @@
                 </tr>
             </thead>
             <tbody>
-                @php
-                    $hasilCount = count($dataLab['hasil_lab']);
-                @endphp
-                @if ($hasilCount > 0)
-                    @foreach ($dataLab['hasil_lab'] as $idx => $hasil)
-                        <tr @if ($idx === $hasilCount - 1) class="last-row-tindakan" @endif>
-                            @if ($idx === 0)
-                                <td class="tindakan @if ($hasilCount === 1) last-row-td @endif"
-                                    style="vertical-align: top; border-bottom: 1px solid #000;"
-                                    rowspan="{{ $hasilCount }}">
-                                    {{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}
+                @foreach ($group as $dataLab)
+                    @php $hasilCount = count($dataLab['hasil_lab']); @endphp
+                    @if ($hasilCount > 0)
+                        @foreach ($dataLab['hasil_lab'] as $idx => $hasil)
+                            <tr @if ($idx === $hasilCount - 1) class="last-row-tindakan" @endif>
+                                @if ($idx === 0)
+                                    <td class="tindakan @if ($hasilCount === 1) last-row-td @endif"
+                                        style="vertical-align: top; border-bottom: 1px solid #000;"
+                                        rowspan="{{ $hasilCount }}">
+                                        {{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}
+                                    </td>
+                                @endif
+                                <td style="vertical-align: top;">
+                                    {{ $hasil['parameter_tindakan_lab']['PARAMETER'] ?? '-' }}</td>
+                                <td style="vertical-align: top;">{{ $hasil['HASIL'] ?? '' }}</td>
+                                <td style="vertical-align: top;">
+                                    {{ $hasil['NILAI_NORMAL'] ?? ($hasil['parameter_tindakan_lab']['NILAI_RUJUKAN'] ?? '') }}
                                 </td>
-                            @endif
-                            <td style="vertical-align: top;">
-                                {{ $hasil['parameter_tindakan_lab']['PARAMETER'] ?? '-' }}</td>
-                            <td style="vertical-align: top;">{{ $hasil['HASIL'] ?? '' }}</td>
-                            <td style="vertical-align: top;">
-                                {{ $hasil['NILAI_NORMAL'] ?? ($hasil['parameter_tindakan_lab']['NILAI_RUJUKAN'] ?? '') }}
-                            </td>
-                            <td style="vertical-align: top;">
-                                {{ $hasil['SATUAN'] ?? ($hasil['parameter_tindakan_lab']['SATUAN'] != 0 ? $hasil['parameter_tindakan_lab']['SATUAN'] : '') }}
-                            </td>
+                                <td style="vertical-align: top;">
+                                    {{ $hasil['SATUAN'] ?? ($hasil['parameter_tindakan_lab']['SATUAN'] != 0 ? $hasil['parameter_tindakan_lab']['SATUAN'] : '') }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td class="tindakan last-row-td">{{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}</td>
+                            <td class="tanggal last-row-td">
+                                {{ \Carbon\Carbon::parse($dataLab['TANGGAL'])->format('d - F - Y') }}</td>
+                            <td colspan="4" style="text-align:center;">-</td>
                         </tr>
-                    @endforeach
-                @else
-                    <tr>
-                        <td class="tindakan last-row-td">{{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}
-                        </td>
-                        <td class="tanggal last-row-td">
-                            {{ \Carbon\Carbon::parse($dataLab['TANGGAL'])->format('d - F - Y') }}</td>
-                        <td colspan="4" style="text-align:center;">-</td>
-                    </tr>
-                @endif
+                    @endif
+                @endforeach
             </tbody>
         </table>
         <table>
@@ -200,5 +199,7 @@
     </body>
 
     </html>
-
+    @if (!$loop->last)
+        <div class="page-break"></div>
+    @endif
 @endforeach
