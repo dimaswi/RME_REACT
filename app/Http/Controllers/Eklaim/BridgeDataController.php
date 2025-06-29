@@ -1087,7 +1087,6 @@ class BridgeDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
-            dd($dataTagihan);
             $dataPembayaran = PembayaranTagihan::where('PENDAFTARAN', $dataTagihan->TAGIHAN)
                 ->with('pegawai')
                 ->first();
