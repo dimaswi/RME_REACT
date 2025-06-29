@@ -385,7 +385,6 @@ export default function KlaimIndex() {
                         <TableBody>
                             {Array.isArray(dataPendaftaran.data) && dataPendaftaran.data.length > 0 ? (
                                 dataPendaftaran.data.map((item: any, idx: number) => (
-                                    
                                     <TableRow
                                         key={item.noSEP || idx}
                                         onClick={() => handleRowClick(item)}
@@ -394,8 +393,26 @@ export default function KlaimIndex() {
                                         <TableCell>{item.data_peserta?.nama || '-'}</TableCell>
                                         <TableCell>{item.data_peserta?.noKartu || '-'}</TableCell>
                                         <TableCell>{item.noSEP || '-'}</TableCell>
-                                        <TableCell>{formatTanggalIndo(item?.penjamin_pendaftaran?.kunjungan_pasien[0]?.MASUK ?? '')}</TableCell>
-                                        <TableCell>{formatTanggalIndo(item?.penjamin_pendaftaran?.kunjungan_pasien[item.penjamin_pendaftaran.kunjungan_pasien.length - 1]?.KELUAR ?? '')}</TableCell>
+                                        <TableCell>
+                                            {formatTanggalIndo(
+                                                Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien) &&
+                                                    item.penjamin_pendaftaran.kunjungan_pasien.length > 0
+                                                    ? item.penjamin_pendaftaran.kunjungan_pasien[
+                                                          item.penjamin_pendaftaran.kunjungan_pasien.length - 1
+                                                      ]?.MASUK
+                                                    : '',
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatTanggalIndo(
+                                                Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien) &&
+                                                    item.penjamin_pendaftaran.kunjungan_pasien.length > 0
+                                                    ? item.penjamin_pendaftaran.kunjungan_pasien[
+                                                          item.penjamin_pendaftaran.kunjungan_pasien.length - 1
+                                                      ]?.KELUAR
+                                                    : '',
+                                            )}
+                                        </TableCell>
                                         <TableCell>{item.poliTujuan || 'Rawat Inap'}</TableCell>
                                         <TableCell>{badgeStatus(item.klaimStatus)}</TableCell>
                                         {item.klaimStatus === 0 ? (
