@@ -1,5 +1,6 @@
-@foreach ($dataLaboratorium as $kunjunganId => $group)
-    <!DOCTYPE html>
+@foreach ($dataLaboratorium as $group)
+    @foreach ($group as $dataLab)
+        <!DOCTYPE html>
     <html lang="en">
 
     <head>
@@ -82,8 +83,7 @@
         <table>
             <tr>
                 <td colspan="2">
-                    <img src="{{ $imageBase64 }}" alt="Logo Klinik"
-                        style="padding-left:20px; width: 50px; height: 50px;">
+                    <img src="{{ $imageBase64 }}" alt="Logo Klinik" style="padding-left:20px; width: 50px; height: 50px;">
                 </td>
                 <td colspan="6">
                     <div style="line-height: 1.2">
@@ -118,13 +118,13 @@
             </tr>
             <tr>
                 <td>Tanggal Masuk</td>
-                <td>: {{ formatTanggalIndo($group[0]['DATA_KUNJUNGAN']['MASUK'] ?? '') }}</td>
+                <td>: {{ formatTanggalIndo($dataLab['DATA_KUNJUNGAN']['MASUK']) }}</td>
                 <td>Ruangan Perujuk</td>
-                <td>: {{ $group[0]['RUANGAN_PERUJUK'] ?? '' }}</td>
+                <td>: {{ $dataLab['RUANGAN_PERUJUK'] }}</td>
             </tr>
             <tr>
                 <td>Tanggal Keluar</td>
-                <td>: {{ formatTanggalIndo($group[0]['DATA_KUNJUNGAN']['KELUAR'] ?? '') }}</td>
+                <td>: {{ formatTanggalIndo($dataLab['DATA_KUNJUNGAN']['KELUAR']) }}</td>
                 <td>Alamat</td>
                 <td>: {{ $pasien['ALAMAT'] }}</td>
             </tr>
@@ -141,67 +141,68 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($group as $dataLab)
-                    @php $hasilCount = count($dataLab['hasil_lab']); @endphp
-                    @if ($hasilCount > 0)
-                        @foreach ($dataLab['hasil_lab'] as $idx => $hasil)
-                            <tr @if ($idx === $hasilCount - 1) class="last-row-tindakan" @endif>
-                                @if ($idx === 0)
-                                    <td class="tindakan @if ($hasilCount === 1) last-row-td @endif"
-                                        style="vertical-align: top; border-bottom: 1px solid #000;"
-                                        rowspan="{{ $hasilCount }}">
-                                        {{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}
-                                    </td>
-                                @endif
-                                <td style="vertical-align: top;">
-                                    {{ $hasil['parameter_tindakan_lab']['PARAMETER'] ?? '-' }}</td>
-                                <td style="vertical-align: top;">{{ $hasil['HASIL'] ?? '' }}</td>
-                                <td style="vertical-align: top;">
-                                    {{ $hasil['NILAI_NORMAL'] ?? ($hasil['parameter_tindakan_lab']['NILAI_RUJUKAN'] ?? '') }}
+                @php
+                    $hasilCount = count($dataLab['hasil_lab']);
+                @endphp
+                @if ($hasilCount > 0)
+                    @foreach ($dataLab['hasil_lab'] as $idx => $hasil)
+                        <tr @if ($idx === $hasilCount - 1) class="last-row-tindakan" @endif>
+                            @if ($idx === 0)
+                                <td class="tindakan @if ($hasilCount === 1) last-row-td @endif"
+                                    style="vertical-align: top; border-bottom: 1px solid #000;"
+                                    rowspan="{{ $hasilCount }}">
+                                    {{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}
                                 </td>
-                                <td style="vertical-align: top;">
-                                    {{ $hasil['SATUAN'] ?? ($hasil['parameter_tindakan_lab']['SATUAN'] != 0 ? $hasil['parameter_tindakan_lab']['SATUAN'] : '') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    @else
-                        <tr>
-                            <td class="tindakan last-row-td">{{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}</td>
-                            <td class="tanggal last-row-td">
-                                {{ \Carbon\Carbon::parse($dataLab['TANGGAL'])->format('d - F - Y') }}</td>
-                            <td colspan="4" style="text-align:center;">-</td>
+                            @endif
+                            <td style="vertical-align: top;">
+                                {{ $hasil['parameter_tindakan_lab']['PARAMETER'] ?? '-' }}</td>
+                            <td style="vertical-align: top;">{{ $hasil['HASIL'] ?? '' }}</td>
+                            <td style="vertical-align: top;">
+                                {{ $hasil['NILAI_NORMAL'] ?? ($hasil['parameter_tindakan_lab']['NILAI_RUJUKAN'] ?? '') }}
+                            </td>
+                            <td style="vertical-align: top;">
+                                {{ $hasil['SATUAN'] ?? ($hasil['parameter_tindakan_lab']['SATUAN'] != 0 ? $hasil['parameter_tindakan_lab']['SATUAN'] : '') }}
+                            </td>
                         </tr>
-                    @endif
-                @endforeach
+                    @endforeach
+                @else
+                    <tr>
+                        <td class="tindakan last-row-td">{{ $dataLab['tindakan_laboratorium']['NAMA'] ?? '-' }}
+                        </td>
+                        <td class="tanggal last-row-td">
+                            {{ \Carbon\Carbon::parse($dataLab['TANGGAL'])->format('d - F - Y') }}</td>
+                        <td colspan="4" style="text-align:center;">-</td>
+                    </tr>
+                @endif
             </tbody>
         </table>
-
-        {{-- TTD dan bagian akhir --}}
         <table>
             <tr style="font-size: 12px;">
                 <td style="width: 50%; text-align: center; padding: 10px; padding-top: 20px;">
                     <strong>Petugas Laboratorium</strong>
                     <br>
-                    <img src="{{ $group[0]['QRCODE_PEGAWAI'] ?? '' }}" alt="" width="50px" height="50px"
+                    <img src="{{ $dataLab['QRCODE_PEGAWAI'] ?? '' }}" alt="" width="50px" height="50px"
                         style="padding: 10px"> <br>
-                    {{ $group[0]['NAMA_PEGAWAI'] ?? '-' }} <br>
+                    {{ $dataLab['NAMA_PEGAWAI'] ?? '-' }} <br>
                 </td>
                 <td style="width: 50%; text-align: center; padding: 10px">
                     BOJONEGORO,
-                    {{ $group[0]['DATA_KUNJUNGAN']['MASUK'] ? \Carbon\Carbon::parse($group[0]['DATA_KUNJUNGAN']['KELUAR'])->format('d F Y') : '-' }}
+                    {{ $dataLab['DATA_KUNJUNGAN']['MASUK'] ? \Carbon\Carbon::parse($dataLab['DATA_KUNJUNGAN']['KELUAR'])->format('d F Y') : '-' }}
                     <br>
                     <strong>Dokter Penanggung Jawab</strong>
                     <br>
-                    <img src="{{ $group[0]['QRCODE_DOKTER'] ?? '' }}" alt="" width="50px" height="50px"
+                    <img src="{{ $dataLab['QRCODE_DOKTER'] ?? '' }}" alt="" width="50px" height="50px"
                         style="padding: 10px"> <br>
-                    {{ $group[0]['NAMA_DOKTER'] ?? '-' }} <br>
+                    {{ $dataLab['NAMA_DOKTER'] ?? '-' }} <br>
                 </td>
             </tr>
         </table>
+        {{-- AKHIR --}}
     </body>
 
     </html>
-    @if (!$loop->last)
-        <div class="page-break"></div>
-    @endif
+        @if (!$loop->parent->last || !$loop->last)
+            <div class="page-break"></div>
+        @endif
+    @endforeach
 @endforeach
