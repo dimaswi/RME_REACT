@@ -1074,7 +1074,7 @@ class BridgeDataController extends Controller
         // dd('Preview Tagihan untuk nomor pendaftaran: ' . $nomor_pendaftaran);
         $pengajuanKlaim = PengajuanKlaim::where('id', $nomor_pendaftaran)->first();
         $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
-        $kunjungan = Kunjungan::where('NOPEN', $resumeMedis->nomor_kunjungan_igd)->first();
+        $kunjungan = Kunjungan::where('NOMOR', $resumeMedis->nomor_kunjungan_igd)->first();
         $dataPasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->first();
         $dataTagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
             ->where('STATUS', '!=', 0)
