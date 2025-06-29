@@ -1101,6 +1101,13 @@ class BridgeDataController extends Controller
             $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
             $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
             $dataKunjungan = Kunjungan::where('NOPEN', $dataTagihan->PENDAFTARAN)->first();
+            $klasifikasiKunjungan = null;
+            if ($dataKunjungan && $dataKunjungan->ruangan && in_array($dataKunjungan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
+                $klasifikasiKunjungan = $dataKunjungan;
+            }
+            $penjaminPasien = Penjamin::where('NOPEN', $dataTagihan->PENDAFTARAN)->first();
+            $ruangan = $klasifikasiKunjungan->ruangan->DESKRIPSI ?? 'Tidak ada data ruangan';
+            $penjamin = $penjaminPasien->JENIS == 1 ? 'Umum' : 'BPJS';
         } else {
             $dataPembayaran = PembayaranTagihan::where('TAGIHAN', $dataTagihanPendaftaran->TAGIHAN)
                 ->with('pegawai')
@@ -1116,14 +1123,15 @@ class BridgeDataController extends Controller
             $tanggalMasuk = $pendaftaranPasien->TANGGAL ?? '';
             $tanggalKeluar = $dataPembayaran->TANGGAL ?? '';
             $dataKunjungan = Kunjungan::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
+            $klasifikasiKunjungan = null;
+            if ($dataKunjungan && $dataKunjungan->ruangan && in_array($dataKunjungan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
+                $klasifikasiKunjungan = $dataKunjungan;
+            }
+            $penjaminPasien = Penjamin::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
+            $ruangan = $klasifikasiKunjungan->ruangan->DESKRIPSI ?? 'Tidak ada data ruangan';
+            $penjamin = $penjaminPasien->JENIS == 1 ? 'Umum' : 'BPJS';
         }
-        $klasifikasiKunjungan = null;
-        if ($dataKunjungan && $dataKunjungan->ruangan && in_array($dataKunjungan->ruangan->JENIS_KUNJUNGAN, [1, 2, 3, 17])) {
-            $klasifikasiKunjungan = $dataKunjungan;
-        }
-        $penjaminPasien = Penjamin::where('NOPEN', $dataTagihanPendaftaran->PENDAFTARAN)->first();
-        $ruangan = $klasifikasiKunjungan->ruangan->DESKRIPSI ?? 'Tidak ada data ruangan';
-        $penjamin = $penjaminPasien->JENIS == 1 ? 'Umum' : 'BPJS';
+
         $rincianTagihan = RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)
             ->with([
                 'tarifAdministrasi.ruangan',
