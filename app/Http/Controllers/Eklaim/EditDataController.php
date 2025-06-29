@@ -947,6 +947,9 @@ class EditDataController extends Controller
             $petugas = $request->input('petugas');
 
             PengajuanKlaim::where('id', $pengajuanKlaimId)->update(['laboratorium' => 1]);
+            Laboratorium::where('kunjungan_id', $nomorKunjungan)
+                ->where('pengajuan_klaim_id', $pengajuanKlaimId)
+                ->delete();
 
             foreach ($data as $item) {
                 $laboratoriumData = Laboratorium::create([
