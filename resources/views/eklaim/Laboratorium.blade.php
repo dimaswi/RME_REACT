@@ -9,6 +9,7 @@
             <meta http-equiv="X-UA-Compatible" content="ie=edge">
             <title>{{ $pasien['nama_pasien'] }}</title>
         </head>
+        
         <style>
             body {
                 font-family: 'halvetica', sans-serif;
