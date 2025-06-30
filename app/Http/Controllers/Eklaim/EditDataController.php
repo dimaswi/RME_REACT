@@ -804,10 +804,10 @@ class EditDataController extends Controller
             ]);
 
             DB::connection('eklaim')->commit();
-            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
+            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id])->with('success', 'Data tagihan obat berhasil disimpan.');
         } catch (\Throwable $th) {
             DB::connection('eklaim')->rollBack();
-            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id]);
+            return redirect()->route('eklaim.editData.tagihan', ['pengajuanKlaim' => $pengajuanKlaim->id])->with('error', 'Gagal menyimpan data : ' . $th->getMessage() . $th->getFile() . ' ' . $th->getLine());
         }
     }
 

@@ -217,10 +217,8 @@ export default function EditTagihan() {
                     setShowAddObatModal(false);
                     setSelectedObat(null);
                     setJumlahObat(1);
-                    toast.success('Obat berhasil ditambahkan');
                 },
                 onError: (error) => {
-                    toast.error(error?.message || 'Gagal menambahkan obat');
                 },
                 onFinish: () => setLoading(false),
             }
