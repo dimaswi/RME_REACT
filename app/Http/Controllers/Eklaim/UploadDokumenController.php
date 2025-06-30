@@ -54,11 +54,7 @@ class UploadDokumenController extends Controller
                     'response' => json_encode($send),
                 ]);
                 DB::connection('eklaim')->commit();
-                return Inertia::render('eklaim/klaim/dataKlaim', [
-                    'dataKlaim' => $pengajuanKlaim,
-                    'pasien' => $pasien,
-                    'dataPendaftaran' => $dataPendaftaran,
-                ])->with('error', 'Gagal pada eklaim: ' . $send['metadata']['message']);
+                return redirect()->back()->with('error', 'Gagal pada eklaim: ' . $send['metadata']['message']);
             }
 
             LogKlaim::create([
@@ -69,18 +65,10 @@ class UploadDokumenController extends Controller
             ]);
 
             DB::connection('eklaim')->commit();
-            return Inertia::render('eklaim/klaim/dataKlaim', [
-                'dataKlaim' => $pengajuanKlaim,
-                'pasien' => $pasien,
-                'dataPendaftaran' => $dataPendaftaran,
-            ])->with('success', 'Dokumen berhasil diunggah');
+            return redirect()->back()->with('success', 'Dokumen berhasil diunggah');
         } catch (\Throwable $th) {
             DB::connection('eklaim')->rollBack();
-            return Inertia::render('eklaim/klaim/dataKlaim', [
-                'dataKlaim' => $pengajuanKlaim,
-                'pasien' => $pasien,
-                'dataPendaftaran' => $dataPendaftaran,
-            ])->with('error', 'Gagal mengunggah dokumen: ' . $th->getMessage() . ' in ' . $th->getFile() . ' on line ' . $th->getLine());
+            return redirect()->back()->with('error', $th->getMessage());
         }
     }
 }
