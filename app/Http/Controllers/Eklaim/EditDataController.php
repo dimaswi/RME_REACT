@@ -1084,13 +1084,13 @@ class EditDataController extends Controller
             $dokter = $request->input('dokter');
             $petugas = $request->input('petugas');
 
-            Radiologi::where('id_pengajuan_klaim', $dataKlaim['id'])->delete();
+            Radiologi::where('nomor_kunjungan', $request->input('nomorKunjungan'))->delete();
 
             foreach ($data as $item) {
                 // Simpan atau update data Radiologi
                 Radiologi::create([
                     'id_pengajuan_klaim' => $dataKlaim['id'],
-                    'nomor_kunjungan' => $item['KUNJUNGAN'],
+                    'nomor_kunjungan' => $request->input('nomorKunjungan'),
                     'nama_petugas' => $petugas,
                     'nama_dokter' => $dokter,
                     'tindakan' => $item['tindakan_radiologi']['ID'],

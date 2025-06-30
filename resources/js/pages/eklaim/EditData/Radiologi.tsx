@@ -280,6 +280,8 @@ export default function EditRadiologi() {
                                                 petugas,
                                                 dokter,
                                                 dataKlaim,
+                                                nomorKunjungan: selectedKunjungan,
+
                                             },
                                         );
                                         if (response.data.success) {
@@ -331,22 +333,22 @@ export default function EditRadiologi() {
                                 <TableCell className="align-top">
                                     {row.hasil_radiologi?.KESAN
                                         ? row.hasil_radiologi.KESAN.split('\n').map((line, idx) => (
-                                              <span key={idx}>
-                                                  {line}
-                                                  <br />
-                                              </span>
-                                          ))
+                                            <span key={idx}>
+                                                {line}
+                                                <br />
+                                            </span>
+                                        ))
                                         : '-'}
                                 </TableCell>
                                 <TableCell className="align-top">{row.hasil_radiologi?.USUL ?? '-'}</TableCell>
                                 <TableCell className="align-top">
                                     {row.hasil_radiologi?.HASIL
                                         ? row.hasil_radiologi.HASIL.split('\n').map((line, idx) => (
-                                              <span key={idx}>
-                                                  {line}
-                                                  <br />
-                                              </span>
-                                          ))
+                                            <span key={idx}>
+                                                {line}
+                                                <br />
+                                            </span>
+                                        ))
                                         : '-'}
                                 </TableCell>
                                 <TableCell className="align-top">
