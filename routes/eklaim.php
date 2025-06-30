@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Eklaim\BridgeDataController;
 use App\Http\Controllers\Eklaim\KlaimController;
+use App\Http\Controllers\Eklaim\UploadDokumenController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -81,4 +82,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('eklaim/klaim/filter', [KlaimController::class, 'indexFilter'])->name('eklaim.klaim.indexFilter');
     Route::post('eklaim/klaim/list-pengajuan/filter', [KlaimController::class, 'listPengajuanIndexFilter'])->name('eklaim.klaim.listPengajuanIndexFilter');
+});
+
+//Upload
+Route::middleware('auth')->group(function () {
+    Route::post('eklaim/klaim/uploadDokumen/{pengajuanKlaim}', [UploadDokumenController::class, 'uploadDokumen'])->name('eklaim.klaim.uploadDokumen');
 });

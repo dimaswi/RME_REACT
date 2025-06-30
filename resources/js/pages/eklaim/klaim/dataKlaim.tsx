@@ -66,6 +66,8 @@ export default function DataKlaim() {
 
     const [showUpload, setShowUpload] = useState(false);
     const [uploadUrl, setUploadUrl] = useState('');
+    const [classFile, setClassFile] = useState('');
+    const [dokumen, setDokumen] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -719,7 +721,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('bebas_biaya');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -741,7 +744,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('surat_kematian');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -763,29 +767,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
-                                                    setShowUpload(true);
-                                                }}
-                                            >
-                                                <Upload />
-                                                Upload
-                                            </Button>
-                                            <Button variant="outline" className="flex w-full items-center justify-center bg-white hover:bg-gray-300">
-                                                <Upload />
-                                                Kirim
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr className="hover:bg-gray-50">
-                                    <td className="border-r border-b border-l border-gray-300 px-4 py-2">Surat Kematian</td>
-                                    <td colSpan={6} className="border-r border-b border-l border-gray-300 px-4 py-2">
-                                        <div className="grid-cols-2 gap-2 lg:grid">
-                                            <Button
-                                                variant="outline"
-                                                className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
-                                                onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('ruang_rawat');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -807,7 +790,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('penunjang_lain');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -829,7 +813,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('resep_obat');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -851,7 +836,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('dokumen_kipi');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -873,7 +859,8 @@ export default function DataKlaim() {
                                                 variant="outline"
                                                 className="flex w-full items-center justify-center bg-white hover:bg-gray-300"
                                                 onClick={() => {
-                                                    setUploadUrl(`/api/upload-dokumen/123`); // atau url lain sesuai kebutuhan
+                                                    setClassFile('lain_lain');
+                                                    setUploadUrl(route('eklaim.klaim.uploadDokumen', { pengajuanKlaim: dataKlaim.id })) // atau url lain sesuai kebutuhan
                                                     setShowUpload(true);
                                                 }}
                                             >
@@ -922,13 +909,16 @@ export default function DataKlaim() {
                 </div>
 
                 <FormDataKlaimView pengajuanKlaimId={dataKlaim.id} />
-                
+
                 <ModalUpload
                     open={showUpload}
                     onClose={() => setShowUpload(false)}
                     uploadUrl={uploadUrl}
+                    fileClass={classFile}
+                    dokumen={dokumen}
+                    onFileChange={(file) => setDokumen(file)}
                     onSuccess={(res) => {
-                        /* handle sukses */
+                        // handle sukses
                     }}
                     title="Upload Dokumen"
                     description="Pilih file yang akan diupload."

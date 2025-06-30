@@ -4,11 +4,15 @@ import { X, Upload, Loader, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { router } from "@inertiajs/react";
 
 interface ModalUploadProps {
     open: boolean;
     onClose: () => void;
     uploadUrl: string;
+    fileClass?: string;
+    dokumen?: File | null;
+    onFileChange?: (file: File | null) => void;
     onSuccess?: (response: any) => void;
     title?: string;
     description?: string;
@@ -18,11 +22,14 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
     open,
     onClose,
     uploadUrl,
+    fileClass,
+    dokumen,
+    onFileChange,
     onSuccess,
     title = "Upload Dokumen",
     description = "Pilih file yang akan diupload.",
 }) => {
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File | null>(dokumen || null);
     const [uploadedFile, setUploadedFile] = useState<{ name: string; url?: string } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -31,20 +38,37 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
     const backdropRef = useRef<HTMLDivElement>(null);
 
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+
+    // Reset file saat modal dibuka/tutup
     useEffect(() => {
         if (open && !show) {
             setShow(true);
             setLeaving(false);
+            setFile(dokumen || null);
+            setUploadedFile(null);
+            setError(null);
+            if (inputRef.current) inputRef.current.value = "";
         } else if (!open && show && !leaving) {
             setLeaving(true);
             const timeout = setTimeout(() => {
                 setShow(false);
                 setLeaving(false);
-            }, 350); // waktu animasi
+                setFile(null);
+                setUploadedFile(null);
+                setError(null);
+                if (inputRef.current) inputRef.current.value = "";
+            }, 350);
             return () => clearTimeout(timeout);
         }
         // eslint-disable-next-line
     }, [open]);
+
+    // Sync file ke parent jika berubah
+    useEffect(() => {
+        if (onFileChange) onFileChange(file);
+        // eslint-disable-next-line
+    }, [file]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -64,24 +88,23 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
         try {
             const formData = new FormData();
             formData.append("file", file);
+            if (fileClass) formData.append("file_class", fileClass);
 
-            const response = await fetch(uploadUrl, {
-                method: "POST",
-                body: formData,
+            router.post(uploadUrl, formData, {
+                forceFormData: true,
+                onSuccess: (data) => {
+                    if (onSuccess) onSuccess(data);
+                    setUploadedFile({ name: file.name });
+                    setFile(null);
+                    if (inputRef.current) inputRef.current.value = "";
+                },
+                onError: (errors) => {
+                    setError(errors?.file || "Terjadi kesalahan saat upload.");
+                },
+                onFinish: () => setLoading(false),
             });
-
-            if (!response.ok) {
-                throw new Error("Upload gagal");
-            }
-
-            const data = await response.json();
-            if (onSuccess) onSuccess(data);
-            setUploadedFile({ name: file.name, url: data?.url });
-            setFile(null);
-            if (inputRef.current) inputRef.current.value = "";
         } catch (err: any) {
             setError(err.message || "Terjadi kesalahan saat upload.");
-        } finally {
             setLoading(false);
         }
     };
@@ -106,7 +129,7 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
                     "bg-white rounded-lg shadow-lg w-full max-w-7xl p-0 relative mt-10",
                     leaving ? "animate-modal-fade-out" : "animate-modal-fade-in"
                 )}
-                onMouseDown={e => e.stopPropagation()} // Agar klik di dalam modal tidak menutup
+                onMouseDown={e => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 rounded-t-lg bg-gradient-to-r from-blue-50 to-blue-100">
