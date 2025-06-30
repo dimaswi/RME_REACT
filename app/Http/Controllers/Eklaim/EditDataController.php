@@ -1002,6 +1002,7 @@ class EditDataController extends Controller
         }
 
         $dataKunjungan = $dataPendaftaran->first()->kunjunganPasien;
+        dd($dataKunjungan);
         $dataKunjunganRadiologi = [];
         foreach ($dataKunjungan as $kunjungan) {
             if (in_array($kunjungan->ruangan->JENIS_KUNJUNGAN, [5])) {
