@@ -491,14 +491,18 @@ export default function KlaimIndex() {
                             className="rounded border px-2 py-1"
                             value={filters.perPage}
                             onChange={(e) => {
-                                setFilters((prev) => ({ ...prev, perPage: Number(e.target.value), page: 1 }));
-                                fetchData({ ...filters, perPage: Number(e.target.value), page: 1 });
+                                const newPerPage = Number(e.target.value);
+                                const newFilters = { ...filters, perPage: newPerPage, page: 1 };
+                                setFilters(newFilters);
+                                fetchData(newFilters);
                             }}
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
                             <option value={100}>100</option>
+                            <option value={250}>250</option>
+                            <option value={500}>500</option>
                         </select>
                         <Button
                             variant="outline"
