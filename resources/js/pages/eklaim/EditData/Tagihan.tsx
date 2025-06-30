@@ -452,9 +452,9 @@ export default function EditTagihan() {
                             {selectedObat && (
                                 <div className="mt-2 text-sm text-gray-600">
                                     Harga: <span className="font-semibold">
-                                        {selectedObat.harga_barang && selectedObat.harga_barang.HARGA_JUAL
-                                            ? formatRupiah(selectedObat.harga_barang.HARGA_JUAL)
-                                            : '-'}
+                                        {
+                                            formatRupiah(selectedObat.HARGA_JUAL) ?? '-'
+                                        }
                                     </span>
                                 </div>
                             )}

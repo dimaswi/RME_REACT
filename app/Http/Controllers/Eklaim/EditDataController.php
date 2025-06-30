@@ -792,7 +792,6 @@ class EditDataController extends Controller
             $pengajuanKlaim = PengajuanKlaim::findOrFail($request->input('pengajuanKlaim'));
             $dataTagihan = $request->input('tagihan');
             $obat = HargaBarang::where('ID', $dataTagihan['id'])->with('obat')->first();
-            dd($obat);
             RincianTagihan::create([
                 'id_pengajuan_klaim' => $pengajuanKlaim->id,
                 'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
