@@ -795,7 +795,7 @@ class EditDataController extends Controller
             RincianTagihan::create([
                 'id_pengajuan_klaim' => $pengajuanKlaim->id,
                 'tagihan' => $pengajuanKlaim->nomor_pendaftaran,
-                'id_tarif' => $obat->ID ?? null,
+                'id_tarif' => $dataTagihan['id'] ?? null,
                 'jenis' => 4,
                 'ref' => '',
                 'jumlah' => $dataTagihan['jumlah'],
