@@ -992,7 +992,10 @@ class EditDataController extends Controller
 
     public function EditRadiologi(PengajuanKlaim $pengajuanKlaim)
     {
+        $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
+        $nopen_igd = Kunjungan::where('NOMOR', $resumeMedis->nomor_kunjungan_igd)->first();
         $dataPendaftaran = Pendaftaran::where('NOMOR', $pengajuanKlaim->nomor_pendaftaran)
+            ->orWhere('NOMOR', $nopen_igd->NOPEN)
             ->with([
                 'kunjunganPasien.ruangan'
             ])->get();
@@ -1002,7 +1005,6 @@ class EditDataController extends Controller
         }
 
         $dataKunjungan = $dataPendaftaran->first()->kunjunganPasien;
-        dd($dataKunjungan);
         $dataKunjunganRadiologi = [];
         foreach ($dataKunjungan as $kunjungan) {
             if (in_array($kunjungan->ruangan->JENIS_KUNJUNGAN, [5])) {
