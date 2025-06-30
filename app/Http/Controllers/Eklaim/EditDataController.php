@@ -799,7 +799,7 @@ class EditDataController extends Controller
                 'jenis' => 4,
                 'ref' => '',
                 'jumlah' => $dataTagihan['jumlah'],
-                'tarif' => $obat->hargaBarang->HARGA_JUAL ?? null,
+                'tarif' => $obat->HARGA_JUAL ?? null,
                 'edit' => 1
             ]);
 
