@@ -54,7 +54,13 @@ class UploadDokumenController extends Controller
                     'response' => json_encode($send),
                 ]);
                 DB::connection('eklaim')->commit();
-                return redirect()->back()->with('error', 'Gagal pada eklaim: ' . $send['metadata']['message']);
+                if ($send['metadata']['code'] != 200) {
+                    // ... logging ...
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal pada eklaim: ' . $send['metadata']['message'],
+                    ], 400);
+                }
             }
 
             LogKlaim::create([
@@ -65,10 +71,16 @@ class UploadDokumenController extends Controller
             ]);
 
             DB::connection('eklaim')->commit();
-            return redirect()->back()->with('success', 'Dokumen berhasil diunggah');
+            return response()->json([
+                'success' => true,
+                'message' => 'Dokumen berhasil diunggah',
+            ]);
         } catch (\Throwable $th) {
             DB::connection('eklaim')->rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunggah dokumen: ' . $th->getMessage() . ' in ' . $th->getFile() . ' on line ' . $th->getLine(),
+            ], 400);
         }
     }
 }

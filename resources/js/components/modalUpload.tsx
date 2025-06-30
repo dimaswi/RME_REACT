@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { router } from "@inertiajs/react";
+import { toast } from "sonner";
 
 interface ModalUploadProps {
     open: boolean;
@@ -37,8 +38,6 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
     const [leaving, setLeaving] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const backdropRef = useRef<HTMLDivElement>(null);
-
-    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
 
     // Reset file saat modal dibuka/tutup
     useEffect(() => {
@@ -79,32 +78,38 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!file) {
-            setError("Silakan pilih file terlebih dahulu.");
-            return;
-        }
+        if (!file) return;
         setLoading(true);
         setError(null);
-        try {
-            const formData = new FormData();
-            formData.append("file", file);
-            if (fileClass) formData.append("file_class", fileClass);
 
-            router.post(uploadUrl, formData, {
-                forceFormData: true,
-                onSuccess: (data) => {
-                    if (onSuccess) onSuccess(data);
-                    setUploadedFile({ name: file.name });
-                    setFile(null);
-                    if (inputRef.current) inputRef.current.value = "";
+        const formData = new FormData();
+        formData.append("file", file);
+        if (fileClass) formData.append("file_class", fileClass);
+
+        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+
+        try {
+            const response = await fetch(uploadUrl, {
+                method: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken || '',
                 },
-                onError: (errors) => {
-                    setError(errors?.file || "Terjadi kesalahan saat upload.");
-                },
-                onFinish: () => setLoading(false),
+                body: formData,
             });
+            const data = await response.json();
+            if (data.success) {
+                toast.success(data.message);
+                if (onSuccess) onSuccess(data);
+                setUploadedFile({ name: file.name });
+                setFile(null);
+                if (inputRef.current) inputRef.current.value = "";
+            } else {
+                toast.error(data.message);
+                setError(data.message);
+            }
         } catch (err: any) {
-            setError(err.message || "Terjadi kesalahan saat upload.");
+            setError("Terjadi kesalahan saat upload.");
+        } finally {
             setLoading(false);
         }
     };
