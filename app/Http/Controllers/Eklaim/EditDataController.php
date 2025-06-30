@@ -1002,6 +1002,7 @@ class EditDataController extends Controller
         }
 
         $dataKunjungan = $dataPendaftaran->first()->kunjunganPasien;
+        dd($dataKunjungan);
         $dataKunjunganRadiologi = [];
         foreach ($dataKunjungan as $kunjungan) {
             if (in_array($kunjungan->ruangan->JENIS_KUNJUNGAN, [5])) {
@@ -1110,11 +1111,10 @@ class EditDataController extends Controller
             }
 
             DB::connection('eklaim')->commit();
-            return response()->json(['success' => 'Data Laboratorium berhasil disimpan.']);
+            return response()->json(['success' => 'Data Radiologi berhasil disimpan.']);
         } catch (\Throwable $th) {
             DB::connection('eklaim')->rollBack();
-
-            return response()->json(['error' => 'Gagal menyimpan data Laboratorium: ' . $th->getMessage()]);
+            return response()->json(['error' => 'Gagal menyimpan data Radiologi: ' . $th->getMessage()]);
         }
     }
 

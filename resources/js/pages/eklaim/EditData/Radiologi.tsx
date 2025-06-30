@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Download, Home, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -268,34 +268,35 @@ export default function EditRadiologi() {
                                     setShowModal(false);
                                     setPendingSave(false);
                                     // Kirim data ke backend
-                                    try {
-                                        const response = await axios.post(
-                                            route('eklaim.editData.storeRadiologi', {
-                                                nomorKunjungan: selectedKunjungan,
-                                                jenisData: selectedJenisData,
-                                            }),
-                                            {
-                                                data: dataRadiologi,
-                                                jenisData: selectedJenisData,
-                                                petugas,
-                                                dokter,
-                                                dataKlaim,
-                                                nomorKunjungan: selectedKunjungan,
-
+                                    router.post(
+                                        route('eklaim.editData.storeRadiologi', {
+                                            nomorKunjungan: selectedKunjungan,
+                                            jenisData: selectedJenisData,
+                                        }),
+                                        {
+                                            data: dataRadiologi,
+                                            jenisData: selectedJenisData,
+                                            petugas,
+                                            dokter,
+                                            dataKlaim,
+                                            nomorKunjungan: selectedKunjungan,
+                                        },
+                                        {
+                                            only: ['dataKunjunganRadiologi', 'flash', 'success', 'error'], // sesuaikan dengan props yang ingin di-reload
+                                            onSuccess: () => {
+                                                toast.success('Data radiologi berhasil disimpan.');
+                                                setDataRadiologi([]);
+                                                setPetugas('');
+                                                setDokter('');
                                             },
-                                        );
-                                        if (response.data.success) {
-                                            toast.success('Data radiologi berhasil disimpan.');
-                                            setDataRadiologi([]);
-                                        } else {
-                                            toast.error('Gagal menyimpan data radiologi: ' + response.data.message);
+                                            onError: (errors) => {
+                                                toast.error('Gagal menyimpan data radiologi.');
+                                            },
+                                            onFinish: () => {
+                                                console.log(dataKlaim);
+                                            }
                                         }
-                                    } catch (error) {
-                                        console.error('Error saving data radiologi:', error);
-                                        toast.error('Gagal menyimpan data radiologi.');
-                                    }
-                                    setPetugas('');
-                                    setDokter('');
+                                    );
                                 }}
                             >
                                 Simpan
