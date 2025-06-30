@@ -9,7 +9,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, Home, List, ListCollapse, Loader, Save } from 'lucide-react';
+import { CalendarIcon, Check, Home, List, ListCollapse, Loader, Save, Trash } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -355,6 +355,36 @@ export default function KlaimIndex() {
                                 Filter
                             </Button>
                         )}
+
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => {
+                                // Reset semua filter ke default
+                                const defaultFilters = {
+                                    q: '',
+                                    kelas: 'ALL',
+                                    poli: 'ALL',
+                                    status: 'ALL',
+                                    tanggal_awal: '',
+                                    tanggal_akhir: '',
+                                    perPage: 10,
+                                    page: 1,
+                                    jenis_tanggal: 'MASUK',
+                                };
+                                setFilters(defaultFilters);
+                                setSelectedKelas('ALL');
+                                setSelectedPoli('ALL');
+                                setSelectedStatus('ALL');
+                                setSelectedJenisTanggal('MASUK');
+                                setDateRange({ from: undefined, to: undefined });
+                                setQuery('');
+                                fetchData(defaultFilters);
+                            }}
+                        >
+                            <Trash className="mr-2 h-4 w-4 text-red-500" />
+                            Reset Filter
+                        </Button>
 
                         <Button
                             variant="outline"
