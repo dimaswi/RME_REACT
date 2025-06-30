@@ -30,6 +30,7 @@ use App\Models\Layanan\OrderLab;
 use App\Models\Layanan\TindakanMedis;
 use App\Models\Master\Pegawai;
 use App\Models\Master\Tindakan;
+use App\Models\Pembayaran\HargaBarang;
 use App\Models\Pembayaran\TagihanPendaftaran;
 use App\Models\Pembayaran\TarifTindakan;
 use App\Models\Pendaftaran\Kunjungan;
@@ -643,7 +644,7 @@ class EditDataController extends Controller
         // dd($rincian);
 
         $tindakan = TarifTindakan::with('tindakan')->where('STATUS', 1)->get();
-        $obat = Obat::with('hargaBarang')->where('STATUS', 1)->get();
+        $obat = HargaBarang::with('obat')->where('STATUS', 1)->get();
 
         return Inertia::render('eklaim/EditData/Tagihan', [
             'pengajuanKlaim' => $pengajuanKlaim,
@@ -790,8 +791,7 @@ class EditDataController extends Controller
             DB::connection('eklaim')->beginTransaction();
             $pengajuanKlaim = PengajuanKlaim::findOrFail($request->input('pengajuanKlaim'));
             $dataTagihan = $request->input('tagihan');
-            $obat = Obat::where('ID', $dataTagihan['id'])->with('hargaBarang')->first();
-            dd($obat);
+            $obat = HargaBarang::where('ID', $dataTagihan['id'])->with('hargaBarang')->first();
             RincianTagihan::create([
                 'id_pengajuan_klaim' => $pengajuanKlaim->id,
                 'tagihan' => $pengajuanKlaim->nomor_pendaftaran,

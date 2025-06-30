@@ -132,10 +132,8 @@ export default function EditTagihan() {
     const obat = usePage().props.obat || [];
     const listObat = (obat || []).map((o: any) => ({
         ID: o.ID,
-        NAMA: o.NAMA,
-        KATEGORI: o.KATEGORI,
-        SATUAN: o.SATUAN,
-        harga_barang: o.harga_barang , // pastikan harga_barang ada di objek obat
+        HARGA_JUAL: o.HARGA_JUAL,
+        obat: o.obat , // pastikan harga_barang ada di objek obat
         // tambahkan properti lain sesuai kebutuhan
     }));
 
@@ -448,12 +446,7 @@ export default function EditTagihan() {
                                     setSelectedObat(found || null);
                                 }}
                                 placeholder="Cari nama obat..."
-                                getOptionLabel={(item: any) =>
-                                    item.NAMA +
-                                    (item.harga_barang && item.harga_barang.HARGA_JUAL
-                                        ? ' - ' + formatRupiah(item.harga_barang.HARGA_JUAL)
-                                        : '')
-                                }
+                                getOptionLabel={(item: any) => item.obat?.NAMA + ' - ' + formatRupiah(item.HARGA_JUAL) || ''}
                                 getOptionValue={(item: any) => item.ID?.toString() || ''}
                             />
                             {selectedObat && (
