@@ -500,7 +500,7 @@ export default function ListPengajuan() {
                         <span>Baris per halaman:</span>
                         <select
                             className="rounded border px-2 py-1"
-                            value={data.perPage}
+                            value={filtersState.perPage}
                             onChange={(e) => {
                                 const newPerPage = Number(e.target.value);
                                 const newFilters = { ...filtersState, perPage: newPerPage, page: 1 };

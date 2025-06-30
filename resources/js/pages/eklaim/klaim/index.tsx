@@ -67,7 +67,6 @@ export default function KlaimIndex() {
 
     const [filters, setFilters] = useState(getInitialFilters);
     const [dataPendaftaran, setDataPendaftaran] = useState(getInitialDataPendaftaran);
-    const [itemsPerPage, setItemsPerPage] = useState(filters.perPage);
     const [query, setQuery] = useState(filters.q);
     const [selectedKelas, setSelectedKelas] = useState(filters.kelas);
     const [selectedPoli, setSelectedPoli] = useState(filters.poli);
