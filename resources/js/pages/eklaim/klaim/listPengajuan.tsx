@@ -92,13 +92,14 @@ export default function ListPengajuan() {
                     current_page: parsed.current_page ?? 1,
                     last_page: parsed.last_page ?? 1,
                     perPage: parsed.perPage ?? 10,
+                    total: parsed.total ?? 0, // <-- tambahkan ini
                 };
             } catch {
                 localStorage.removeItem(DATA_STORAGE_KEY);
             }
         }
         // Struktur default
-        return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10 };
+        return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10, total: 0 }; // <-- tambahkan total
     };
 
     const props = usePage().props as any;
@@ -149,6 +150,7 @@ export default function ListPengajuan() {
                     current_page: resp.current_page ?? 1,
                     last_page: resp.last_page ?? 1,
                     perPage: resp.perPage ?? 10,
+                    total: resp.total ?? resp.data.length, // <-- tambahkan ini
                 };
                 localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(newData));
             }
@@ -175,6 +177,7 @@ export default function ListPengajuan() {
                         current_page: resp.current_page ?? 1,
                         last_page: resp.last_page ?? 1,
                         perPage: resp.perPage ?? 10,
+                        total: resp.total ?? resp.data.length, // <-- tambahkan ini
                     });
                     toast.dismiss();
                     toast.success('Data berhasil diambil');

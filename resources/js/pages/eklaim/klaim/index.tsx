@@ -57,12 +57,16 @@ export default function KlaimIndex() {
         const saved = localStorage.getItem('klaim_data_pendaftaran');
         if (saved) {
             try {
-                return JSON.parse(saved);
+                const parsed = JSON.parse(saved);
+                return {
+                    ...parsed,
+                    total: parsed.total ?? (Array.isArray(parsed.data) ? parsed.data.length : 0), // pastikan total ada
+                };
             } catch {
-                return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10 };
+                return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10, total: 0 };
             }
         }
-        return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10 };
+        return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10, total: 0 };
     };
 
     const [filters, setFilters] = useState(getInitialFilters);
@@ -97,8 +101,11 @@ export default function KlaimIndex() {
         await axios
             .post('/eklaim/klaim/filter', customFilters)
             .then((response) => {
-                console.log('Response data:', response.data);
-                setDataPendaftaran(response.data.dataPendaftaran); // <-- ambil dataPendaftaran saja!
+                const resp = response.data.dataPendaftaran;
+                setDataPendaftaran({
+                    ...resp,
+                    total: resp.total ?? (Array.isArray(resp.data) ? resp.data.length : 0), // pastikan total ada
+                });
                 toast.dismiss();
                 toast.success('Data berhasil diambil');
             })
