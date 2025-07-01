@@ -485,6 +485,9 @@ export default function KlaimIndex() {
                 <div className="flex items-center justify-between py-2">
                     <div>
                         Halaman {dataPendaftaran.current_page} dari {dataPendaftaran.last_page}
+                        {typeof dataPendaftaran.total !== "undefined" && (
+                            <> | Total Data: {dataPendaftaran.total}</>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
                         <span>Baris per halaman:</span>

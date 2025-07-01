@@ -266,8 +266,8 @@ export default function ListPengajuan() {
                                 Array.isArray(filtersState.status) && filtersState.status.length === 5 && filtersState.status.every((v, i) => v === i)
                                     ? 'ALL'
                                     : Array.isArray(filtersState.status)
-                                      ? (filtersState.status[0]?.toString() ?? 'ALL')
-                                      : 'ALL'
+                                        ? (filtersState.status[0]?.toString() ?? 'ALL')
+                                        : 'ALL'
                             }
                             onValueChange={(val) => {
                                 if (val === 'ALL') {
@@ -497,6 +497,9 @@ export default function ListPengajuan() {
                 <div className="flex items-center justify-between py-2">
                     <div>
                         Halaman {data.current_page} dari {data.last_page}
+                        {typeof data.total !== "undefined" && (
+                            <> | Total Data: {data.total}</>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
                         <span>Baris per halaman:</span>
