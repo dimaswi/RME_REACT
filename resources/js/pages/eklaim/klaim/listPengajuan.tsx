@@ -447,7 +447,7 @@ export default function ListPengajuan() {
                                             </TableRow>
                                             {openRow === item.id && (
                                                 <TableRow>
-                                                    <TableCell colSpan={6} className="bg-gray-50">
+                                                    <TableCell colSpan={7} className="bg-gray-50">
                                                         {item.status === 0 && <CollapseBelumDiajukan pengajuanKlaim={item} />}
 
                                                         {item.status === 1 && (
