@@ -9,7 +9,7 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, Home, List, ListCollapse, Loader, Save } from 'lucide-react';
+import { CalendarIcon, Check, Home, List, ListCollapse, Loader, Save, Trash } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -67,7 +67,6 @@ export default function KlaimIndex() {
 
     const [filters, setFilters] = useState(getInitialFilters);
     const [dataPendaftaran, setDataPendaftaran] = useState(getInitialDataPendaftaran);
-    const [itemsPerPage, setItemsPerPage] = useState(filters.perPage);
     const [query, setQuery] = useState(filters.q);
     const [selectedKelas, setSelectedKelas] = useState(filters.kelas);
     const [selectedPoli, setSelectedPoli] = useState(filters.poli);
@@ -360,6 +359,36 @@ export default function KlaimIndex() {
                             variant="outline"
                             type="button"
                             onClick={() => {
+                                // Reset semua filter ke default
+                                const defaultFilters = {
+                                    q: '',
+                                    kelas: 'ALL',
+                                    poli: 'ALL',
+                                    status: 'ALL',
+                                    tanggal_awal: '',
+                                    tanggal_akhir: '',
+                                    perPage: 10,
+                                    page: 1,
+                                    jenis_tanggal: 'MASUK',
+                                };
+                                setFilters(defaultFilters);
+                                setSelectedKelas('ALL');
+                                setSelectedPoli('ALL');
+                                setSelectedStatus('ALL');
+                                setSelectedJenisTanggal('MASUK');
+                                setDateRange({ from: undefined, to: undefined });
+                                setQuery('');
+                                fetchData(defaultFilters);
+                            }}
+                        >
+                            <Trash className="mr-2 h-4 w-4 text-red-500" />
+                            Reset Filter
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => {
                                 router.visit(route('eklaim.klaim.indexPengajuanKlaim'));
                             }}
                         >
@@ -463,14 +492,18 @@ export default function KlaimIndex() {
                             className="rounded border px-2 py-1"
                             value={filters.perPage}
                             onChange={(e) => {
-                                setFilters((prev) => ({ ...prev, perPage: Number(e.target.value), page: 1 }));
-                                fetchData({ ...filters, perPage: Number(e.target.value), page: 1 });
+                                const newPerPage = Number(e.target.value);
+                                const newFilters = { ...filters, perPage: newPerPage, page: 1 };
+                                setFilters(newFilters);
+                                fetchData(newFilters);
                             }}
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
                             <option value={100}>100</option>
+                            <option value={250}>250</option>
+                            <option value={500}>500</option>
                         </select>
                         <Button
                             variant="outline"

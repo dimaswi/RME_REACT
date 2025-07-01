@@ -1112,6 +1112,10 @@ class EditDataController extends Controller
                 ]);
             }
 
+            PengajuanKlaim::where('id', $dataKlaim['id'])->update([
+                'radiologi' => 1,
+            ]);
+
             DB::connection('eklaim')->commit();
             return response()->json(['success' => 'Data Radiologi berhasil disimpan.']);
         } catch (\Throwable $th) {

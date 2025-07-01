@@ -11,7 +11,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { AlignJustify, CalendarIcon, Home, Info, Search, X } from 'lucide-react';
+import { AlignJustify, CalendarIcon, Home, Info, Search, Trash, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import CollapseBelumDiajukan from './collapseBelumDiajukan';
@@ -349,9 +349,39 @@ export default function ListPengajuan() {
                                 </div>
                             </PopoverContent>
                         </Popover>
+
                         <Button type="submit" variant="outline">
                             <AlignJustify className="mr-2 h-4 w-4" />
                             Filter
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                // Reset semua filter ke default
+                                setFilters({
+                                    status: [0, 1, 2, 3, 4],
+                                    jenis_kunjungan: 'all',
+                                    tanggal_awal: '',
+                                    tanggal_akhir: '',
+                                    perPage: 10,
+                                    page: 1,
+                                });
+                                setDateRange({ from: undefined, to: undefined });
+                                setFilterSEP('');
+                                fetchData({
+                                    status: [0, 1, 2, 3, 4],
+                                    jenis_kunjungan: 'all',
+                                    tanggal_awal: '',
+                                    tanggal_akhir: '',
+                                    perPage: 10,
+                                    page: 1,
+                                });
+                            }}
+                        >
+                            <Trash className="mr-2 h-4 w-4 text-red-500" />
+                            Reset Filter
                         </Button>
                     </form>
                     {/* END Form Filter */}
@@ -472,16 +502,20 @@ export default function ListPengajuan() {
                         <span>Baris per halaman:</span>
                         <select
                             className="rounded border px-2 py-1"
-                            value={data.perPage}
+                            value={filtersState.perPage}
                             onChange={(e) => {
-                                setFilters((prev) => ({ ...prev, perPage: Number(e.target.value), page: 1 }));
-                                fetchData({ ...filtersState, perPage: Number(e.target.value), page: 1 });
+                                const newPerPage = Number(e.target.value);
+                                const newFilters = { ...filtersState, perPage: newPerPage, page: 1 };
+                                setFilters(newFilters);
+                                fetchData(newFilters);
                             }}
                         >
                             <option value={10}>10</option>
                             <option value={25}>25</option>
                             <option value={50}>50</option>
                             <option value={100}>100</option>
+                            <option value={250}>250</option>
+                            <option value={500}>500</option>
                         </select>
                         <Button variant="outline" size="sm" onClick={() => handlePageChange(data.current_page - 1)} disabled={data.current_page <= 1}>
                             Previous
