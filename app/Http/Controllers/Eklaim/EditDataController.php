@@ -1093,8 +1093,13 @@ class EditDataController extends Controller
             }
 
             if ($request->input('nomorKunjungan') == null) {
-                $nomorKunjungan = $dataKlaim['nomor_kunjungan'];
-                Radiologi::where('nomor_kunjungan', $nomorKunjungan)->delete();
+                $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $dataKlaim['id'])->first();
+                Radiologi::where('nomor_kunjungan', $resumeMedis->nomor_kunjungan_rawat_inap)->orWhere('nomor_kunjungan', $resumeMedis->nomor_kunjungan_igd)->delete();
+                if ($resumeMedis->nomor_kunjungan_rawat_igd != null) {
+                    $nomorKunjungan = $resumeMedis->nomor_kunjungan_igd;
+                } else {
+                    $nomorKunjungan = $resumeMedis->nomor_kunjungan_rawat_inap;
+                }
             }
 
             foreach ($data as $item) {
