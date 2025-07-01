@@ -60,7 +60,9 @@ export default function KlaimIndex() {
                 const parsed = JSON.parse(saved);
                 return {
                     ...parsed,
-                    total: parsed.total ?? (Array.isArray(parsed.data) ? parsed.data.length : 0), // pastikan total ada
+                    current_page: Number(parsed.current_page) || 1,
+                    perPage: Number(parsed.perPage) || 10,
+                    total: parsed.total ?? (Array.isArray(parsed.data) ? parsed.data.length : 0),
                 };
             } catch {
                 return { data: [], links: [], current_page: 1, last_page: 1, perPage: 10, total: 0 };
@@ -104,7 +106,9 @@ export default function KlaimIndex() {
                 const resp = response.data.dataPendaftaran;
                 setDataPendaftaran({
                     ...resp,
-                    total: resp.total ?? (Array.isArray(resp.data) ? resp.data.length : 0), // pastikan total ada
+                    current_page: Number(resp.current_page) || 1,
+                    perPage: Number(resp.perPage) || 10,
+                    total: resp.total ?? (Array.isArray(resp.data) ? resp.data.length : 0),
                 });
                 toast.dismiss();
                 toast.success('Data berhasil diambil');
@@ -427,7 +431,9 @@ export default function KlaimIndex() {
                                         onClick={() => handleRowClick(item)}
                                         className="cursor-pointer hover:bg-blue-50"
                                     >
-                                        <TableCell>{(dataPendaftaran.current_page - 1) * dataPendaftaran.perPage + idx + 1}</TableCell> {/* Nomor urut */}
+                                        <TableCell>
+                                            {(Number(dataPendaftaran.current_page) - 1) * Number(dataPendaftaran.perPage) + idx + 1}
+                                        </TableCell>
                                         <TableCell>{item.data_peserta?.nama || '-'}</TableCell>
                                         <TableCell>{item.data_peserta?.noKartu || '-'}</TableCell>
                                         <TableCell>{item.noSEP || '-'}</TableCell>
