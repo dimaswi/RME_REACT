@@ -206,12 +206,12 @@ export default function KlaimIndex() {
                                     {selectedKelas === 'ALL' || !selectedKelas
                                         ? 'Semua Kelas'
                                         : selectedKelas === '1'
-                                          ? 'Kelas 1'
-                                          : selectedKelas === '2'
-                                            ? 'Kelas 2'
-                                            : selectedKelas === '3'
-                                              ? 'Kelas 3'
-                                              : selectedKelas}
+                                            ? 'Kelas 1'
+                                            : selectedKelas === '2'
+                                                ? 'Kelas 2'
+                                                : selectedKelas === '3'
+                                                    ? 'Kelas 3'
+                                                    : selectedKelas}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -235,18 +235,18 @@ export default function KlaimIndex() {
                                     {selectedPoli === 'ALL'
                                         ? 'Semua Poli'
                                         : selectedPoli === 'RAWAT_INAP'
-                                          ? 'Rawat Inap'
-                                          : selectedPoli === 'INT'
-                                            ? 'Poli Penyakit Dalam'
-                                            : selectedPoli === 'ANA'
-                                              ? 'Poli Anak'
-                                              : selectedPoli === 'OBG'
-                                                ? 'Poli Obgyn'
-                                                : selectedPoli === 'BED'
-                                                  ? 'Poli Bedah'
-                                                  : selectedPoli === 'IGD'
-                                                    ? 'Gawat Darurat'
-                                                    : selectedPoli}
+                                            ? 'Rawat Inap'
+                                            : selectedPoli === 'INT'
+                                                ? 'Poli Penyakit Dalam'
+                                                : selectedPoli === 'ANA'
+                                                    ? 'Poli Anak'
+                                                    : selectedPoli === 'OBG'
+                                                        ? 'Poli Obgyn'
+                                                        : selectedPoli === 'BED'
+                                                            ? 'Poli Bedah'
+                                                            : selectedPoli === 'IGD'
+                                                                ? 'Gawat Darurat'
+                                                                : selectedPoli}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -273,10 +273,10 @@ export default function KlaimIndex() {
                                     {selectedStatus === 'ALL'
                                         ? 'Semua Status'
                                         : selectedStatus == 0
-                                          ? 'Belum Diajukan'
-                                          : selectedStatus == 1
-                                            ? 'Sudah Diajukan'
-                                            : selectedStatus}
+                                            ? 'Belum Diajukan'
+                                            : selectedStatus == 1
+                                                ? 'Sudah Diajukan'
+                                                : selectedStatus}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -292,10 +292,10 @@ export default function KlaimIndex() {
                                     {selectedJenisTanggal === 'SEP'
                                         ? 'Tanggal SEP'
                                         : selectedJenisTanggal === 'MASUK'
-                                          ? 'Tanggal Masuk'
-                                          : selectedJenisTanggal === 'KELUAR'
-                                            ? 'Tanggal Keluar'
-                                            : selectedJenisTanggal}
+                                            ? 'Tanggal Masuk'
+                                            : selectedJenisTanggal === 'KELUAR'
+                                                ? 'Tanggal Keluar'
+                                                : selectedJenisTanggal}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -372,6 +372,7 @@ export default function KlaimIndex() {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No.</TableHead>
                                 <TableHead>Nama Pasien</TableHead>
                                 <TableHead>No Kartu</TableHead>
                                 <TableHead>No SEP</TableHead>
@@ -390,6 +391,7 @@ export default function KlaimIndex() {
                                         onClick={() => handleRowClick(item)}
                                         className="cursor-pointer hover:bg-blue-50"
                                     >
+                                        <TableCell>{(dataPendaftaran.current_page - 1) * dataPendaftaran.perPage + idx + 1}</TableCell> {/* Nomor urut */}
                                         <TableCell>{item.data_peserta?.nama || '-'}</TableCell>
                                         <TableCell>{item.data_peserta?.noKartu || '-'}</TableCell>
                                         <TableCell>{item.noSEP || '-'}</TableCell>
@@ -398,8 +400,8 @@ export default function KlaimIndex() {
                                                 Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien) &&
                                                     item.penjamin_pendaftaran.kunjungan_pasien.length > 0
                                                     ? item.penjamin_pendaftaran.kunjungan_pasien[
-                                                          item.penjamin_pendaftaran.kunjungan_pasien.length - 1
-                                                      ]?.MASUK
+                                                        item.penjamin_pendaftaran.kunjungan_pasien.length - 1
+                                                    ]?.MASUK
                                                     : '',
                                             )}
                                         </TableCell>
@@ -408,8 +410,8 @@ export default function KlaimIndex() {
                                                 Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien) &&
                                                     item.penjamin_pendaftaran.kunjungan_pasien.length > 0
                                                     ? item.penjamin_pendaftaran.kunjungan_pasien[
-                                                          item.penjamin_pendaftaran.kunjungan_pasien.length - 1
-                                                      ]?.KELUAR
+                                                        item.penjamin_pendaftaran.kunjungan_pasien.length - 1
+                                                    ]?.KELUAR
                                                     : '',
                                             )}
                                         </TableCell>

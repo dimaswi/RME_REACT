@@ -360,6 +360,7 @@ export default function ListPengajuan() {
                     <Table className="w-full min-w-max">
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No.</TableHead>
                                 <TableHead>NORM</TableHead>
                                 <TableHead>Nama</TableHead>
                                 <TableHead>Nomor SEP</TableHead>
@@ -385,6 +386,7 @@ export default function ListPengajuan() {
                                     .map((item: any, idx: number) => (
                                         <React.Fragment key={item.id}>
                                             <TableRow className="cursor-pointer hover:bg-blue-50" onClick={() => handleToggleRow(item.id)}>
+                                                <TableCell>{idx + 1 + (data.current_page - 1) * data.perPage}</TableCell>
                                                 <TableCell>{item.pendaftaran_poli.pasien.NORM || '-'}</TableCell>
                                                 <TableCell>{item.pendaftaran_poli.pasien.NAMA || '-'}</TableCell>
                                                 <TableCell>{item.nomor_SEP || '-'}</TableCell>
