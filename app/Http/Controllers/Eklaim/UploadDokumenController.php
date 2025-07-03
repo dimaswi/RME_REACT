@@ -59,7 +59,7 @@ class UploadDokumenController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => 'Gagal pada eklaim: ' . $send['metadata']['message'],
-                    ], 400);
+                    ]);
                 }
             }
 
@@ -80,7 +80,7 @@ class UploadDokumenController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengunggah dokumen: ' . $th->getMessage() . ' in ' . $th->getFile() . ' on line ' . $th->getLine(),
-            ], 400);
+            ]);
         }
     }
 }
