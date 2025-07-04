@@ -674,7 +674,7 @@ class EditDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
-            // Jika data utama tidak ada atau rincianTagihan kosong, baru fallback ke IGD
+            // Fallback ke IGD hanya jika data utama tidak valid
             if (
                 !$tagihanPendaftaran ||
                 !$tagihanPendaftaran->tagihan ||
@@ -707,7 +707,19 @@ class EditDataController extends Controller
                 }
             }
 
-            RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->where('edit', 0)->delete();
+            // Jika tetap tidak ada data, hentikan proses
+            if (
+                !$tagihanPendaftaran ||
+                !$tagihanPendaftaran->tagihan ||
+                empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
+                count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
+            ) {
+                return redirect()->back()->with('error', 'Data tagihan tidak ditemukan.');
+            }
+
+            // Hapus rincian lama sebelum insert baru
+            RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->delete();
+
             DB::connection('eklaim')->beginTransaction();
             foreach ($tagihanPendaftaran->tagihan->rincianTagihan as $rincian) {
                 RincianTagihan::create([
@@ -728,6 +740,7 @@ class EditDataController extends Controller
 
             return redirect()->back()->with('success', 'Data tagihan berhasil disinkronkan.');
         } catch (\Throwable $th) {
+            DB::connection('eklaim')->rollBack();
             return redirect()->back()->with('error', 'Gagal menyinkronkan data tagihan: ' . $th->getMessage());
         }
     }

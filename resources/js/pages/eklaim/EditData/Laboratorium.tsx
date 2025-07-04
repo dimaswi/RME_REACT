@@ -195,13 +195,15 @@ export default function EditLaboratorium() {
         if (!addRow.tindakanId) return;
         const tindakan = listTindakanLab.find((t) => t.ID === addRow.tindakanId);
         if (!tindakan) return;
+        // Ambil tanggal dari inputan user (kolom tabel)
+        const tanggal = addRow.hasil_lab[0]?.TANGGAL ?? null;
         setDynamicTindakan((prev) => [
             ...prev,
             {
                 ID: (Math.floor(Math.random() * 1000000000) + 1).toString(), // Generate random ID
                 KUNJUNGAN: selectedKunjungan ?? '',
                 TINDAKAN: tindakan.ID,
-                TANGGAL: null,
+                TANGGAL: tanggal, // <-- Ambil dari input tanggal user
                 OLEH: getOlehFromDataTindakan(),
                 STATUS: 1,
                 OTOMATIS: 0,
@@ -535,11 +537,11 @@ export default function EditLaboratorium() {
                                                                         prev.map((t) =>
                                                                             t.ID === tindakan.ID
                                                                                 ? {
-                                                                                    ...t,
-                                                                                    hasil_lab: t.hasil_lab.map((h) =>
-                                                                                        h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
-                                                                                    ),
-                                                                                }
+                                                                                      ...t,
+                                                                                      hasil_lab: t.hasil_lab.map((h) =>
+                                                                                          h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
+                                                                                      ),
+                                                                                  }
                                                                                 : t,
                                                                         ),
                                                                     );
@@ -549,11 +551,11 @@ export default function EditLaboratorium() {
                                                                         prev.map((t) =>
                                                                             t.ID === tindakan.ID
                                                                                 ? {
-                                                                                    ...t,
-                                                                                    hasil_lab: t.hasil_lab.map((h) =>
-                                                                                        h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
-                                                                                    ),
-                                                                                }
+                                                                                      ...t,
+                                                                                      hasil_lab: t.hasil_lab.map((h) =>
+                                                                                          h.ID === hasil.ID ? { ...h, HASIL: e.target.value } : h,
+                                                                                      ),
+                                                                                  }
                                                                                 : t,
                                                                         ),
                                                                     );
