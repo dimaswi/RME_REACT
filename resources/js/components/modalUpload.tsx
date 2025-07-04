@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Upload, Loader, FileText } from "lucide-react";
+import { X, Upload, Loader, FileText, Eye, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,8 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [show, setShow] = useState(open);
     const [leaving, setLeaving] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const backdropRef = useRef<HTMLDivElement>(null);
 
@@ -114,10 +116,70 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
         }
     };
 
+    // Handler untuk preview PDF dari backend
+    const handlePreview = async () => {
+        setPreviewLoading(true);
+        setError(null);
+        try {
+            // Ganti endpoint di bawah sesuai route backend Anda untuk ambil PDF blob
+            const response = await fetch(uploadUrl + '/preview', {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/pdf',
+                },
+            });
+            if (!response.ok) throw new Error("Gagal mengambil file PDF");
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            setPreviewUrl(url);
+        } catch (err: any) {
+            setError("Gagal preview PDF.");
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
+
+    // Tutup preview dan revoke url
+    const handleClosePreview = () => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+    };
+
     // Handler untuk klik di luar modal
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === backdropRef.current && !leaving) {
             onClose();
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!uploadUrl) return;
+        setLoading(true);
+        setError(null);
+        try {
+            // Ganti endpoint sesuai kebutuhan, misal: `${uploadUrl}/delete`
+            const response = await fetch(uploadUrl + '/delete', {
+                method: "DELETE",
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                },
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success(data.message || "File berhasil dihapus.");
+                setUploadedFile(null);
+                setFile(null);
+                setPreviewUrl(null);
+                if (inputRef.current) inputRef.current.value = "";
+            } else {
+                toast.error(data.message || "Gagal menghapus file.");
+                setError(data.message || "Gagal menghapus file.");
+            }
+        } catch (err: any) {
+            setError("Terjadi kesalahan saat menghapus file.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -178,7 +240,7 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
                         <div className="mb-2 flex items-center gap-2 text-sm text-green-700">
                             <FileText size={16} className="text-green-600" />
                             <span className="font-semibold">{uploadedFile.name}</span>
-                            <Badge variant="success">Sudah diupload</Badge>
+                            <Badge variant="default">Sudah diupload</Badge>
                             {uploadedFile.url && (
                                 <a
                                     href={uploadedFile.url}
@@ -194,25 +256,67 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
                     {error && (
                         <div className="mb-2 text-sm text-red-500">{error}</div>
                     )}
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-                            Batal
-                        </Button>
-                        <Button type="submit" className="bg-blue-600 text-white" disabled={loading}>
-                            {loading ? (
-                                <>
-                                    <Loader className="animate-spin mr-2" size={16} />
-                                    Mengupload...
-                                </>
-                            ) : (
-                                <>
-                                    <Upload size={16} className="mr-2" />
-                                    Upload
-                                </>
-                            )}
-                        </Button>
+                    <div className="flex justify-between items-center mt-4">
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex items-center gap-2"
+                                onClick={handlePreview}
+                                disabled={previewLoading}
+                            >
+                                <Eye size={16} className="text-blue-500" />
+                                {previewLoading ? "Memuat..." : "Preview PDF"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex items-center gap-2"
+                                onClick={handleDelete}
+                                disabled={loading}
+                            >
+                                <Trash2 size={16} className="text-red-500" />
+                                Hapus PDF
+                            </Button>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                                Batal
+                            </Button>
+                            <Button type="submit" className="bg-blue-600 text-white" disabled={loading}>
+                                {loading ? (
+                                    <>
+                                        <Loader className="animate-spin mr-2" size={16} />
+                                        Mengupload...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload size={16} className="mr-2" />
+                                        Upload
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 </form>
+                {/* Modal Preview PDF */}
+                {previewUrl && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                        <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
+                            <button
+                                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                                onClick={handleClosePreview}
+                            >
+                                <X size={22} />
+                            </button>
+                            <iframe
+                                src={previewUrl}
+                                title="Preview PDF"
+                                className="w-full h-[70vh] rounded"
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

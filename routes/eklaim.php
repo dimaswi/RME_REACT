@@ -87,4 +87,5 @@ Route::middleware('auth')->group(function () {
 //Upload
 Route::middleware('auth')->group(function () {
     Route::post('eklaim/klaim/uploadDokumen/{pengajuanKlaim}', [UploadDokumenController::class, 'uploadDokumen'])->name('eklaim.klaim.uploadDokumen');
+    Route::post('eklaim/klaim/uploadDokumen/{pengajuanKlaim}/preview', [UploadDokumenController::class, 'previewFileUpload'])->name('eklaim.klaim.previewFileUpload');
 });

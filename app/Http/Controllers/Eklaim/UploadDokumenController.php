@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Eklaim;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Inacbg\InacbgController;
+use App\Models\Eklaim\FileUpload;
 use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Master\Pasien;
@@ -70,6 +71,16 @@ class UploadDokumenController extends Controller
                 'response' => json_encode($send),
             ]);
 
+            FileUpload::create([
+                'pengajuan_klaim_id' => $pengajuanKlaim->id,
+                'file_id' => $send['response']['file_id'],
+                'file_name' => $send['response']['file_name'],
+                'file_type' => $send['response']['file_type'],
+                'file_size' => $send['response']['file_size'],
+                'file_class' => $send['response']['file_class'],
+                'file_blob' => $base64File,
+            ]);
+
             DB::connection('eklaim')->commit();
             return response()->json([
                 'success' => true,
@@ -82,5 +93,24 @@ class UploadDokumenController extends Controller
                 'message' => 'Gagal mengunggah dokumen: ' . $th->getMessage() . ' in ' . $th->getFile() . ' on line ' . $th->getLine(),
             ]);
         }
+    }
+
+    public function previewFileUpload(PengajuanKlaim $pengajuanKlaim, Request $request)
+    {
+        $fileUpload = FileUpload::where('pengajuan_klaim_id', $pengajuanKlaim->id)
+            ->where('file_name', $request->input('file_name'))
+            ->where('file_id', $request->input('file_id'))
+            ->first();
+
+        if (!$fileUpload || !$fileUpload->file_blob) {
+            return response('File not found', 404);
+        }
+
+        // Decode base64 ke binary
+        $pdfContent = base64_decode($fileUpload->file_blob);
+
+        return response($pdfContent, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . ($fileUpload->file_name ?? 'dokumen.pdf') . '"');
     }
 }
