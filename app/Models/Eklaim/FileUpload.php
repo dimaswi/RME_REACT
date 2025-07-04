@@ -17,6 +17,6 @@ class FileUpload extends Model
         'file_type',
         'file_size',
         'file_class',
-        'file_blob'
+        'file_blob',
     ];
 }

@@ -104,7 +104,7 @@ class InacbgController extends Controller
                 "data" => $data
             ];
         }
-
+        
         $payload = $this->inacbg_encrypt($json_request, $key);
         $header = array("Content-Type: application/x-www-form-urlencoded");
         $url = "http://kdm.klinikmuhammadiyahkedungadem.id/E-klaim/ws.php";

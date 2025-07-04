@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { router } from "@inertiajs/react";
 import { toast } from "sonner";
+import axios from "axios";
 
 interface ModalUploadProps {
     open: boolean;
@@ -91,14 +92,13 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
         const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
 
         try {
-            const response = await fetch(uploadUrl, {
-                method: "POST",
+            const response = await axios.post(uploadUrl, formData, {
                 headers: {
                     'X-CSRF-TOKEN': csrfToken || '',
+                    'Content-Type': 'multipart/form-data',
                 },
-                body: formData,
             });
-            const data = await response.json();
+            const data = response.data;
             if (data.success) {
                 toast.success(data.message);
                 if (onSuccess) onSuccess(data);
@@ -121,15 +121,13 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
         setPreviewLoading(true);
         setError(null);
         try {
-            // Ganti endpoint di bawah sesuai route backend Anda untuk ambil PDF blob
-            const response = await fetch(uploadUrl + '/preview', {
-                method: "GET",
+            const response = await axios.get(uploadUrl + '/preview', {
+                responseType: 'blob',
                 headers: {
                     'Accept': 'application/pdf',
                 },
             });
-            if (!response.ok) throw new Error("Gagal mengambil file PDF");
-            const blob = await response.blob();
+            const blob = response.data;
             const url = URL.createObjectURL(blob);
             setPreviewUrl(url);
         } catch (err: any) {
@@ -157,15 +155,13 @@ export const ModalUpload: React.FC<ModalUploadProps> = ({
         setLoading(true);
         setError(null);
         try {
-            // Ganti endpoint sesuai kebutuhan, misal: `${uploadUrl}/delete`
-            const response = await fetch(uploadUrl + '/delete', {
-                method: "DELETE",
+            const response = await axios.delete(uploadUrl + '/delete', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
                 },
             });
-            const data = await response.json();
+            const data = response.data;
             if (data.success) {
                 toast.success(data.message || "File berhasil dihapus.");
                 setUploadedFile(null);

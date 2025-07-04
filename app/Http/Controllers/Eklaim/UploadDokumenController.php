@@ -9,8 +9,8 @@ use App\Models\Eklaim\LogKlaim;
 use App\Models\Eklaim\PengajuanKlaim;
 use App\Models\Master\Pasien;
 use App\Models\Pendaftaran\Pendaftaran;
-use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class UploadDokumenController extends Controller
@@ -21,8 +21,6 @@ class UploadDokumenController extends Controller
             $file = $request->file('file');
             $file_class = $request->input('file_class');
             $file_name = $request->input('file_class') . ".pdf";
-            $pasien = Pasien::where('NORM', $pengajuanKlaim->NORM)->firstOrFail();
-            $dataPendaftaran = Pendaftaran::where('NOMOR', $pengajuanKlaim->nomor_pendaftaran)->with('pasienPulang')->firstOrFail();
             $base64File = null;
             if ($file) {
                 $base64File = base64_encode(file_get_contents($file->getRealPath()));
@@ -43,9 +41,9 @@ class UploadDokumenController extends Controller
                 "data" => $base64File,
             ];
 
-            $inacbgController = new \App\Http\Controllers\Inacbg\InacbgController();
+            $inacbgController = new InacbgController();
             $send = $inacbgController->sendToEklaim($metadata, $data);
-
+            
             if ($send['metadata']['code'] != 200) {
                 DB::connection('eklaim')->beginTransaction();
                 LogKlaim::create([

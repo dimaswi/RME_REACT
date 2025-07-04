@@ -674,15 +674,15 @@ class EditDataController extends Controller
                 ->where('UTAMA', 1)
                 ->first();
 
+            // Jika data utama tidak ada atau rincianTagihan kosong, baru fallback ke IGD
             if (
                 !$tagihanPendaftaran ||
                 !$tagihanPendaftaran->tagihan ||
                 empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
                 count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
             ) {
-                // Data rincianTagihan kosong, lakukan fallback/cari data lain
                 if (!empty($kunjunganIGD) && !empty($kunjunganIGD->NOPEN)) {
-                    $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
+                    $tagihanPendaftaranIGD = TagihanPendaftaran::where('PENDAFTARAN', $kunjunganIGD->NOPEN)
                         ->with([
                             'tagihan.rincianTagihan',
                             'tagihan.rincianTagihan.tarifAdministrasi.ruangan',
@@ -694,6 +694,16 @@ class EditDataController extends Controller
                         ])
                         ->where('UTAMA', 1)
                         ->first();
+
+                    // Hanya assign jika data IGD valid
+                    if (
+                        $tagihanPendaftaranIGD &&
+                        $tagihanPendaftaranIGD->tagihan &&
+                        !empty($tagihanPendaftaranIGD->tagihan->rincianTagihan) &&
+                        count($tagihanPendaftaranIGD->tagihan->rincianTagihan) > 0
+                    ) {
+                        $tagihanPendaftaran = $tagihanPendaftaranIGD;
+                    }
                 }
             }
 

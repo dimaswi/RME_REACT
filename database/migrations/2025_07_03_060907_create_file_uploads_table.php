@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('file_type');
             $table->string('file_size');
             $table->string('file_class');
+            $table->longText('file_blob');
             $table->timestamps();
         });
     }
