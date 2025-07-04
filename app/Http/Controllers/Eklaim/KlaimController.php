@@ -725,7 +725,7 @@ class KlaimController extends Controller
             // 6. Simpan grouperOneSpecialCmgOption (special_cmg_option)
             if (!empty($send['special_cmg_option']) && is_array($send['special_cmg_option'])) {
                 foreach ($send['special_cmg_option'] as $cmg) {
-                    \App\Models\Eklaim\GrouperOneSpecialCmgOption::updateOrCreate(
+                    \App\Models\Eklaim\GrouperOneSpecialCMGOption::updateOrCreate(
                         [
                             'pengajuan_klaim_id' => $pengajuanKlaim->id,
                             'code' => $cmg['code'] ?? null,

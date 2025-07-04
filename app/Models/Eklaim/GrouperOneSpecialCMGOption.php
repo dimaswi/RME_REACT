@@ -4,7 +4,7 @@ namespace App\Models\Eklaim;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GrouperOneSpecialCmgOption extends Model
+class GrouperOneSpecialCMGOption extends Model
 {
     protected $connection = 'eklaim';
 
