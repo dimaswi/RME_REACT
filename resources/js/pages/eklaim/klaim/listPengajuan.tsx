@@ -61,6 +61,7 @@ export default function ListPengajuan() {
                 return {
                     status: Array.isArray(parsed.status) ? parsed.status : [0, 1, 2, 3, 4],
                     jenis_kunjungan: typeof parsed.jenis_kunjungan === 'string' ? parsed.jenis_kunjungan : 'all',
+                    jenis_tanggal: typeof parsed.jenis_tanggal === 'string' ? parsed.jenis_tanggal : 'MASUK', // tambahkan ini
                     tanggal_awal: parsed.tanggal_awal ?? '',
                     tanggal_akhir: parsed.tanggal_akhir ?? '',
                     perPage: parsed.perPage ?? 10,
@@ -73,6 +74,7 @@ export default function ListPengajuan() {
         return {
             status: [0, 1, 2, 3, 4],
             jenis_kunjungan: 'all',
+            jenis_tanggal: 'MASUK', // tambahkan ini
             tanggal_awal: '',
             tanggal_akhir: '',
             perPage: 10,
@@ -126,6 +128,7 @@ export default function ListPengajuan() {
     const [openModalBaru, setOpenModalBaru] = useState(false);
     const [openRow, setOpenRow] = useState<number | null>(null);
     const [filterSEP, setFilterSEP] = useState(''); // Tambahkan state untuk filter SEP di dalam komponen
+    const [selectedJenisTanggal, setSelectedJenisTanggal] = useState(filtersState.jenis_tanggal || 'MASUK'); // Tambahkan state untuk jenis tanggal di bagian state declarations
 
     // Simpan filter ke localStorage setiap kali berubah
     useEffect(() => {
@@ -171,6 +174,7 @@ export default function ListPengajuan() {
             .then((response) => {
                 const resp = response.data.pengajuanKlaim;
                 if (resp && Array.isArray(resp.data)) {
+                    console.log('Response data:', resp.data); // Debugging log
                     setData({
                         data: resp.data,
                         links: Array.isArray(resp.links) ? resp.links : [],
@@ -231,6 +235,27 @@ export default function ListPengajuan() {
     const refreshData = async () => {
         await fetchData(filtersState);
     };
+
+    const formatTanggalIndo = (tanggal: string | Date | null | undefined) => {
+        if (!tanggal) return '-';
+        let dateObj;
+        if (tanggal instanceof Date) {
+            dateObj = tanggal;
+        } else if (typeof tanggal === 'string' && tanggal.length > 0) {
+            // Mendukung format ISO, Y-m-d, Y-m-d H:i:s, dst
+            dateObj = new Date(tanggal.replace(' ', 'T'));
+        } else {
+            return '-';
+        }
+        if (isNaN(dateObj.getTime())) return '-';
+        const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        return dateObj.toLocaleDateString('id-ID', options);
+    };
+
+    // Tambahkan useEffect untuk sync jenis_tanggal dengan filter state
+    useEffect(() => {
+        setFilters((prev) => ({ ...prev, jenis_tanggal: selectedJenisTanggal }));
+    }, [selectedJenisTanggal]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -306,6 +331,27 @@ export default function ListPengajuan() {
                                 <SelectItem value="Gawat Darurat">Gawat Darurat</SelectItem>
                             </SelectContent>
                         </Select>
+
+                        {/* Tambahkan Select untuk jenis tanggal setelah Select jenis_kunjungan */}
+                        <Select
+                            value={selectedJenisTanggal}
+                            onValueChange={(val) => setSelectedJenisTanggal(val)}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue>
+                                    {selectedJenisTanggal === 'MASUK'
+                                        ? 'Tanggal Masuk'
+                                        : selectedJenisTanggal === 'KELUAR'
+                                            ? 'Tanggal Keluar'
+                                            : selectedJenisTanggal}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="MASUK">Tanggal Masuk</SelectItem>
+                                <SelectItem value="KELUAR">Tanggal Keluar</SelectItem>
+                            </SelectContent>
+                        </Select>
+
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="w-[260px] justify-start text-left font-normal">
@@ -366,6 +412,7 @@ export default function ListPengajuan() {
                                 setFilters({
                                     status: [0, 1, 2, 3, 4],
                                     jenis_kunjungan: 'all',
+                                    jenis_tanggal: 'MASUK', // tambahkan ini
                                     tanggal_awal: '',
                                     tanggal_akhir: '',
                                     perPage: 10,
@@ -373,9 +420,11 @@ export default function ListPengajuan() {
                                 });
                                 setDateRange({ from: undefined, to: undefined });
                                 setFilterSEP('');
+                                setSelectedJenisTanggal('MASUK'); // tambahkan ini
                                 fetchData({
                                     status: [0, 1, 2, 3, 4],
                                     jenis_kunjungan: 'all',
+                                    jenis_tanggal: 'MASUK', // tambahkan ini
                                     tanggal_awal: '',
                                     tanggal_akhir: '',
                                     perPage: 10,
@@ -396,6 +445,8 @@ export default function ListPengajuan() {
                                 <TableHead>No.</TableHead>
                                 <TableHead>NORM</TableHead>
                                 <TableHead>Nama</TableHead>
+                                <TableHead>Tanggal Masuk</TableHead>
+                                <TableHead>Tanggal Keluar</TableHead>
                                 <TableHead>Nomor SEP</TableHead>
                                 <TableHead>
                                     <center>Status</center>
@@ -422,6 +473,52 @@ export default function ListPengajuan() {
                                                 <TableCell>{idx + 1 + (data.current_page - 1) * data.perPage}</TableCell>
                                                 <TableCell>{item.pendaftaran_poli.pasien.NORM || '-'}</TableCell>
                                                 <TableCell>{item.pendaftaran_poli.pasien.NAMA || '-'}</TableCell>
+                                                <TableCell>
+                                                    {(() => {
+                                                        // Pastikan kunjungan_pasien adalah array
+                                                        if (!Array.isArray(item?.penjamin?.kunjungan_pasien)) {
+                                                            return '-';
+                                                        }
+
+                                                        // Filter kunjungan yang memiliki JENIS_KUNJUNGAN = 1, 2, atau 3
+                                                        const validKunjungan = item.penjamin.kunjungan_pasien.filter(
+                                                            (kunjungan: any) => [1, 2, 3].includes(kunjungan?.ruangan?.JENIS_KUNJUNGAN)
+                                                        );
+
+                                                        // Jika tidak ada kunjungan yang valid, return '-'
+                                                        if (validKunjungan.length === 0) {
+                                                            return '-';
+                                                        }
+
+                                                        // Ambil kunjungan terakhir dari yang valid
+                                                        const lastValidKunjungan = validKunjungan[validKunjungan.length - 1];
+
+                                                        return formatTanggalIndo(lastValidKunjungan.MASUK);
+                                                    })()}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {(() => {
+                                                        // Pastikan kunjungan_pasien adalah array
+                                                        if (!Array.isArray(item?.penjamin?.kunjungan_pasien)) {
+                                                            return '-';
+                                                        }
+
+                                                        // Filter kunjungan yang memiliki JENIS_KUNJUNGAN = 1, 2, atau 3
+                                                        const validKunjungan = item.penjamin.kunjungan_pasien.filter(
+                                                            (kunjungan: any) => [1, 2, 3].includes(kunjungan?.ruangan?.JENIS_KUNJUNGAN)
+                                                        );
+
+                                                        // Jika tidak ada kunjungan yang valid, return '-'
+                                                        if (validKunjungan.length === 0) {
+                                                            return '-';
+                                                        }
+
+                                                        // Ambil kunjungan terakhir dari yang valid
+                                                        const lastValidKunjungan = validKunjungan[validKunjungan.length - 1];
+
+                                                        return formatTanggalIndo(lastValidKunjungan.KELUAR);
+                                                    })()}
+                                                </TableCell>
                                                 <TableCell>{item.nomor_SEP || '-'}</TableCell>
                                                 <TableCell>
                                                     <center>{getStatusBadge(item.status, item.id)}</center>

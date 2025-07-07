@@ -80,7 +80,7 @@ export default function KlaimIndex() {
         from: filters.tanggal_awal ? new Date(filters.tanggal_awal) : undefined,
         to: filters.tanggal_akhir ? new Date(filters.tanggal_akhir) : undefined,
     });
-    const [selectedJenisTanggal, setSelectedJenisTanggal] = useState(filters.jenis_tanggal || 'MASUK'); // Default ke 'MASUK'
+    const [selectedJenisTanggal, setSelectedJenisTanggal] = useState(filters.jenis_tanggal); // Default ke 'MASUK'
     const [selectedStatus, setSelectedStatus] = useState(filters.status);
     const [modalData, setModalData] = useState<any | null>(null);
     const [showModal, setShowModal] = useState(false);

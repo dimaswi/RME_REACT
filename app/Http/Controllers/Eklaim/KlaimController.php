@@ -48,7 +48,7 @@ class KlaimController extends Controller
             $tanggalAkhir = $request->input('tanggal_akhir');
             $kelas = $request->input('kelas');
             $status = $request->input('status');
-            $jenisTanggal = $request->input('jenis_tanggal', 'MASUK'); // default SEP
+            $jenisTanggal = $request->input('jenis_tanggal');
 
             // 1. Ambil ID ruangan dari master
             $ruanganIds = \App\Models\Master\Ruangan::whereIn('JENIS_KUNJUNGAN', [1, 2, 3])->pluck('ID')->toArray();
@@ -109,8 +109,8 @@ class KlaimController extends Controller
                 ])
                 ->orderBy('tglSEP', 'desc')
                 ->paginate($perPage);
-            
-            
+
+
 
             return response()->json([
                 'dataPendaftaran' => $dataPendaftaran,
@@ -1153,9 +1153,60 @@ class KlaimController extends Controller
         $page = $request->input('page', 1);
         $status = $request->input('status', [0, 1, 2, 3, 4]);
         $jenisKunjungan = $request->input('jenis_kunjungan', 'all');
+        $jenisTanggal = $request->input('jenis_tanggal', 'MASUK');
         $tanggalAwal = $request->input('tanggal_awal');
         $tanggalAkhir = $request->input('tanggal_akhir');
 
+        // 1. Ambil ID ruangan yang valid dari database master
+        $validRuanganIds = \App\Models\Master\Ruangan::whereIn('JENIS_KUNJUNGAN', [1, 2, 3])
+            ->pluck('ID')
+            ->toArray();
+
+        // 2. Ambil NOPEN yang valid berdasarkan filter tanggal dari database pendaftaran
+        $validNopen = [];
+        if ($tanggalAwal && $tanggalAkhir) {
+            $validNopen = \App\Models\Pendaftaran\Kunjungan::whereIn('RUANGAN', $validRuanganIds)
+                ->when($jenisTanggal === 'MASUK', function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                    return $q->whereDate('MASUK', '>=', $tanggalAwal)
+                        ->whereDate('MASUK', '<=', $tanggalAkhir);
+                })
+                ->when($jenisTanggal === 'KELUAR', function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                    return $q->whereDate('KELUAR', '>=', $tanggalAwal)
+                        ->whereDate('KELUAR', '<=', $tanggalAkhir);
+                })
+                ->pluck('NOPEN')
+                ->toArray();
+        } elseif ($tanggalAwal) {
+            $validNopen = \App\Models\Pendaftaran\Kunjungan::whereIn('RUANGAN', $validRuanganIds)
+                ->when($jenisTanggal === 'MASUK', function ($q) use ($tanggalAwal) {
+                    return $q->whereDate('MASUK', '>=', $tanggalAwal);
+                })
+                ->when($jenisTanggal === 'KELUAR', function ($q) use ($tanggalAwal) {
+                    return $q->whereDate('KELUAR', '>=', $tanggalAwal);
+                })
+                ->pluck('NOPEN')
+                ->toArray();
+        } elseif ($tanggalAkhir) {
+            $validNopen = \App\Models\Pendaftaran\Kunjungan::whereIn('RUANGAN', $validRuanganIds)
+                ->when($jenisTanggal === 'MASUK', function ($q) use ($tanggalAkhir) {
+                    return $q->whereDate('MASUK', '<=', $tanggalAkhir);
+                })
+                ->when($jenisTanggal === 'KELUAR', function ($q) use ($tanggalAkhir) {
+                    return $q->whereDate('KELUAR', '<=', $tanggalAkhir);
+                })
+                ->pluck('NOPEN')
+                ->toArray();
+        }
+
+        // 3. Ambil nomor_SEP yang valid dari penjamin berdasarkan NOPEN
+        $validSep = [];
+        if (!empty($validNopen)) {
+            $validSep = \App\Models\Pendaftaran\Penjamin::whereIn('NOPEN', $validNopen)
+                ->pluck('NOMOR')
+                ->toArray();
+        }
+
+        // 4. Query PengajuanKlaim dengan filter berdasarkan nomor_SEP yang valid
         $query = PengajuanKlaim::query();
 
         if (is_array($status) && count($status)) {
@@ -1168,18 +1219,55 @@ class KlaimController extends Controller
             $query->where('jenis_perawatan', $jenisKunjungan);
         }
 
-        if ($tanggalAwal && $tanggalAkhir) {
-            $query->whereBetween('tanggal_pengajuan', [$tanggalAwal, $tanggalAkhir]);
-        } elseif ($tanggalAwal) {
-            $query->whereDate('tanggal_pengajuan', '>=', $tanggalAwal);
-        } elseif ($tanggalAkhir) {
-            $query->whereDate('tanggal_pengajuan', '<=', $tanggalAkhir);
+        // Filter berdasarkan nomor_SEP yang valid dari langkah sebelumnya
+        if (($tanggalAwal || $tanggalAkhir)) {
+            if (!empty($validSep)) {
+                $query->whereIn('nomor_SEP', $validSep);
+            } else {
+                // Jika ada filter tanggal tapi tidak ada SEP yang valid, return empty
+                $query->whereRaw('0=1');
+            }
         }
 
         $pengajuanKlaim = $query
-            ->with(['pendaftaranPoli.pasien'])
+            ->with([
+                'pendaftaranPoli.pasien'
+            ])
             ->orderBy('tanggal_pengajuan', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
+
+        // 5. Tambahkan data penjamin dengan kunjunganPasien dan ruangan untuk setiap item
+        $pengajuanKlaim->getCollection()->transform(function ($item) {
+            // Ambil data penjamin dari database pendaftaran
+            $penjamin = \App\Models\Pendaftaran\Penjamin::on('pendaftaran')
+                ->where('NOMOR', $item->nomor_SEP)
+                ->first();
+
+            if ($penjamin) {
+                // Ambil kunjungan pasien yang terkait dengan penjamin
+                $kunjunganPasien = \App\Models\Pendaftaran\Kunjungan::on('pendaftaran')
+                    ->where('NOPEN', $penjamin->NOPEN)
+                    ->get();
+
+                // Untuk setiap kunjungan, ambil data ruangan dari database master
+                $kunjunganPasien->each(function ($kunjungan) {
+                    $ruangan = \App\Models\Master\Ruangan::where('ID', $kunjungan->RUANGAN)
+                        ->whereIn('JENIS_KUNJUNGAN', [1, 2, 3])
+                        ->first();
+                    $kunjungan->ruangan = $ruangan;
+                });
+
+                // Filter hanya kunjungan yang memiliki ruangan dengan JENIS_KUNJUNGAN = 1,2,3
+                $penjamin->kunjungan_pasien = $kunjunganPasien->filter(function ($kunjungan) {
+                    return $kunjungan->ruangan !== null;
+                })->values();
+            }
+
+            // Tambahkan data penjamin ke item
+            $item->penjamin = $penjamin;
+
+            return $item;
+        });
 
         return response()->json([
             'pengajuanKlaim' => $pengajuanKlaim,

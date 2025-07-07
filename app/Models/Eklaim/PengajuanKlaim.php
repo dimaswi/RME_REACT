@@ -36,7 +36,7 @@ class PengajuanKlaim extends Model
 
     public function penjamin()
     {
-        return $this->hasOne(Penjamin::class, 'NOMOR', 'nomor_SEP');
+        return $this->hasOne(Penjamin::class, 'NOMOR', 'nomor_SEP')->setConnection('pendaftaran');
     }
 
     public function resumeMedis()
