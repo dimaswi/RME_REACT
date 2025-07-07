@@ -105,7 +105,7 @@ class KlaimController extends Controller
                 ->with([
                     'dataPeserta',
                     'kartuAsuransiPasien',
-                    'penjaminPendaftaran.kunjunganPasien'
+                    'penjaminPendaftaran.kunjunganPasien.ruangan'
                 ])
                 ->orderBy('tglSEP', 'desc')
                 ->paginate($perPage);

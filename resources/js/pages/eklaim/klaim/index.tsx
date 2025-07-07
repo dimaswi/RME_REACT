@@ -260,7 +260,7 @@ export default function KlaimIndex() {
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="ALL">Semua Poli</SelectItem>
+                                <SelectItem value="ALL">Semua Kunjungan</SelectItem>
                                 <SelectItem value="RAWAT_INAP">Rawat Inap</SelectItem>
                                 <SelectItem value="INT">Poli Penyakit Dalam</SelectItem>
                                 <SelectItem value="ANA">Poli Anak</SelectItem>
@@ -438,24 +438,50 @@ export default function KlaimIndex() {
                                         <TableCell>{item.data_peserta?.noKartu || '-'}</TableCell>
                                         <TableCell>{item.noSEP || '-'}</TableCell>
                                         <TableCell>
-                                            {formatTanggalIndo(
-                                                Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien) &&
-                                                    item.penjamin_pendaftaran.kunjungan_pasien.length > 0
-                                                    ? item.penjamin_pendaftaran.kunjungan_pasien[
-                                                        item.penjamin_pendaftaran.kunjungan_pasien.length - 1
-                                                    ]?.MASUK
-                                                    : '',
-                                            )}
+                                            {(() => {
+                                                // Pastikan kunjungan_pasien adalah array
+                                                if (!Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien)) {
+                                                    return '-';
+                                                }
+
+                                                // Filter kunjungan yang memiliki JENIS_KUNJUNGAN = 1, 2, atau 3
+                                                const validKunjungan = item.penjamin_pendaftaran.kunjungan_pasien.filter(
+                                                    (kunjungan: any) => [1, 2, 3].includes(kunjungan?.ruangan?.JENIS_KUNJUNGAN)
+                                                );
+
+                                                // Jika tidak ada kunjungan yang valid, return '-'
+                                                if (validKunjungan.length === 0) {
+                                                    return '-';
+                                                }
+
+                                                // Ambil kunjungan terakhir dari yang valid
+                                                const lastValidKunjungan = validKunjungan[validKunjungan.length - 1];
+
+                                                return formatTanggalIndo(lastValidKunjungan.MASUK);
+                                            })()}
                                         </TableCell>
                                         <TableCell>
-                                            {formatTanggalIndo(
-                                                Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien) &&
-                                                    item.penjamin_pendaftaran.kunjungan_pasien.length > 0
-                                                    ? item.penjamin_pendaftaran.kunjungan_pasien[
-                                                        item.penjamin_pendaftaran.kunjungan_pasien.length - 1
-                                                    ]?.KELUAR
-                                                    : '',
-                                            )}
+                                            {(() => {
+                                                // Pastikan kunjungan_pasien adalah array
+                                                if (!Array.isArray(item?.penjamin_pendaftaran?.kunjungan_pasien)) {
+                                                    return '-';
+                                                }
+
+                                                // Filter kunjungan yang memiliki JENIS_KUNJUNGAN = 1, 2, atau 3
+                                                const validKunjungan = item.penjamin_pendaftaran.kunjungan_pasien.filter(
+                                                    (kunjungan: any) => [1, 2, 3].includes(kunjungan?.ruangan?.JENIS_KUNJUNGAN)
+                                                );
+
+                                                // Jika tidak ada kunjungan yang valid, return '-'
+                                                if (validKunjungan.length === 0) {
+                                                    return '-';
+                                                }
+
+                                                // Ambil kunjungan terakhir dari yang valid
+                                                const lastValidKunjungan = validKunjungan[validKunjungan.length - 1];
+
+                                                return formatTanggalIndo(lastValidKunjungan.KELUAR);
+                                            })()}
                                         </TableCell>
                                         <TableCell>{item.poliTujuan || 'Rawat Inap'}</TableCell>
                                         <TableCell>{badgeStatus(item.klaimStatus)}</TableCell>
