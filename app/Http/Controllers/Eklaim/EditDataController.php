@@ -696,14 +696,14 @@ class EditDataController extends Controller
                         ->first();
 
                     // Hanya assign jika data IGD valid
-                    if (
-                        $tagihanPendaftaranIGD &&
-                        $tagihanPendaftaranIGD->tagihan &&
-                        !empty($tagihanPendaftaranIGD->tagihan->rincianTagihan) &&
-                        count($tagihanPendaftaranIGD->tagihan->rincianTagihan) > 0
-                    ) {
-                        $tagihanPendaftaran = $tagihanPendaftaranIGD;
-                    }
+                    // if (
+                    //     $tagihanPendaftaranIGD &&
+                    //     $tagihanPendaftaranIGD->tagihan &&
+                    //     !empty($tagihanPendaftaranIGD->tagihan->rincianTagihan) &&
+                    //     count($tagihanPendaftaranIGD->tagihan->rincianTagihan) > 0
+                    // ) {
+                    //     $tagihanPendaftaran = $tagihanPendaftaranIGD;
+                    // }
                 }
             }
 
