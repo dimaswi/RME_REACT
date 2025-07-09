@@ -35,8 +35,13 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                 const getNamaRiwayatObat = riwayatOrderObatPasien?.map((item: any) =>
                     item.map((detail: any) => detail.nama_obat.NAMA).join(", ")
                 ).join(", ") || "";
-                const diagnosaPasien = data.diagnosa_pasien?.map((item: any) => item.nama_diagnosa.STR + " (" + item.KODE + ")").join(", ");
-                const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
+                const diagnosaPasien = data.diagnosa_pasien?.length > 0
+                    ? data.diagnosa_pasien.map((item: any) => {
+                        const namaStr = item.nama_diagnosa?.STR || '';
+                        const kode = item.KODE || '';
+                        return `${namaStr} (${kode})`;
+                    }).join(", ")
+                    : ""; const riwayatAlergiPasien = data.riwayat_alergi?.map((item: any) => item.DESKRIPSI).join(", ");
 
                 setNamaPasien(data.pendaftaran_pasien?.pasien.NAMA ?? "");
                 setAlamat(data.pendaftaran_pasien?.pasien.ALAMAT ?? "");
@@ -733,7 +738,7 @@ export default function PengkajianAwal({ imageBase64, nomorKunjungan, onChange }
                     </tr>
                     <tr>
                         <td colSpan={8}>
-                                {   }
+                            { }
                         </td>
                     </tr>
                 </tbody>
