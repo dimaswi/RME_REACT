@@ -31,31 +31,31 @@ class RincianTagihan extends Model
 
     public function tarifAdministrasi()
     {
-        return $this->belongsTo(TarifPembayaran::class, 'TARIF_ID', 'ID')->where('STATUS', 1);
+        return $this->belongsTo(TarifPembayaran::class, 'TARIF_ID', 'ID');
     }
 
     public function tarifRuangRawat()
     {
-        return $this->belongsTo(TarifRuangRawat::class, 'TARIF_ID', 'ID')->where('STATUS', 1);
+        return $this->belongsTo(TarifRuangRawat::class, 'TARIF_ID', 'ID');
     }
 
     public function tarifTindakan()
     {
-        return $this->belongsTo(TarifTindakan::class, 'TARIF_ID', 'ID')->where('STATUS', 1);
+        return $this->belongsTo(TarifTindakan::class, 'TARIF_ID', 'ID');
     }
 
     public function hargaBarang()
     {
-        return $this->belongsTo(HargaBarang::class, 'TARIF_ID', 'ID')->where('STATUS', 1);
+        return $this->belongsTo(HargaBarang::class, 'TARIF_ID', 'ID');
     }
 
     public function paket()
     {
-        return $this->belongsTo(Paket::class, 'TARIF_ID', 'ID')->where('STATUS', 1);
+        return $this->belongsTo(Paket::class, 'TARIF_ID', 'ID');
     }
 
     public function tarifOksigen()
     {
-        return $this->belongsTo(TarifOksigen::class, 'TARIF_ID', 'ID')->where('STATUS', 1);
+        return $this->belongsTo(TarifOksigen::class, 'TARIF_ID', 'ID');
     }
 }
