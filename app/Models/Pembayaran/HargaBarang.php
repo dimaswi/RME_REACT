@@ -13,6 +13,6 @@ class HargaBarang extends Model
 
     public function obat()
     {
-        return $this->belongsTo(Obat::class, 'BARANG', 'ID');
+        return $this->belongsTo(Obat::class, 'BARANG', 'ID')->where('STATUS', 1);
     }
 }
