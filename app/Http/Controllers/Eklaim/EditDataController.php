@@ -659,7 +659,7 @@ class EditDataController extends Controller
         try {
             $resumeMedis = ResumeMedis::where('id_pengajuan_klaim', $pengajuanKlaim->id)->first();
             $kunjunganIGD = Kunjungan::where('NOMOR', $resumeMedis->nomor_kunjungan_igd)->first();
-
+            dd($kunjunganIGD);
             // Cari tagihanPendaftaran dengan UTAMA = 1
             $tagihanPendaftaran = TagihanPendaftaran::where('PENDAFTARAN', $pengajuanKlaim->nomor_pendaftaran)
                 ->with([
@@ -708,14 +708,14 @@ class EditDataController extends Controller
             }
 
             // Jika tetap tidak ada data, hentikan proses
-            // if (
-            //     !$tagihanPendaftaran ||
-            //     !$tagihanPendaftaran->tagihan ||
-            //     empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
-            //     count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
-            // ) {
-            //     return redirect()->back()->with('error', 'Data tagihan tidak ditemukan.');
-            // }
+            if (
+                !$tagihanPendaftaran ||
+                !$tagihanPendaftaran->tagihan ||
+                empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
+                count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
+            ) {
+                return redirect()->back()->with('error', 'Data tagihan tidak ditemukan.');
+            }
 
             // Hapus rincian lama sebelum insert baru
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->delete();
