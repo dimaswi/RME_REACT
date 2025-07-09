@@ -696,26 +696,26 @@ class EditDataController extends Controller
                         ->first();
 
                     // Hanya assign jika data IGD valid
-                    // if (
-                    //     $tagihanPendaftaranIGD &&
-                    //     $tagihanPendaftaranIGD->tagihan &&
-                    //     !empty($tagihanPendaftaranIGD->tagihan->rincianTagihan) &&
-                    //     count($tagihanPendaftaranIGD->tagihan->rincianTagihan) > 0
-                    // ) {
-                    //     $tagihanPendaftaran = $tagihanPendaftaranIGD;
-                    // }
+                    if (
+                        $tagihanPendaftaranIGD &&
+                        $tagihanPendaftaranIGD->tagihan &&
+                        !empty($tagihanPendaftaranIGD->tagihan->rincianTagihan) &&
+                        count($tagihanPendaftaranIGD->tagihan->rincianTagihan) > 0
+                    ) {
+                        $tagihanPendaftaran = $tagihanPendaftaranIGD;
+                    }
                 }
             }
 
             // Jika tetap tidak ada data, hentikan proses
-            if (
-                !$tagihanPendaftaran ||
-                !$tagihanPendaftaran->tagihan ||
-                empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
-                count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
-            ) {
-                return redirect()->back()->with('error', 'Data tagihan tidak ditemukan.');
-            }
+            // if (
+            //     !$tagihanPendaftaran ||
+            //     !$tagihanPendaftaran->tagihan ||
+            //     empty($tagihanPendaftaran->tagihan->rincianTagihan) ||
+            //     count($tagihanPendaftaran->tagihan->rincianTagihan) === 0
+            // ) {
+            //     return redirect()->back()->with('error', 'Data tagihan tidak ditemukan.');
+            // }
 
             // Hapus rincian lama sebelum insert baru
             RincianTagihan::where('id_pengajuan_klaim', $pengajuanKlaim->id)->delete();
