@@ -220,6 +220,8 @@ class EditDataController extends Controller
             }
         }
 
+        dd($dataKunjungan);        
+
         //Kop
         $imagePath = public_path('images/kop.png'); // Path ke gambar di folder public
         if (!file_exists($imagePath)) {
