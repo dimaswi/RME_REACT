@@ -215,6 +215,7 @@ class EditDataController extends Controller
                             'dokterDPJP.pegawai'
                         ]);
                         $dataKunjungan = $kunjungan;
+                        $dataKunjungan['nomor_kunjungan_igd'] = $kunjungan->NOMOR;
                     }
                 }
             }
